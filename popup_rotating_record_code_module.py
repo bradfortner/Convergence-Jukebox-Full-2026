@@ -330,41 +330,8 @@ def display_rotating_record_popup(song_title, artist_name):
         img.save(OUTPUT_FILENAME, 'PNG')
         print(f"  Saved: {OUTPUT_FILENAME}")
 
-        # Composite the record label with the background
-        try:
-            # Load the background image
-            background = Image.open(BACKGROUND_PATH)
-
-            # Load the record label
-            record_label = Image.open(OUTPUT_FILENAME)
-
-            # Convert both to RGBA if needed
-            if background.mode != 'RGBA':
-                background = background.convert('RGBA')
-            if record_label.mode != 'RGBA':
-                record_label = record_label.convert('RGBA')
-
-            # Calculate position to center the record label on the background
-            bg_width, bg_height = background.size
-            record_width, record_height = record_label.size
-            x_position = (bg_width - record_width) // 2
-            y_position = (bg_height - record_height) // 2
-
-            # Create composite image
-            composite = background.copy()
-            composite.paste(record_label, (x_position, y_position), record_label)
-
-            # Resize the composite image to desired popup window size
-            composite = composite.resize((POPUP_WIDTH, POPUP_HEIGHT), Image.LANCZOS)
-
-            # Save the composite image
-            composite.save(COMPOSITE_FILENAME, 'PNG')
-            print(f"Composite image saved: {COMPOSITE_FILENAME} (resized to {POPUP_WIDTH}x{POPUP_HEIGHT})")
-            display_image = COMPOSITE_FILENAME
-
-        except Exception as e:
-            print(f"Warning: Could not create composite image: {e}")
-            display_image = OUTPUT_FILENAME  # Fall back to record label without background
+        # Use the record label directly for faster rotation animation
+        display_image = OUTPUT_FILENAME
 
         # Final completion message
         print("-" * 80)

@@ -2587,20 +2587,14 @@ def main():
                         # Show popup if conditions met
                         if should_show:
                             print(f"DEBUG: Showing rotating record popup - conditions met!")
-                            rotating_record_popup_window, rotating_record_start_time, rotating_record_rotation_stop_flag = display_rotating_record_popup(
+                            # Popup manages itself independently in daemon thread, no need to unpack return
+                            display_rotating_record_popup(
                                 MusicMasterSongList[counter]['title'],
                                 MusicMasterSongList[counter]['artist']
                             )
 
-                        # Close popup if song ending
-                        if should_close:
-                            print(f"DEBUG: Closing rotating record popup (song ending)")
-                            if rotating_record_rotation_stop_flag is not None:
-                                rotating_record_rotation_stop_flag.set()
-                            rotating_record_popup_window.close()
-                            rotating_record_popup_window = None
-                            rotating_record_start_time = None
-                            rotating_record_rotation_stop_flag = None
+                        # Note: Popup is now independent and manages its own lifecycle
+                        # No need to manually close it - it closes based on timeout/user input
 
                         if UpcomingSongPlayList != []:
                             # update upcoming selections on jukebox screens

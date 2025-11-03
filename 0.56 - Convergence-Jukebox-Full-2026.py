@@ -1637,6 +1637,7 @@ def main():
     threading.Thread(target=file_lookup_thread, args=(song_playing_lookup_window,), daemon=True).start()
     # Main Jukebox GUI
     while True:
+        global last_keypress_time, rotating_record_popup_window, rotating_record_start_time
         window, event, values = sg.read_all_windows()
         print(event, values)
         print(event)  # prints buttons key name
@@ -2466,7 +2467,7 @@ def main():
             print(f'closing window = {window.Title}')
             break
         if event == '--SONG_PLAYING_LOOKUP--':
-            global last_song_check
+            global last_song_check, rotating_record_popup_window, rotating_record_start_time, song_start_time
             with open('CurrentSongPlaying.txt', 'r') as CurrentSongPlayingOpen:
                 song_currently_playing = CurrentSongPlayingOpen.read()
                 #  search MusicMasterSonglist for location string

@@ -2467,7 +2467,7 @@ def main():
             print(f'closing window = {window.Title}')
             break
         if event == '--SONG_PLAYING_LOOKUP--':
-            global last_song_check, rotating_record_popup_window, rotating_record_start_time, song_start_time
+            global last_song_check, song_start_time
             with open('CurrentSongPlaying.txt', 'r') as CurrentSongPlayingOpen:
                 song_currently_playing = CurrentSongPlayingOpen.read()
                 #  search MusicMasterSonglist for location string

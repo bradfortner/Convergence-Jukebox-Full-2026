@@ -57,6 +57,12 @@ ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
 POPUP_WIDTH = 610                  # Popup window width in pixels
 POPUP_HEIGHT = 610                 # Popup window height in pixels
 
+# Record rotation animation settings
+RECORD_ROTATION_ENABLED = True     # Enable/disable record rotation animation
+RECORD_ROTATION_FPS = 30           # Frames per second for rotation animation
+RECORD_ROTATION_SPEED = 8          # Degrees per frame (240° per second at 30fps = 8°/frame)
+RECORD_ROTATION_ANGLE_STEP = 15    # Generate rotated frames every N degrees for efficiency
+
 # ============================================================================
 
 
@@ -154,23 +160,80 @@ def fit_text_to_width(text, base_font_path, start_size, max_width, max_lines, dr
     return wrap_text(text, font, max_width, draw), min_font_size, font
 
 
+def rotate_record_animation(popup_window, image_key, image_path, rotation_stop_flag):
+    """
+    Continuously rotate the record image in the popup window.
+
+    This function runs in a background thread and rotates the record image
+    at the specified FPS and rotation speed, updating the popup display.
+
+    Args:
+        popup_window: FreeSimpleGUI Window object containing the image
+        image_key: The key of the image element in the popup
+        image_path: Path to the record image file to rotate
+        rotation_stop_flag: threading.Event to signal when to stop rotation
+    """
+    try:
+        pil_image = Image.open(image_path)
+
+        # Convert to RGB if necessary
+        if pil_image.mode != 'RGBA':
+            pil_image = pil_image.convert('RGB')
+
+        angle = 0
+        frame_count = 0
+
+        while not rotation_stop_flag.is_set():
+            # Generate rotated image
+            rotated_img = pil_image.rotate(-angle, expand=False)
+
+            # Save rotated image temporarily
+            temp_rotated_path = 'temp_rotated_record.png'
+            rotated_img.save(temp_rotated_path, 'PNG')
+
+            try:
+                # Update popup image
+                popup_window[image_key].update(filename=temp_rotated_path)
+            except:
+                # Popup may have closed
+                break
+
+            # Update rotation angle
+            angle = (angle + RECORD_ROTATION_SPEED) % 360
+            frame_count += 1
+
+            # Sleep to maintain frame rate
+            time.sleep(1.0 / RECORD_ROTATION_FPS)
+
+        # Clean up temp file
+        try:
+            os.remove(temp_rotated_path)
+        except:
+            pass
+
+    except Exception as e:
+        print(f"Error in record rotation animation: {e}")
+
+
 def display_rotating_record_popup(song_title, artist_name):
     """
     Display a rotating record popup during song playback.
 
     This popup dynamically generates a record image with the song title and artist,
-    displays it as an animated popup. The popup appears after specified idle time
-    and playback duration, and closes on any keypress or when the song has
-    specified seconds remaining.
+    displays it as an animated popup that rotates continuously. The popup appears
+    after specified idle time and playback duration, and closes on any keypress
+    or when the song has specified seconds remaining. The record continuously
+    rotates at the specified FPS and rotation speed.
 
     Args:
         song_title (str): The title of the currently playing song
         artist_name (str): The artist name for the currently playing song
 
     Returns:
-        tuple: (popup_window, popup_start_time) for lifecycle management
+        tuple: (popup_window, popup_start_time, rotation_stop_flag) for lifecycle management
                - popup_window: FreeSimpleGUI Window object
                - popup_start_time: time.time() when popup was created
+               - rotation_stop_flag: threading.Event to signal when to stop rotation thread
     """
 
     try:
@@ -336,11 +399,24 @@ def display_rotating_record_popup(song_title, artist_name):
 
         print("Rotating record popup created and displayed")
 
-        # Return the popup window to be processed by main event loop
-        return popup_window, popup_start_time
+        # Create rotation stop flag for animation thread control
+        rotation_stop_flag = threading.Event()
+
+        # Start rotation animation thread if enabled
+        if RECORD_ROTATION_ENABLED:
+            rotation_thread = threading.Thread(
+                target=rotate_record_animation,
+                args=(popup_window, '--ROTATING_RECORD_IMAGE--', display_image, rotation_stop_flag),
+                daemon=True
+            )
+            rotation_thread.start()
+            print("Record rotation animation started")
+
+        # Return the popup window and rotation control for lifecycle management
+        return popup_window, popup_start_time, rotation_stop_flag
 
     except Exception as e:
         print(f"Error displaying rotating record popup: {e}")
         import traceback
         traceback.print_exc()
-        return None, None
+        return None, None, None

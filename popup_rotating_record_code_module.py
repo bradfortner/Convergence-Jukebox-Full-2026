@@ -1,6 +1,7 @@
 """
 Rotating Record Pop-up Code Module
 Displays a rotating record during playback based on idle time and song progress
+Dynamically generates record images with song title and artist information
 
 All popup parameters are defined here to keep popup logic self-contained.
 """
@@ -8,6 +9,8 @@ import threading
 from pathlib import Path
 import os
 import time
+import random
+from PIL import Image, ImageDraw, ImageFont
 import FreeSimpleGUI as sg
 
 # ============================================================================
@@ -38,20 +41,131 @@ POPUP_WINDOW_BACKGROUND = 'black'
 POPUP_WINDOW_NO_TITLEBAR = True
 POPUP_WINDOW_KEEP_ON_TOP = True
 
-# Popup image filename
-POPUP_IMAGE_FILENAME = 'rotating_record.png'
+# Record generation settings
+BLANK_RECORDS_DIR = "record_labels/blank_record_labels"
+BACKGROUND_PATH = "images/45rpm_background.png"
+FONT_PATH = "fonts/OpenSans-ExtraBold.ttf"
+OUTPUT_FILENAME = 'final_record_pressing.png'
+COMPOSITE_FILENAME = 'final_record_with_background.png'
+
+# Text rendering configuration
+MAX_TEXT_WIDTH = 300               # Maximum width for wrapped text (pixels)
+SONG_Y = 90                        # Y position offset for song title (from center)
+ARTIST_Y = 125                     # Y position offset for artist name (from center)
+SONG_LINE_HEIGHT = 25              # Vertical spacing between song title lines
+ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
+POPUP_WIDTH = 610                  # Popup window width in pixels
+POPUP_HEIGHT = 610                 # Popup window height in pixels
 
 # ============================================================================
 
 
-def display_rotating_record_popup():
+def wrap_text(text, font, max_width, draw):
+    """
+    Wrap text to fit within a specified pixel width.
+
+    Breaks text into lines by word boundaries to ensure no line exceeds
+    the maximum width. Uses the font metrics to calculate actual pixel widths.
+
+    Args:
+        text (str): The text to wrap
+        font (ImageFont): Pillow font object for measuring text width
+        max_width (int): Maximum width in pixels for each line
+        draw (ImageDraw): Pillow draw object for text metrics
+
+    Returns:
+        list: List of wrapped text lines, each within max_width
+    """
+    words = text.split()
+    lines = []
+    current_line = ""
+
+    for word in words:
+        # Test if adding the next word would exceed max width
+        test_line = current_line + word + " "
+        bbox = draw.textbbox((0, 0), test_line, font=font)
+        text_width = bbox[2] - bbox[0]
+
+        if text_width <= max_width:
+            # Word fits on current line
+            current_line = test_line
+        else:
+            # Word doesn't fit, save current line and start new one
+            if current_line:
+                lines.append(current_line.strip())
+            current_line = word + " "
+
+    # Append any remaining text
+    if current_line:
+        lines.append(current_line.strip())
+
+    return lines
+
+
+def fit_text_to_width(text, base_font_path, start_size, max_width, max_lines, draw):
+    """
+    Auto-fit text by reducing font size until it fits within constraints.
+
+    Iteratively reduces font size by 2pt increments until text fits within
+    the specified width and line limits. Prefers single-line text, but allows
+    up to max_lines if necessary.
+
+    Args:
+        text (str): The text to fit
+        base_font_path (str): Path to the TTF font file
+        start_size (int): Starting font size in points
+        max_width (int): Maximum width in pixels
+        max_lines (int): Maximum number of lines allowed
+        draw (ImageDraw): Pillow draw object for text metrics
+
+    Returns:
+        tuple: (list of wrapped lines, font size used, font object)
+    """
+    font_size = start_size
+    min_font_size = 16  # Don't go smaller than 16pt
+
+    while font_size >= min_font_size:
+        # Create font at current size
+        font = ImageFont.truetype(base_font_path, font_size)
+        lines = wrap_text(text, font, max_width, draw)
+
+        # Prefer single line - return immediately if text fits on one line
+        if len(lines) == 1:
+            return lines, font_size, font
+
+        # If text fits within max_lines, check if we should try smaller font
+        if len(lines) <= max_lines:
+            # Test if reducing font size would still fit
+            test_font = ImageFont.truetype(base_font_path, font_size - 2)
+            test_lines = wrap_text(text, test_font, max_width, draw)
+            if len(test_lines) <= max_lines:
+                # Can fit with smaller font, so keep reducing
+                font_size -= 2
+                continue
+            else:
+                # Current size is good, smaller size would break max_lines
+                return lines, font_size, font
+
+        # Text doesn't fit, reduce size and try again
+        font_size -= 2
+
+    # Last resort - use minimum font size
+    font = ImageFont.truetype(base_font_path, min_font_size)
+    return wrap_text(text, font, max_width, draw), min_font_size, font
+
+
+def display_rotating_record_popup(song_title, artist_name):
     """
     Display a rotating record popup during song playback.
 
-    This popup appears after specified idle time and playback duration,
-    and closes on any keypress or when the song has specified seconds remaining.
+    This popup dynamically generates a record image with the song title and artist,
+    displays it as an animated popup. The popup appears after specified idle time
+    and playback duration, and closes on any keypress or when the song has
+    specified seconds remaining.
 
-    All timing parameters are configured at module level for easy customization.
+    Args:
+        song_title (str): The title of the currently playing song
+        artist_name (str): The artist name for the currently playing song
 
     Returns:
         tuple: (popup_window, popup_start_time) for lifecycle management
@@ -60,15 +174,145 @@ def display_rotating_record_popup():
     """
 
     try:
-        # Use the rotating record image
-        record_filename = POPUP_IMAGE_FILENAME
+        # Get all .png files from the blank_record_labels directory
+        print("\nScanning for available record labels...")
+        png_files = [f for f in os.listdir(BLANK_RECORDS_DIR) if f.endswith('.png')]
 
-        if not os.path.exists(record_filename):
-            print(f"Warning: {record_filename} not found")
-            return None, None
+        if not png_files:
+            raise FileNotFoundError(f"No .png files found in {BLANK_RECORDS_DIR}")
 
+        print(f"Found {len(png_files)} available record labels")
+
+        # Randomly select one blank record label
+        selected_label = random.choice(png_files)
+        label_path = os.path.join(BLANK_RECORDS_DIR, selected_label)
+
+        print(f"Randomly selected label: {selected_label}")
+
+        # Determine font color based on filename
+        # If filename starts with "w_", use white font; otherwise use black
+        # Use RGBA tuples (R, G, B, Alpha) where 255 = fully opaque
+        font_color = (255, 255, 255, 255) if selected_label.startswith("w_") else (0, 0, 0, 255)
+        color_mode = "WHITE" if selected_label.startswith("w_") else "BLACK"
+        print(f"Font color mode: {color_mode}")
+
+        # Load the selected record label image
+        print("Loading blank record label template...")
+        base_img = Image.open(label_path)
+
+        # Get image dimensions for positioning calculations
+        width, height = base_img.size
+
+        # Calculate Y positions based on image center
+        song_y = (height // 2) + SONG_Y
+        artist_y = (height // 2) + ARTIST_Y
+
+        print(f"Creating record label with {color_mode} text...")
+        print("-" * 80)
+
+        # Create a working copy of the base image and convert to RGBA
+        img = base_img.copy()
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
+
+        draw = ImageDraw.Draw(img)
+
+        # Auto-fit song title text
+        # Start at 28pt, allow max 2 lines
+        song_lines, song_font_size, song_font = fit_text_to_width(
+            song_title, FONT_PATH, 28, MAX_TEXT_WIDTH, 2, draw
+        )
+
+        # Auto-fit artist name text
+        # Start at 28pt, allow max 2 lines
+        artist_lines, artist_font_size, artist_font = fit_text_to_width(
+            artist_name, FONT_PATH, 28, MAX_TEXT_WIDTH, 2, draw
+        )
+
+        # Draw song title lines, centered horizontally
+        for i, line in enumerate(song_lines):
+            # Calculate width of this line to center it
+            song_bbox = draw.textbbox((0, 0), line, font=song_font)
+            song_width = song_bbox[2] - song_bbox[0]
+            song_x = (width - song_width) // 2  # Center horizontally
+
+            # Draw the line at calculated position with determined font color
+            draw.text(
+                (song_x, song_y + (i * SONG_LINE_HEIGHT)),
+                line,
+                font=song_font,
+                fill=font_color
+            )
+
+        # Adjust artist Y position based on number of song lines
+        # This prevents overlap if song title wraps to multiple lines
+        artist_y_adjusted = artist_y + ((len(song_lines) - 1) * SONG_LINE_HEIGHT)
+
+        # Draw artist name lines, centered horizontally
+        for i, line in enumerate(artist_lines):
+            # Calculate width of this line to center it
+            artist_bbox = draw.textbbox((0, 0), line, font=artist_font)
+            artist_width = artist_bbox[2] - artist_bbox[0]
+            artist_x = (width - artist_width) // 2  # Center horizontally
+
+            # Draw the line at calculated position with determined font color
+            draw.text(
+                (artist_x, artist_y_adjusted + (i * ARTIST_LINE_HEIGHT)),
+                line,
+                font=artist_font,
+                fill=font_color
+            )
+
+        # Save the record image with fixed filename
+        img.save(OUTPUT_FILENAME, 'PNG')
+        print(f"  Saved: {OUTPUT_FILENAME}")
+
+        # Composite the record label with the background
+        try:
+            # Load the background image
+            background = Image.open(BACKGROUND_PATH)
+
+            # Load the record label
+            record_label = Image.open(OUTPUT_FILENAME)
+
+            # Convert both to RGBA if needed
+            if background.mode != 'RGBA':
+                background = background.convert('RGBA')
+            if record_label.mode != 'RGBA':
+                record_label = record_label.convert('RGBA')
+
+            # Calculate position to center the record label on the background
+            bg_width, bg_height = background.size
+            record_width, record_height = record_label.size
+            x_position = (bg_width - record_width) // 2
+            y_position = (bg_height - record_height) // 2
+
+            # Create composite image
+            composite = background.copy()
+            composite.paste(record_label, (x_position, y_position), record_label)
+
+            # Resize the composite image to desired popup window size
+            composite = composite.resize((POPUP_WIDTH, POPUP_HEIGHT), Image.LANCZOS)
+
+            # Save the composite image
+            composite.save(COMPOSITE_FILENAME, 'PNG')
+            print(f"Composite image saved: {COMPOSITE_FILENAME} (resized to {POPUP_WIDTH}x{POPUP_HEIGHT})")
+            display_image = COMPOSITE_FILENAME
+
+        except Exception as e:
+            print(f"Warning: Could not create composite image: {e}")
+            display_image = OUTPUT_FILENAME  # Fall back to record label without background
+
+        # Final completion message
+        print("-" * 80)
+        print(f"Record generation complete!")
+        print(f"Selected label: {selected_label}")
+        print(f"Font color: {color_mode}")
+        print(f"Output location: {display_image} in current directory")
+
+        # Display the popup as an interactive window that accepts keyboard input
         layout = [
-            [sg.Image(filename=record_filename, key='--ROTATING_RECORD_IMAGE--')]
+            [sg.Image(filename=display_image, key='--ROTATING_RECORD_IMAGE--')]
         ]
 
         popup_window = sg.Window(

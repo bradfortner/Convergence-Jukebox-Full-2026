@@ -451,7 +451,8 @@ def display_rotating_record_popup(song_title, artist_name):
         artist_name (str): The artist name for the currently playing song
 
     Returns:
-        None (popup runs independently in background thread)
+        tuple: (None, None, None) - Popup manages itself independently
+               Main thread doesn't control popup lifecycle
     """
     popup_thread = threading.Thread(
         target=_independent_popup_manager,
@@ -460,3 +461,7 @@ def display_rotating_record_popup(song_title, artist_name):
     )
     popup_thread.start()
     print(f"Popup manager thread started (daemon mode)")
+
+    # Return None tuple so main thread unpacking doesn't fail
+    # Main thread doesn't manage popup - it's completely independent
+    return None, None, None

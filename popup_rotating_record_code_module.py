@@ -258,27 +258,23 @@ def rotate_record_animation(popup_window, image_key, image_path, rotation_stop_f
         print(f"Error in record rotation animation: {e}")
 
 
-def display_rotating_record_popup(song_title, artist_name):
+def _independent_popup_manager(song_title, artist_name):
     """
-    Display a rotating record popup during song playback.
+    Run the entire popup independently in a separate thread.
 
-    This popup dynamically generates a record image with the song title and artist,
-    displays it as an animated popup that rotates continuously. The popup appears
-    after specified idle time and playback duration, and closes on any keypress
-    or when the song has specified seconds remaining. The record continuously
-    rotates at the specified FPS and rotation speed.
+    This function runs in a daemon thread and completely manages the popup lifecycle:
+    - Record generation
+    - Window creation
+    - Animation loop
+    - User input handling
+    - Cleanup
+
+    No interaction with main thread except initial parameters.
 
     Args:
         song_title (str): The title of the currently playing song
         artist_name (str): The artist name for the currently playing song
-
-    Returns:
-        tuple: (popup_window, popup_start_time, rotation_stop_flag) for lifecycle management
-               - popup_window: FreeSimpleGUI Window object
-               - popup_start_time: time.time() when popup was created
-               - rotation_stop_flag: threading.Event to signal when to stop rotation thread
     """
-
     try:
         # Get all .png files from the blank_record_labels directory
         print("\nScanning for available record labels...")
@@ -422,11 +418,45 @@ def display_rotating_record_popup(song_title, artist_name):
             rotation_thread.start()
             print("Record rotation animation started")
 
-        # Return the popup window and rotation control for lifecycle management
-        return popup_window, popup_start_time, rotation_stop_flag
+        # Popup runs independently in its own thread - no return needed
+        # Window event loop runs until closed
+        while True:
+            event, values = popup_window.read(timeout=100)
+
+            # Check for window close or user input
+            if event == sg.WINDOW_CLOSED or event == '--ROTATING_RECORD_KEY--' or event == '--ROTATING_RECORD_ESC--':
+                break
+
+        # Clean up on exit
+        rotation_stop_flag.set()
+        popup_window.close()
+        print("Rotating record popup closed")
 
     except Exception as e:
-        print(f"Error displaying rotating record popup: {e}")
+        print(f"Error in independent popup manager: {e}")
         import traceback
         traceback.print_exc()
-        return None, None, None
+
+
+def display_rotating_record_popup(song_title, artist_name):
+    """
+    Launch the popup in a completely independent thread.
+
+    This function returns immediately to the caller. The popup window
+    runs in its own daemon thread with no interaction with the main thread
+    except for the initial parameters.
+
+    Args:
+        song_title (str): The title of the currently playing song
+        artist_name (str): The artist name for the currently playing song
+
+    Returns:
+        None (popup runs independently in background thread)
+    """
+    popup_thread = threading.Thread(
+        target=_independent_popup_manager,
+        args=(song_title, artist_name),
+        daemon=True
+    )
+    popup_thread.start()
+    print(f"Popup manager thread started (daemon mode)")

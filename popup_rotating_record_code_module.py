@@ -24,8 +24,12 @@ POPUP_MIN_IDLE_TIME = 20
 # Seconds remaining in song threshold - popup closes when song has <= this time remaining
 POPUP_CLOSE_SECONDS_REMAINING = 5
 
-# Default song duration in seconds (used if duration cannot be parsed from metadata)
-POPUP_DEFAULT_SONG_DURATION = 600
+# DEPRECATED: Default song duration in seconds (fallback if duration cannot be parsed from metadata)
+# NOTE: Duration should ALWAYS be obtained from VLC metadata (jukebox.song_duration)
+#       which contains the actual song duration from the media file.
+#       At worst, the popup will close when the song ends naturally via the time_remaining check.
+#       This fallback should not be needed in normal operation.
+# POPUP_DEFAULT_SONG_DURATION = 600
 
 # Popup window properties
 POPUP_WINDOW_TITLE = ''  # Empty = no title bar

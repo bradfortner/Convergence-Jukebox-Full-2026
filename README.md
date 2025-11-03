@@ -1,4 +1,4 @@
-# Convergence Jukebox 2026
+# Convergence Jukebox Full 2026
 
 A threaded music player that combines a VLC-based audio engine with a FreeSimpleGUI interface, running the engine as a non-blocking daemon thread while maintaining a responsive GUI for song selection, search, and playlist management. Features a 79-track collection with support for random and paid playlists, genre filtering, and file-based inter-process communication between components.
 

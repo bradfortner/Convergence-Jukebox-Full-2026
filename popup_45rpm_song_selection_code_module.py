@@ -316,10 +316,9 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
         popup_window.bind('<x>', '--POPUP_X_PRESSED--')
         popup_window.bind('<Escape>', '--POPUP_ESC--')
 
-        # Store popup creation time for auto-close after 4 seconds
-        # Extended to 4 seconds to allow success.mp3 audio to play fully
+        # Store popup creation time for auto-close after 1 second
         popup_start_time = time.time()
-        popup_duration = 4.0
+        popup_duration = 1.0
 
         # Return the popup window to be processed by main event loop
         # The popup will be included in sg.read_all_windows() reads

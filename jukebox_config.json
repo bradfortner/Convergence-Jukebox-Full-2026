@@ -1,0 +1,21 @@
+{
+  "logging": {
+    "enabled": true,
+    "level": "INFO",
+    "format": "{timestamp} {level}: {message}"
+  },
+  "paths": {
+    "music_dir": "music",
+    "log_file": "log.txt",
+    "genre_flags_file": "GenreFlagsList.txt",
+    "music_master_song_list_file": "MusicMasterSongList.txt",
+    "music_master_song_list_check_file": "MusicMasterSongListCheck.txt",
+    "paid_music_playlist_file": "PaidMusicPlayList.txt",
+    "current_song_playing_file": "CurrentSongPlaying.txt"
+  },
+  "console": {
+    "colors_enabled": true,
+    "show_system_info": true,
+    "verbose": false
+  }
+}

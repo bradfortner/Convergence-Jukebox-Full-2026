@@ -2527,13 +2527,22 @@ def main():
                                 song_start_time = time.time()
 
                         # ROTATING RECORD POPUP LOGIC
-                        # Use system clock timing (no VLC dependency)
+                        # Use system clock timing with actual song duration
                         time_since_keypress = time.time() - last_keypress_time
                         elapsed_seconds = time.time() - song_start_time
-                        # Assume 10 minute default song length (600 seconds) to accommodate longer songs
-                        time_remaining_seconds = max(0, 600 - elapsed_seconds)
 
-                        print(f"DEBUG Rotating: Elapsed={elapsed_seconds:.1f}s, TimeRemaining={time_remaining_seconds:.1f}s, KeypressIdle={time_since_keypress:.1f}s")
+                        # Convert jukebox.song_duration from "MM:SS" format to total seconds
+                        try:
+                            duration_parts = jukebox.song_duration.split(':')
+                            total_song_seconds = int(duration_parts[0]) * 60 + int(duration_parts[1])
+                        except (ValueError, IndexError, AttributeError):
+                            # Fallback if duration parsing fails
+                            total_song_seconds = 600
+                            print(f"DEBUG: Warning - could not parse song duration: {jukebox.song_duration}, using 600s fallback")
+
+                        time_remaining_seconds = max(0, total_song_seconds - elapsed_seconds)
+
+                        print(f"DEBUG Rotating: Elapsed={elapsed_seconds:.1f}s, Duration={total_song_seconds}s, TimeRemaining={time_remaining_seconds:.1f}s, KeypressIdle={time_since_keypress:.1f}s")
 
                         # Check for events from the rotating record popup window (keypress detection)
                         if rotating_record_popup_window is not None:

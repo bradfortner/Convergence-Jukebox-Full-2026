@@ -50,10 +50,9 @@ def display_rotating_record_popup():
     All timing parameters are configured at module level for easy customization.
 
     Returns:
-        tuple: (popup_window, popup_start_time, popup_duration) for lifecycle management
+        tuple: (popup_window, popup_start_time) for lifecycle management
                - popup_window: FreeSimpleGUI Window object
                - popup_start_time: time.time() when popup was created
-               - popup_duration: duration to keep popup open (None = manual close only)
     """
 
     try:
@@ -62,7 +61,7 @@ def display_rotating_record_popup():
 
         if not os.path.exists(record_filename):
             print(f"Warning: {record_filename} not found")
-            return None, None, None
+            return None, None
 
         layout = [
             [sg.Image(filename=record_filename, key='--ROTATING_RECORD_IMAGE--')]
@@ -87,17 +86,13 @@ def display_rotating_record_popup():
         # Store popup creation time for lifecycle management
         popup_start_time = time.time()
 
-        # Popup duration - None means manual close (controlled by main event loop)
-        popup_duration = None
-
         print("Rotating record popup created and displayed")
 
         # Return the popup window to be processed by main event loop
-        # popup_duration=None means the popup closes via keypress or time_remaining check
-        return popup_window, popup_start_time, popup_duration
+        return popup_window, popup_start_time
 
     except Exception as e:
         print(f"Error displaying rotating record popup: {e}")
         import traceback
         traceback.print_exc()
-        return None, None, None
+        return None, None

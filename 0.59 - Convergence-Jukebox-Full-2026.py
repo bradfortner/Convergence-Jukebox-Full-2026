@@ -2577,7 +2577,7 @@ def main():
                         # Show popup if conditions met
                         if should_show:
                             print(f"DEBUG: Showing rotating record popup - conditions met!")
-                            rotating_record_popup_window, rotating_record_start_time, popup_duration = display_rotating_record_popup()
+                            rotating_record_popup_window, rotating_record_start_time = display_rotating_record_popup()
 
                         # Close popup if song ending
                         if should_close:

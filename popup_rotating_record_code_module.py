@@ -160,18 +160,18 @@ def fit_text_to_width(text, base_font_path, start_size, max_width, max_lines, dr
     return wrap_text(text, font, max_width, draw), min_font_size, font
 
 
-def rotate_record_animation(popup_window, image_key, image_path, rotation_stop_flag):
+def generate_rotated_frames(image_path):
     """
-    Continuously rotate the record image in the popup window.
+    Pre-generate all rotated frames for the record animation.
 
-    This function runs in a background thread and rotates the record image
-    at the specified FPS and rotation speed, updating the popup display.
+    Creates a cache of rotated images at RECORD_ROTATION_ANGLE_STEP degree
+    intervals, eliminating the need to rotate on-the-fly during animation.
 
     Args:
-        popup_window: FreeSimpleGUI Window object containing the image
-        image_key: The key of the image element in the popup
-        image_path: Path to the record image file to rotate
-        rotation_stop_flag: threading.Event to signal when to stop rotation
+        image_path: Path to the base record image
+
+    Returns:
+        list: List of PIL Image objects, one for each rotation angle
     """
     try:
         pil_image = Image.open(image_path)
@@ -180,16 +180,59 @@ def rotate_record_animation(popup_window, image_key, image_path, rotation_stop_f
         if pil_image.mode != 'RGBA':
             pil_image = pil_image.convert('RGB')
 
-        angle = 0
+        frames = []
+        num_frames = 360 // RECORD_ROTATION_ANGLE_STEP
+
+        print(f"Pre-caching {num_frames} rotated frames for smooth animation...")
+
+        for i in range(num_frames):
+            angle = (i * RECORD_ROTATION_ANGLE_STEP) % 360
+            rotated_img = pil_image.rotate(-angle, expand=False)
+            frames.append(rotated_img)
+
+        print(f"Frame caching complete: {num_frames} frames ready")
+        return frames
+
+    except Exception as e:
+        print(f"Error generating rotated frames: {e}")
+        return []
+
+
+def rotate_record_animation(popup_window, image_key, image_path, rotation_stop_flag):
+    """
+    Continuously rotate the record image in the popup window using pre-cached frames.
+
+    This function runs in a background thread and cycles through pre-generated
+    rotated frames at the specified FPS and rotation speed, updating the popup display.
+    This approach eliminates disk I/O and expensive rotation calculations per frame.
+
+    Args:
+        popup_window: FreeSimpleGUI Window object containing the image
+        image_key: The key of the image element in the popup
+        image_path: Path to the record image file to use for frame generation
+        rotation_stop_flag: threading.Event to signal when to stop rotation
+    """
+    try:
+        # Pre-generate all rotated frames
+        frames = generate_rotated_frames(image_path)
+
+        if not frames:
+            print("Warning: No frames generated, animation cannot start")
+            return
+
+        frame_index = 0
         frame_count = 0
+        frames_per_step = max(1, RECORD_ROTATION_SPEED // RECORD_ROTATION_ANGLE_STEP)
+
+        # Temporary file for storing current frame
+        temp_rotated_path = 'temp_rotated_record.png'
 
         while not rotation_stop_flag.is_set():
-            # Generate rotated image
-            rotated_img = pil_image.rotate(-angle, expand=False)
+            # Get current frame from cache
+            current_frame = frames[frame_index % len(frames)]
 
-            # Save rotated image temporarily
-            temp_rotated_path = 'temp_rotated_record.png'
-            rotated_img.save(temp_rotated_path, 'PNG')
+            # Save frame temporarily for display
+            current_frame.save(temp_rotated_path, 'PNG')
 
             try:
                 # Update popup image
@@ -198,8 +241,8 @@ def rotate_record_animation(popup_window, image_key, image_path, rotation_stop_f
                 # Popup may have closed
                 break
 
-            # Update rotation angle
-            angle = (angle + RECORD_ROTATION_SPEED) % 360
+            # Move to next frame(s) based on rotation speed
+            frame_index += frames_per_step
             frame_count += 1
 
             # Sleep to maintain frame rate

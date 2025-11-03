@@ -2527,63 +2527,39 @@ def main():
                                 song_start_time = time.time()
 
                         # ROTATING RECORD POPUP LOGIC
-                        # Get current playback time from VLC, but use fallback timing
-                        try:
-                            current_time_ms = jukebox.vlc_media_player.get_time()
-                            duration_ms = jukebox.vlc_media_player.get_duration()
-                            time_since_keypress = time.time() - last_keypress_time
-                            elapsed_seconds_system = time.time() - song_start_time
+                        # Use system clock timing (no VLC dependency)
+                        time_since_keypress = time.time() - last_keypress_time
+                        elapsed_seconds = time.time() - song_start_time
+                        # Assume 3 minute default song length (180 seconds)
+                        time_remaining_seconds = max(0, 180 - elapsed_seconds)
 
-                            # DIAGNOSTIC: Log raw VLC values
-                            print(f"DEBUG DIAG: VLC={current_time_ms}ms/{duration_ms}ms, System elapsed={elapsed_seconds_system:.1f}s, Keypress idle={time_since_keypress:.1f}s")
+                        print(f"DEBUG Rotating: Elapsed={elapsed_seconds:.1f}s, TimeRemaining={time_remaining_seconds:.1f}s, KeypressIdle={time_since_keypress:.1f}s")
 
-                            # Use VLC time if available (> 0), otherwise fall back to system clock
-                            if current_time_ms > 0 and duration_ms > 0:
-                                elapsed_seconds = current_time_ms / 1000.0
-                                total_seconds = duration_ms / 1000.0
-                                time_remaining_seconds = total_seconds - elapsed_seconds
-                            else:
-                                # Fallback to system clock if VLC doesn't have valid times
-                                elapsed_seconds = elapsed_seconds_system
-                                # Try to get duration from metadata or use a reasonable default
-                                if duration_ms > 0:
-                                    total_seconds = duration_ms / 1000.0
-                                    time_remaining_seconds = total_seconds - elapsed_seconds
-                                else:
-                                    # If we don't know duration, assume 3 min default (180 seconds)
-                                    time_remaining_seconds = max(0, 180 - elapsed_seconds)
+                        # Conditions to SHOW rotating record popup
+                        should_show = (
+                            elapsed_seconds >= 20 and  # Song playing >= 20 seconds
+                            time_since_keypress >= 20 and  # Idle >= 20 seconds
+                            time_remaining_seconds >= 5 and  # Song has >= 5 seconds remaining
+                            rotating_record_popup_window is None  # Popup not already shown
+                        )
 
-                            print(f"DEBUG Rotating: Elapsed={elapsed_seconds:.1f}s, TimeRemaining={time_remaining_seconds:.1f}s, KeypressIdle={time_since_keypress:.1f}s")
+                        # Conditions to CLOSE rotating record popup
+                        should_close = (
+                            rotating_record_popup_window is not None and
+                            (time_remaining_seconds < 5)  # Close when 5 seconds remaining
+                        )
 
-                            # Conditions to SHOW rotating record popup
-                            should_show = (
-                                elapsed_seconds >= 20 and  # Song playing >= 20 seconds
-                                time_since_keypress >= 20 and  # Idle >= 20 seconds
-                                time_remaining_seconds >= 5 and  # Song has >= 5 seconds remaining
-                                rotating_record_popup_window is None  # Popup not already shown
-                            )
+                        # Show popup if conditions met
+                        if should_show:
+                            print(f"DEBUG: Showing rotating record popup - conditions met!")
+                            rotating_record_popup_window, rotating_record_start_time = display_rotating_record_popup()
 
-                            # Conditions to CLOSE rotating record popup
-                            should_close = (
-                                rotating_record_popup_window is not None and
-                                (time_remaining_seconds < 5)  # Close when 5 seconds remaining
-                            )
-
-                            # Show popup if conditions met
-                            if should_show:
-                                print(f"DEBUG: Showing rotating record popup - conditions met!")
-                                rotating_record_popup_window, rotating_record_start_time = display_rotating_record_popup()
-
-                            # Close popup if song ending
-                            if should_close:
-                                print(f"DEBUG: Closing rotating record popup (song ending)")
-                                rotating_record_popup_window.close()
-                                rotating_record_popup_window = None
-                                rotating_record_start_time = None
-                        except Exception as e:
-                            print(f"DEBUG: Error in rotating record logic: {e}")
-                            import traceback
-                            traceback.print_exc()
+                        # Close popup if song ending
+                        if should_close:
+                            print(f"DEBUG: Closing rotating record popup (song ending)")
+                            rotating_record_popup_window.close()
+                            rotating_record_popup_window = None
+                            rotating_record_start_time = None
 
                         if UpcomingSongPlayList != []:
                             # update upcoming selections on jukebox screens

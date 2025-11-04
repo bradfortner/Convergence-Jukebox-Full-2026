@@ -189,6 +189,7 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
 
         # Set window position BEFORE pygame initialization
         import sys
+        import ctypes
         print(f"Setting window position to ({window_x}, {window_y})")
         import os as os_module
         os.environ['SDL_WINDOWPOS'] = f'{window_x},{window_y}'
@@ -205,8 +206,29 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
 
         pygame.display.set_caption("Record Playing")
 
-        # Window positioning is handled by SDL_WINDOWPOS set before pygame.init()
-        print(f"Pygame window created - positioning handled by SDL_WINDOWPOS={window_x},{window_y}")
+        # Now forcefully move the window to correct position on Windows
+        if sys.platform == 'win32':
+            try:
+                import time as time_module
+                time_module.sleep(0.1)
+
+                # Get the actual window handle from pygame
+                wm_info = pygame.display.get_wm_info()
+                if 'window' in wm_info:
+                    hwnd = wm_info['window']
+                    print(f"Got window handle: {hwnd}")
+
+                    # Move the window to the specified position
+                    # SWP_SHOWWINDOW = 0x40 to ensure window is shown
+                    result = ctypes.windll.user32.SetWindowPos(hwnd, 0, window_x, window_y, window_width, window_height, 0x40)
+                    if result:
+                        print(f"Window successfully moved to ({window_x}, {window_y})")
+                    else:
+                        print(f"SetWindowPos returned 0 - may indicate failure")
+                else:
+                    print("Could not get window handle from pygame")
+            except Exception as e:
+                print(f"Error moving window: {e}")
 
         # Convert PIL image to pygame surface using raw bytes
         # This preserves exact color values without any compression or color space conversion

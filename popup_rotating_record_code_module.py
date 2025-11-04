@@ -205,38 +205,8 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
 
         pygame.display.set_caption("Record Playing")
 
-        # Set pygame window as topmost on Windows
-        if sys.platform == 'win32':
-            import time as time_module
-            time_module.sleep(0.1)  # Give window time to initialize
-            try:
-                import ctypes
-                # Get the foreground window (the pygame window we just created)
-                hwnd = ctypes.windll.user32.GetForegroundWindow()
-                if hwnd:
-                    # Set window as topmost: -1 = HWND_TOPMOST, 3 = SWP_NOSIZE | SWP_NOMOVE
-                    result = ctypes.windll.user32.SetWindowPos(hwnd, -1, 0, 0, 0, 0, 3)
-                    if result:
-                        print("Pygame window set to topmost")
-                    else:
-                        print("Warning: SetWindowPos for topmost failed")
-            except Exception as e:
-                print(f"Warning: Could not set pygame window as topmost: {e}")
-
-            # Also try to move window on Windows using ctypes
-            try:
-                import ctypes
-                hwnd = ctypes.windll.user32.GetForegroundWindow()
-                if hwnd:
-                    # SetWindowPos: hwnd, insert_after, x, y, cx, cy, flags
-                    # 0x40 = SWP_SHOWWINDOW
-                    result = ctypes.windll.user32.SetWindowPos(hwnd, 0, window_x, window_y, 0, 0, 0x40)
-                    if result:
-                        print(f"Pygame window moved to ({window_x}, {window_y})")
-                    else:
-                        print(f"Warning: SetWindowPos for movement failed")
-            except Exception as e:
-                print(f"Warning: Could not reposition window with SetWindowPos: {e}")
+        # Window positioning is handled by SDL_WINDOWPOS set before pygame.init()
+        print(f"Pygame window created - positioning handled by SDL_WINDOWPOS={window_x},{window_y}")
 
         # Convert PIL image to pygame surface using raw bytes
         # This preserves exact color values without any compression or color space conversion

@@ -37,7 +37,7 @@ POPUP_CLOSE_SECONDS_REMAINING = 5
 
 # Popup window properties
 POPUP_WINDOW_TITLE = ''  # Empty = no title bar
-POPUP_WINDOW_LOCATION = (600, 100)  # (x, y) position on screen
+POPUP_WINDOW_LOCATION = (500, 100)  # (x, y) position on screen
 POPUP_WINDOW_BACKGROUND = 'black'
 POPUP_WINDOW_NO_TITLEBAR = True
 POPUP_WINDOW_KEEP_ON_TOP = True

@@ -55,8 +55,8 @@ SONG_Y = 90                        # Y position offset for song title (from cent
 ARTIST_Y = 125                     # Y position offset for artist name (from center)
 SONG_LINE_HEIGHT = 25              # Vertical spacing between song title lines
 ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
-POPUP_WIDTH = 610                  # Popup window width in pixels
-POPUP_HEIGHT = 610                 # Popup window height in pixels
+POPUP_WIDTH = 600                  # Popup window width in pixels
+POPUP_HEIGHT = 600                 # Popup window height in pixels
 
 # Pygame rotation animation settings
 RECORD_ROTATION_FPS = 30           # Frames per second for rotation animation
@@ -387,7 +387,7 @@ def display_rotating_record_popup(song_title, artist_name):
         img.save(OUTPUT_FILENAME, 'PNG')
         print(f"  Saved: {OUTPUT_FILENAME}")
 
-        # Resize the record image to match popup window dimensions (610x610)
+        # Resize the record image to match popup window dimensions (600x600)
         print(f"Resizing record image to {POPUP_WIDTH}x{POPUP_HEIGHT}...")
         resize_img = Image.open(OUTPUT_FILENAME)
         resize_img = resize_img.resize((POPUP_WIDTH, POPUP_HEIGHT), Image.Resampling.LANCZOS)

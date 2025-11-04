@@ -264,8 +264,8 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
 
         # Resize the composite image to desired popup window size
         # Matches the now_playing popup dimensions
-        popup_width = 610
-        popup_height = 610
+        popup_width = 300
+        popup_height = 300
         composite = composite.resize((popup_width, popup_height), Image.LANCZOS)
 
         # Save the composite image
@@ -305,7 +305,7 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
             layout,
             no_titlebar=True,
             keep_on_top=True,
-            location=(500, 100),
+            location=(100, 100),
             background_color='black',
             margins=(0, 0),
             element_padding=(0, 0),

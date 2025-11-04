@@ -58,6 +58,13 @@ ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
 POPUP_WIDTH = 420                  # Popup window width in pixels
 POPUP_HEIGHT = 420                 # Popup window height in pixels
 
+# PNG generation settings
+PNG_OUTPUT_WIDTH = 800             # PNG image generation width in pixels
+PNG_OUTPUT_HEIGHT = 800            # PNG image generation height in pixels
+
+# Image fit parameter
+FIT_MODE = "contain"               # "exact" = resize PNG to window size, "contain" = fit PNG in window maintaining aspect ratio
+
 # Pygame rotation animation settings
 RECORD_ROTATION_FPS = 30           # Frames per second for rotation animation
 RECORD_ROTATION_SPEED = 8          # Degrees per frame (240° per second at 30fps = 8°/frame)
@@ -235,6 +242,21 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         raw_bytes = pil_image.tobytes()
         original_surface = pygame.image.fromstring(raw_bytes, pil_image.size, 'RGB')
 
+        # Apply fit mode scaling
+        if FIT_MODE == "contain":
+            # Scale image to fit within window maintaining aspect ratio
+            img_width, img_height = pil_image.size
+            scale_x = window_width / img_width
+            scale_y = window_height / img_height
+            scale = min(scale_x, scale_y)
+            new_width = int(img_width * scale)
+            new_height = int(img_height * scale)
+            print(f"FIT_MODE='contain': Scaling {img_width}x{img_height} to {new_width}x{new_height} to fit in {window_width}x{window_height} window")
+            original_surface = pygame.transform.scale(original_surface, (new_width, new_height))
+        elif FIT_MODE == "exact":
+            # Keep image at its original size (currently 800x800)
+            print(f"FIT_MODE='exact': Using image at original size {pil_image.size[0]}x{pil_image.size[1]}")
+
         clock = pygame.time.Clock()
 
         # Get center for rotation
@@ -329,6 +351,10 @@ def display_rotating_record_popup(song_title, artist_name):
         print("Loading blank record label template...")
         base_img = Image.open(label_path)
 
+        # Resize template to PNG output dimensions for higher quality
+        print(f"Resizing template to {PNG_OUTPUT_WIDTH}x{PNG_OUTPUT_HEIGHT}...")
+        base_img = base_img.resize((PNG_OUTPUT_WIDTH, PNG_OUTPUT_HEIGHT), Image.Resampling.LANCZOS)
+
         # Get image dimensions for positioning calculations
         width, height = base_img.size
 
@@ -392,16 +418,9 @@ def display_rotating_record_popup(song_title, artist_name):
                 fill=font_color
             )
 
-        # Save the record image with fixed filename
+        # Save the record image with fixed filename at high quality (800x800)
         img.save(OUTPUT_FILENAME, 'PNG')
-        print(f"  Saved: {OUTPUT_FILENAME}")
-
-        # Resize the record image to match popup window dimensions (600x600)
-        print(f"Resizing record image to {POPUP_WIDTH}x{POPUP_HEIGHT}...")
-        resize_img = Image.open(OUTPUT_FILENAME)
-        resize_img = resize_img.resize((POPUP_WIDTH, POPUP_HEIGHT), Image.Resampling.LANCZOS)
-        resize_img.save(OUTPUT_FILENAME, 'PNG')
-        print(f"  Resized and saved: {OUTPUT_FILENAME}")
+        print(f"  Saved: {OUTPUT_FILENAME} at {PNG_OUTPUT_WIDTH}x{PNG_OUTPUT_HEIGHT}")
 
         # Use the record label for pygame rotation animation
         display_image = OUTPUT_FILENAME

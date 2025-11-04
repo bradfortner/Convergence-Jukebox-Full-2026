@@ -55,8 +55,8 @@ SONG_Y = 90                        # Y position offset for song title (from cent
 ARTIST_Y = 125                     # Y position offset for artist name (from center)
 SONG_LINE_HEIGHT = 25              # Vertical spacing between song title lines
 ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
-POPUP_WIDTH = 600                  # Popup window width in pixels
-POPUP_HEIGHT = 600                 # Popup window height in pixels
+POPUP_WIDTH = 580                  # Popup window width in pixels
+POPUP_HEIGHT = 580                 # Popup window height in pixels
 
 # Pygame rotation animation settings
 RECORD_ROTATION_FPS = 30           # Frames per second for rotation animation

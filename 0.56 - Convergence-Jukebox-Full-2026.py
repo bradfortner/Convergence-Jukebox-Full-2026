@@ -2532,6 +2532,9 @@ def main():
                             current_time_ms = jukebox.vlc_media_player.get_time()
                             duration_ms = jukebox.vlc_media_player.get_duration()
 
+                            # DIAGNOSTIC: Log raw VLC values to understand what we're getting
+                            print(f"DEBUG DIAG: VLC raw values - current_time_ms={current_time_ms}, duration_ms={duration_ms}")
+
                             if current_time_ms > 0 and duration_ms > 0:
                                 # Convert to seconds
                                 elapsed_seconds = current_time_ms / 1000.0

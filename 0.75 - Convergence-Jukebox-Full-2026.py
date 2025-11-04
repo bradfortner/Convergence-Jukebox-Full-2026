@@ -1672,6 +1672,20 @@ def main():
                     except Exception as e:
                         print(f"DEBUG: Error closing rotating record on keypress: {e}")
 
+        # Check if pygame closed the popup via keypress (rotation_stop_flag was set)
+        if rotating_record_rotation_stop_flag is not None and rotating_record_rotation_stop_flag.is_set():
+            try:
+                print(f"DEBUG: Detected pygame closed popup - restoring windows")
+                rotating_record_rotation_stop_flag = None
+                rotating_record_start_time = None
+                # Restore selector windows (background, info_screen, and arrow windows stay visible)
+                jukebox_selection_window.UnHide()
+                control_button_window.UnHide()
+                song_playing_lookup_window.UnHide()
+                print(f"DEBUG: Windows restored")
+            except Exception as e:
+                print(f"DEBUG: Error restoring windows after pygame close: {e}")
+
         # Handle ESC key to exit program
         if event == '--ESC--':
             break

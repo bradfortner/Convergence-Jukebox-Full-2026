@@ -186,6 +186,9 @@ class JukeboxEngine:
         # Memory optimization counters
         self.gc_counter: int = 0
 
+        # VLC Media Player instance for accessing playback state
+        self.vlc_media_player = None
+
         # Current song metadata
         self.artist_name: str = ""
         self.song_name: str = ""
@@ -921,6 +924,8 @@ class JukeboxEngine:
             # VLC Song Playback Code Begin
             try:
                 p: vlc.MediaPlayer = vlc.MediaPlayer(song_file_name)
+                # Store player as instance variable for popup access
+                self.vlc_media_player = p
                 p.play()
                 if self.config['console']['verbose']:
                     print('is_playing:', p.is_playing())  # 0 = False

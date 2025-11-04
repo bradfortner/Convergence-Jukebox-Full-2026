@@ -1290,11 +1290,11 @@ active_popup_window = None
 popup_start_time = None
 popup_duration = None
 # Rotating record popup tracking
-global rotating_record_popup_window
+global rotating_record_rotation_stop_flag
 global rotating_record_start_time
 global last_keypress_time
 global song_start_time
-rotating_record_popup_window = None
+rotating_record_rotation_stop_flag = None
 rotating_record_start_time = None
 last_keypress_time = time.time()
 song_start_time = time.time()
@@ -1637,7 +1637,7 @@ def main():
     threading.Thread(target=file_lookup_thread, args=(song_playing_lookup_window,), daemon=True).start()
     # Main Jukebox GUI
     while True:
-        global last_keypress_time, rotating_record_popup_window, rotating_record_start_time
+        global last_keypress_time, rotating_record_rotation_stop_flag, rotating_record_start_time
         window, event, values = sg.read_all_windows()
         print(event, values)
         print(event)  # prints buttons key name
@@ -1651,11 +1651,11 @@ def main():
                 print(f"DEBUG: Keypress detected, reset idle timer")
 
                 # Close rotating record popup on any keypress
-                if rotating_record_popup_window is not None:
+                if rotating_record_rotation_stop_flag is not None:
                     try:
                         print(f"DEBUG: Closing rotating record popup on keypress")
-                        rotating_record_popup_window.close()
-                        rotating_record_popup_window = None
+                        rotating_record_rotation_stop_flag.set()
+                        rotating_record_rotation_stop_flag = None
                         rotating_record_start_time = None
                     except Exception as e:
                         print(f"DEBUG: Error closing rotating record on keypress: {e}")
@@ -2550,25 +2550,25 @@ def main():
                                     elapsed_seconds >= 20 and  # Song playing >= 20 seconds
                                     time_since_keypress >= 20 and  # Idle >= 20 seconds
                                     time_remaining_seconds >= 5 and  # Song has >= 5 seconds remaining
-                                    rotating_record_popup_window is None  # Popup not already shown
+                                    rotating_record_rotation_stop_flag is None  # Popup not already shown
                                 )
 
                                 # Conditions to CLOSE rotating record popup
                                 should_close = (
-                                    rotating_record_popup_window is not None and
+                                    rotating_record_rotation_stop_flag is not None and
                                     (time_remaining_seconds < 5)  # Close when 5 seconds remaining
                                 )
 
                                 # Show popup if conditions met
                                 if should_show:
                                     print(f"DEBUG: Showing rotating record popup")
-                                    rotating_record_popup_window, rotating_record_start_time = display_rotating_record_popup()
+                                    rotating_record_rotation_stop_flag, rotating_record_start_time = display_rotating_record_popup(MusicMasterSongList[counter].song_name, MusicMasterSongList[counter].artist_name)
 
                                 # Close popup if song ending
                                 if should_close:
                                     print(f"DEBUG: Closing rotating record popup (song ending)")
-                                    rotating_record_popup_window.close()
-                                    rotating_record_popup_window = None
+                                    rotating_record_rotation_stop_flag.set()
+                                    rotating_record_rotation_stop_flag = None
                                     rotating_record_start_time = None
                         except Exception as e:
                             print(f"DEBUG: Error in rotating record logic: {e}")

@@ -9,6 +9,8 @@ from pathlib import Path
 import os
 import time
 import random
+import threading
+import pygame
 from PIL import Image, ImageDraw, ImageFont
 import FreeSimpleGUI as sg
 
@@ -55,6 +57,11 @@ SONG_LINE_HEIGHT = 25              # Vertical spacing between song title lines
 ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
 POPUP_WIDTH = 610                  # Popup window width in pixels
 POPUP_HEIGHT = 610                 # Popup window height in pixels
+
+# Pygame rotation animation settings
+RECORD_ROTATION_FPS = 30           # Frames per second for rotation animation
+RECORD_ROTATION_SPEED = 8          # Degrees per frame (240° per second at 30fps = 8°/frame)
+PYGAME_BACKGROUND_COLOR = (64, 64, 64)  # Dark grey background for pygame window
 
 # ============================================================================
 
@@ -153,24 +160,119 @@ def fit_text_to_width(text, base_font_path, start_size, max_width, max_lines, dr
     return wrap_text(text, font, max_width, draw), min_font_size, font
 
 
+def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, window_width, window_height, no_titlebar=True):
+    """
+    Rotate a record image in real-time using pygame with specified window parameters.
+
+    Displays the record image in a pygame window with smooth rotation animation
+    at 30 FPS. Respects the specified position, size, and titlebar settings.
+
+    Args:
+        image_path: Path to the record image file to rotate
+        rotation_stop_flag: threading.Event to signal when to stop rotation
+        window_x: X coordinate for window position
+        window_y: Y coordinate for window position
+        window_width: Width of the pygame window
+        window_height: Height of the pygame window
+        no_titlebar: If True, attempts to create borderless window
+    """
+    try:
+        # Load image with PIL
+        pil_image = Image.open(image_path)
+
+        # Convert to RGB if necessary (ensures compatibility)
+        if pil_image.mode != 'RGB':
+            pil_image = pil_image.convert('RGB')
+
+        # Initialize pygame
+        pygame.init()
+
+        # Create window with specified size (position may vary by OS)
+        if no_titlebar:
+            # Create borderless window
+            screen = pygame.display.set_mode((window_width, window_height), pygame.NOFRAME)
+        else:
+            screen = pygame.display.set_mode((window_width, window_height))
+
+        pygame.display.set_caption("Record Playing")
+
+        # Try to move window to specified position (may not work on all OS/systems)
+        import os as os_module
+        if hasattr(os_module, 'environ'):
+            # Set position via environment (works on some systems)
+            try:
+                os.environ['SDL_WINDOWPOS'] = f'{window_x},{window_y}'
+            except:
+                pass
+
+        # Convert PIL image to pygame surface using raw bytes
+        # This preserves exact color values without any compression or color space conversion
+        raw_bytes = pil_image.tobytes()
+        original_surface = pygame.image.fromstring(raw_bytes, pil_image.size, 'RGB')
+
+        clock = pygame.time.Clock()
+
+        # Get center for rotation
+        center_x = window_width // 2
+        center_y = window_height // 2
+
+        angle = 0
+        running = True
+
+        print(f"Pygame record rotation started at ({window_x}, {window_y}) with size {window_width}x{window_height}")
+
+        while running and not rotation_stop_flag.is_set():
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            # Fill background with dark grey
+            screen.fill(PYGAME_BACKGROUND_COLOR)
+
+            # Rotate the surface by the current angle
+            rotated_surface = pygame.transform.rotate(original_surface, angle)
+
+            # Get the rect of rotated surface and center it
+            rotated_rect = rotated_surface.get_rect(center=(center_x, center_y))
+
+            # Display rotated image
+            screen.blit(rotated_surface, rotated_rect)
+            pygame.display.flip()
+
+            # Decrement angle: 240° per second at 30 fps = 8° per frame (reversed direction)
+            angle = (angle - RECORD_ROTATION_SPEED) % 360
+
+            # Maintain target FPS
+            clock.tick(RECORD_ROTATION_FPS)
+
+        pygame.quit()
+        print("Pygame record rotation stopped")
+
+    except Exception as e:
+        print(f"Error in pygame record rotation: {e}")
+        try:
+            pygame.quit()
+        except:
+            pass
+
+
 def display_rotating_record_popup(song_title, artist_name):
     """
-    Display a record popup during song playback.
+    Display a rotating record popup during song playback using pygame.
 
     This popup dynamically generates a record image with the song title and artist
-    and displays it as a static popup. The popup appears after specified idle time
-    and playback duration, and closes on any keypress or when the song has specified
-    seconds remaining.
+    and displays it in a pygame window with smooth rotation animation. The popup
+    appears after specified idle time and playback duration, and closes on any
+    keypress or when the song has specified seconds remaining.
 
     Args:
         song_title (str): The title of the currently playing song
         artist_name (str): The artist name for the currently playing song
 
     Returns:
-        tuple: (popup_window, popup_start_time, None) for lifecycle management
-               - popup_window: FreeSimpleGUI Window object
+        tuple: (rotation_stop_flag, popup_start_time) for lifecycle management
+               - rotation_stop_flag: threading.Event to signal when to stop rotation
                - popup_start_time: time.time() when popup was created
-               - None: placeholder for consistency with previous API
     """
 
     try:
@@ -267,7 +369,7 @@ def display_rotating_record_popup(song_title, artist_name):
         img.save(OUTPUT_FILENAME, 'PNG')
         print(f"  Saved: {OUTPUT_FILENAME}")
 
-        # Use the record label directly for faster rotation animation
+        # Use the record label for pygame rotation animation
         display_image = OUTPUT_FILENAME
 
         # Final completion message
@@ -277,37 +379,38 @@ def display_rotating_record_popup(song_title, artist_name):
         print(f"Font color: {color_mode}")
         print(f"Output location: {display_image} in current directory")
 
-        # Display the popup as an interactive window that accepts keyboard input
-        layout = [
-            [sg.Image(filename=display_image, key='--ROTATING_RECORD_IMAGE--')]
-        ]
-
-        popup_window = sg.Window(
-            POPUP_WINDOW_TITLE,
-            layout,
-            no_titlebar=POPUP_WINDOW_NO_TITLEBAR,
-            keep_on_top=POPUP_WINDOW_KEEP_ON_TOP,
-            location=POPUP_WINDOW_LOCATION,
-            background_color=POPUP_WINDOW_BACKGROUND,
-            margins=(0, 0),
-            element_padding=(0, 0),
-            finalize=True
-        )
-
-        # Bind keyboard input to the popup window
-        popup_window.bind('<KeyPress>', '--ROTATING_RECORD_KEY--')
-        popup_window.bind('<Escape>', '--ROTATING_RECORD_ESC--')
-
         # Store popup creation time for lifecycle management
         popup_start_time = time.time()
 
-        print("Record popup created and displayed")
+        # Create rotation stop flag for animation thread control
+        rotation_stop_flag = threading.Event()
 
-        # Return the popup window and start time for lifecycle management
-        return popup_window, popup_start_time, None
+        # Extract window position from tuple
+        window_x, window_y = POPUP_WINDOW_LOCATION
+
+        # Start pygame rotation animation in background thread
+        rotation_thread = threading.Thread(
+            target=rotate_record_pygame,
+            args=(
+                display_image,
+                rotation_stop_flag,
+                window_x,
+                window_y,
+                POPUP_WIDTH,
+                POPUP_HEIGHT,
+                POPUP_WINDOW_NO_TITLEBAR
+            ),
+            daemon=True
+        )
+        rotation_thread.start()
+
+        print("Pygame record rotation popup started")
+
+        # Return rotation control flag and start time for lifecycle management
+        return rotation_stop_flag, popup_start_time
 
     except Exception as e:
         print(f"Error displaying rotating record popup: {e}")
         import traceback
         traceback.print_exc()
-        return None, None, None
+        return None, None

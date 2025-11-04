@@ -2148,6 +2148,18 @@ def main():
             last_keypress_time = time.time()
             print(f"DEBUG: Exited search window - reset idle timer, popup will reappear after 20 seconds")
 
+            # Close rotating record popup if it's showing
+            if rotating_record_rotation_stop_flag is not None:
+                try:
+                    print(f"DEBUG: Closing rotating record popup on search exit")
+                    rotating_record_rotation_stop_flag.set()
+                    # Wait for pygame thread to finish closing
+                    time.sleep(0.2)  # Give popup thread time to clean up
+                    rotating_record_rotation_stop_flag = None
+                    rotating_record_start_time = None
+                except Exception as e:
+                    print(f"DEBUG: Error closing rotating record on search exit: {e}")
+
         #  keyboard entry PySimpleGUI
         if event == "--A--" or (event) == "a":
             selection_entry_letter = "A"

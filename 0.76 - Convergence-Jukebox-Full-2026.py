@@ -2145,7 +2145,6 @@ def main():
                 search_window["--letter_entry--"].Update(keys_entered)
                 # End of search window event loop code
             # Reset idle timer after exiting search window
-            global last_keypress_time
             last_keypress_time = time.time()
             print(f"DEBUG: Exited search window - reset idle timer, popup will reappear after 20 seconds")
 

@@ -1662,9 +1662,7 @@ def main():
                         rotating_record_rotation_stop_flag.set()
                         rotating_record_rotation_stop_flag = None
                         rotating_record_start_time = None
-                        # Restore selector windows after keypress close (background and info_screen stay visible)
-                        right_arrow_selection_window.UnHide()
-                        left_arrow_selection_window.UnHide()
+                        # Restore selector windows after keypress close (background, info_screen, and arrow windows stay visible)
                         jukebox_selection_window.UnHide()
                         control_button_window.UnHide()
                         song_playing_lookup_window.UnHide()
@@ -2575,9 +2573,7 @@ def main():
                                 # Show popup if conditions met
                                 if should_show:
                                     print(f"DEBUG: Showing rotating record popup")
-                                    # Hide selector windows (keep background and info_screen visible)
-                                    right_arrow_selection_window.Hide()
-                                    left_arrow_selection_window.Hide()
+                                    # Hide selector windows (keep background, info_screen, and arrow windows visible)
                                     jukebox_selection_window.Hide()
                                     control_button_window.Hide()
                                     song_playing_lookup_window.Hide()
@@ -2589,9 +2585,7 @@ def main():
                                     rotating_record_rotation_stop_flag.set()
                                     rotating_record_rotation_stop_flag = None
                                     rotating_record_start_time = None
-                                    # Restore selector windows (background and info_screen stay visible)
-                                    right_arrow_selection_window.UnHide()
-                                    left_arrow_selection_window.UnHide()
+                                    # Restore selector windows (background, info_screen, and arrow windows stay visible)
                                     jukebox_selection_window.UnHide()
                                     control_button_window.UnHide()
                                     song_playing_lookup_window.UnHide()

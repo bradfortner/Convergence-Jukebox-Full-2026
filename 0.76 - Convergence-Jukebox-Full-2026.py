@@ -2145,10 +2145,11 @@ def main():
                 search_window["--letter_entry--"].Update(keys_entered)
                 # End of search window event loop code
             # Reset idle timer after exiting search window
+            global last_keypress_time
             last_keypress_time = time.time()
             print(f"DEBUG: Exited search window - reset idle timer, popup will reappear after 20 seconds")
 
-#  keyboard entry PySimpleGUI
+        #  keyboard entry PySimpleGUI
         if event == "--A--" or (event) == "a":
             selection_entry_letter = "A"
             disable_b_selection_buttons()

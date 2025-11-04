@@ -126,34 +126,21 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
     # Record Artist Name
     artist = str(MusicMasterSongList[counter]['artist'])
 
-    # Path to blank record labels directory
-    blank_records_dir = "record_labels/blank_record_labels"
+    # Create a solid green record label
+    print("\nCreating solid green record label...")
 
-    # Get all .png files from the blank_record_labels directory
-    print("\nScanning for available record labels...")
-    png_files = [f for f in os.listdir(blank_records_dir) if f.endswith('.png')]
+    # Create a solid green image (500x500 pixels)
+    label_width = 500
+    label_height = 500
+    green_color = (0, 128, 0, 255)  # RGBA: Green with full opacity
+    base_img = Image.new('RGBA', (label_width, label_height), green_color)
 
-    if not png_files:
-        raise FileNotFoundError(f"No .png files found in {blank_records_dir}")
+    print(f"Created {label_width}x{label_height} green record label")
 
-    print(f"Found {len(png_files)} available record labels")
-
-    # Randomly select one blank record label
-    selected_label = random.choice(png_files)
-    label_path = os.path.join(blank_records_dir, selected_label)
-
-    print(f"Randomly selected label: {selected_label}")
-
-    # Determine font color based on filename
-    # If filename starts with "w_", use white font; otherwise use black
-    # Use RGBA tuples (R, G, B, Alpha) where 255 = fully opaque
-    font_color = (255, 255, 255, 255) if selected_label.startswith("w_") else (0, 0, 0, 255)
-    color_mode = "WHITE" if selected_label.startswith("w_") else "BLACK"
+    # Use white font color on green background
+    font_color = (255, 255, 255, 255)  # White text
+    color_mode = "WHITE"
     print(f"Font color mode: {color_mode}")
-
-    # Load the selected record label image
-    print("Loading blank record label template...")
-    base_img = Image.open(label_path)
 
     # Get image dimensions for positioning calculations
     width, height = base_img.size
@@ -232,9 +219,9 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
     # Final completion message
     print("-" * 80)
     print(f"\nRecord generation complete!")
-    print(f"Selected label: {selected_label}")
+    print(f"Record label type: Solid Green")
     print(f"Font color: {color_mode}")
-    print(f"Successfully created 1 random record label image")
+    print(f"Successfully created 1 green record label image")
     print(f"Output location: {filename} in current directory")
 
     # Composite the record label with the background

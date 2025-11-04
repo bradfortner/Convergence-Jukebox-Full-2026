@@ -187,6 +187,12 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         if pil_image.mode != 'RGB':
             pil_image = pil_image.convert('RGB')
 
+        # Set window position BEFORE pygame initialization
+        import sys
+        print(f"Setting window position to ({window_x}, {window_y})")
+        import os as os_module
+        os.environ['SDL_WINDOWPOS'] = f'{window_x},{window_y}'
+
         # Initialize pygame
         pygame.init()
 
@@ -200,7 +206,6 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         pygame.display.set_caption("Record Playing")
 
         # Set pygame window as topmost on Windows
-        import sys
         if sys.platform == 'win32':
             try:
                 import ctypes
@@ -212,14 +217,16 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
             except Exception as e:
                 print(f"Warning: Could not set pygame window as topmost: {e}")
 
-        # Try to move window to specified position (may not work on all OS/systems)
-        import os as os_module
-        if hasattr(os_module, 'environ'):
-            # Set position via environment (works on some systems)
+            # Also try to move window on Windows using ctypes
             try:
-                os.environ['SDL_WINDOWPOS'] = f'{window_x},{window_y}'
-            except:
-                pass
+                import ctypes
+                hwnd = ctypes.windll.user32.GetForegroundWindow()
+                # SetWindowPos: hwnd, insert_after, x, y, cx, cy, flags
+                # 0x40 = SWP_SHOWWINDOW, 0x0002 = SWP_NOMOVE, 0x0001 = SWP_NOSIZE
+                ctypes.windll.user32.SetWindowPos(hwnd, 0, window_x, window_y, 0, 0, 0x40)
+                print(f"Pygame window moved to ({window_x}, {window_y})")
+            except Exception as e:
+                print(f"Warning: Could not reposition window with SetWindowPos: {e}")
 
         # Convert PIL image to pygame surface using raw bytes
         # This preserves exact color values without any compression or color space conversion

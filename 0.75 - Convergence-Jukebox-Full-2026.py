@@ -1678,6 +1678,9 @@ def main():
                 print(f"DEBUG: Detected pygame closed popup - restoring windows")
                 rotating_record_rotation_stop_flag = None
                 rotating_record_start_time = None
+                # Reset idle timer so popup won't reappear for 20 seconds
+                last_keypress_time = time.time()
+                print(f"DEBUG: Reset idle timer - popup will reappear after 20 seconds of idle")
                 # Restore selector windows (background, info_screen, and arrow windows stay visible)
                 jukebox_selection_window.UnHide()
                 control_button_window.UnHide()

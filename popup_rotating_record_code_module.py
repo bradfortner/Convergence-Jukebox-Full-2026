@@ -199,6 +199,19 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
 
         pygame.display.set_caption("Record Playing")
 
+        # Set pygame window as topmost on Windows
+        import sys
+        if sys.platform == 'win32':
+            try:
+                import ctypes
+                # Get the foreground window (the pygame window we just created)
+                hwnd = ctypes.windll.user32.GetForegroundWindow()
+                # Set window as topmost: -1 = HWND_TOPMOST, 3 = SWP_NOSIZE | SWP_NOMOVE
+                ctypes.windll.user32.SetWindowPos(hwnd, -1, 0, 0, 0, 0, 3)
+                print("Pygame window set to topmost")
+            except Exception as e:
+                print(f"Warning: Could not set pygame window as topmost: {e}")
+
         # Try to move window to specified position (may not work on all OS/systems)
         import os as os_module
         if hasattr(os_module, 'environ'):

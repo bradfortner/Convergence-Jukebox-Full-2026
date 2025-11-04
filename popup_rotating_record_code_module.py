@@ -58,6 +58,10 @@ ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
 POPUP_WIDTH = 420                  # Popup window width in pixels
 POPUP_HEIGHT = 420                 # Popup window height in pixels
 
+# PNG generation settings
+PNG_OUTPUT_WIDTH = 800             # PNG image generation width in pixels
+PNG_OUTPUT_HEIGHT = 800            # PNG image generation height in pixels
+
 # Pygame rotation animation settings
 RECORD_ROTATION_FPS = 30           # Frames per second for rotation animation
 RECORD_ROTATION_SPEED = 8          # Degrees per frame (240° per second at 30fps = 8°/frame)
@@ -329,6 +333,10 @@ def display_rotating_record_popup(song_title, artist_name):
         print("Loading blank record label template...")
         base_img = Image.open(label_path)
 
+        # Resize template to PNG output dimensions for higher quality
+        print(f"Resizing template to {PNG_OUTPUT_WIDTH}x{PNG_OUTPUT_HEIGHT}...")
+        base_img = base_img.resize((PNG_OUTPUT_WIDTH, PNG_OUTPUT_HEIGHT), Image.Resampling.LANCZOS)
+
         # Get image dimensions for positioning calculations
         width, height = base_img.size
 
@@ -392,16 +400,9 @@ def display_rotating_record_popup(song_title, artist_name):
                 fill=font_color
             )
 
-        # Save the record image with fixed filename
+        # Save the record image with fixed filename at high quality (800x800)
         img.save(OUTPUT_FILENAME, 'PNG')
-        print(f"  Saved: {OUTPUT_FILENAME}")
-
-        # Resize the record image to match popup window dimensions
-        print(f"Resizing record image to {POPUP_WIDTH}x{POPUP_HEIGHT}...")
-        resize_img = Image.open(OUTPUT_FILENAME)
-        resize_img = resize_img.resize((POPUP_WIDTH, POPUP_HEIGHT), Image.Resampling.LANCZOS)
-        resize_img.save(OUTPUT_FILENAME, 'PNG')
-        print(f"  Resized and saved: {OUTPUT_FILENAME}")
+        print(f"  Saved: {OUTPUT_FILENAME} at {PNG_OUTPUT_WIDTH}x{PNG_OUTPUT_HEIGHT}")
 
         # Use the record label for pygame rotation animation
         display_image = OUTPUT_FILENAME

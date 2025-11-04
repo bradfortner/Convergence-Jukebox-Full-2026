@@ -254,6 +254,11 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                # Close popup on any keypress
+                elif event.type == pygame.KEYDOWN:
+                    print(f"Pygame: Keypress detected - closing popup")
+                    rotation_stop_flag.set()
+                    running = False
 
             # Fill background with dark grey
             screen.fill(PYGAME_BACKGROUND_COLOR)

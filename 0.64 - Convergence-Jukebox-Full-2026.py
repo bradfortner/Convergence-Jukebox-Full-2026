@@ -2535,8 +2535,7 @@ def main():
                         # Get current playback time and duration from VLC
                         try:
                             current_time_ms = jukebox.vlc_media_player.get_time()
-                            media = jukebox.vlc_media_player.get_media()
-                            duration_ms = media.get_duration() if media else -1
+                            duration_ms = jukebox.vlc_media_player.get_duration()
 
                             # DIAGNOSTIC: Log raw VLC values to understand what we're getting
                             print(f"DEBUG DIAG: VLC raw values - current_time_ms={current_time_ms}, duration_ms={duration_ms}")

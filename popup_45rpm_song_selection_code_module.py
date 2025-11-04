@@ -237,23 +237,22 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
     print(f"Successfully created 1 random record label image")
     print(f"Output location: {filename} in current directory")
 
-    # Composite the record label with the background
+    # Composite the record label with a solid green background
     try:
-        # Load the background image
-        background_path = "images/45rpm_background.png"
-        background = Image.open(background_path)
-
         # Load the record label
         record_label = Image.open(filename)
 
-        # Convert both to RGBA if needed
-        if background.mode != 'RGBA':
-            background = background.convert('RGBA')
+        # Create a solid green background image
+        bg_width = 610
+        bg_height = 610
+        green_color = (0, 128, 0, 255)  # RGBA: Green with full opacity
+        background = Image.new('RGBA', (bg_width, bg_height), green_color)
+
+        # Convert record label to RGBA if needed
         if record_label.mode != 'RGBA':
             record_label = record_label.convert('RGBA')
 
         # Calculate position to center the record label on the background
-        bg_width, bg_height = background.size
         record_width, record_height = record_label.size
         x_position = (bg_width - record_width) // 2
         y_position = (bg_height - record_height) // 2
@@ -263,7 +262,6 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
         composite.paste(record_label, (x_position, y_position), record_label)
 
         # Resize the composite image to desired popup window size
-        # Matches the now_playing popup dimensions
         popup_width = 300
         popup_height = 300
         composite = composite.resize((popup_width, popup_height), Image.LANCZOS)
@@ -271,7 +269,7 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
         # Save the composite image
         composite_filename = 'final_record_with_background.png'
         composite.save(composite_filename, 'PNG')
-        print(f"Composite image saved: {composite_filename} (resized to {popup_width}x{popup_height})")
+        print(f"Composite image saved: {composite_filename} (resized to {popup_width}x{popup_height}) with green background")
 
     except Exception as e:
         print(f"Warning: Could not create composite image: {e}")

@@ -177,6 +177,9 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         no_titlebar: If True, attempts to create borderless window
     """
     try:
+        print(f"\n=== rotate_record_pygame THREAD STARTED ===")
+        print(f"Loading image: {image_path}")
+
         # Load image with PIL
         pil_image = Image.open(image_path)
 
@@ -276,8 +279,10 @@ def display_rotating_record_popup(song_title, artist_name):
     """
 
     try:
+        print(f"\n=== POPUP FUNCTION CALLED with title='{song_title}', artist='{artist_name}' ===")
+
         # Get all .png files from the blank_record_labels directory
-        print("\nScanning for available record labels...")
+        print("Scanning for available record labels...")
         png_files = [f for f in os.listdir(BLANK_RECORDS_DIR) if f.endswith('.png')]
 
         if not png_files:

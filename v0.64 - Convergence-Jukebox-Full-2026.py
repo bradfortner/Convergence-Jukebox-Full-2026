@@ -2536,6 +2536,7 @@ def main():
                             print(f"DEBUG DIAG: VLC raw values - current_time_ms={current_time_ms}, duration_ms={duration_ms}")
 
                             if current_time_ms > 0 and duration_ms > 0:
+                                print(f"DEBUG: Condition TRUE - proceeding with rotating record logic")
                                 # Convert to seconds
                                 elapsed_seconds = current_time_ms / 1000.0
                                 total_seconds = duration_ms / 1000.0
@@ -2570,6 +2571,8 @@ def main():
                                     rotating_record_rotation_stop_flag.set()
                                     rotating_record_rotation_stop_flag = None
                                     rotating_record_start_time = None
+                            else:
+                                print(f"DEBUG: Condition FALSE - VLC not ready. current_time_ms={current_time_ms}, duration_ms={duration_ms}")
                         except Exception as e:
                             print(f"DEBUG: Error in rotating record logic: {e}")
 

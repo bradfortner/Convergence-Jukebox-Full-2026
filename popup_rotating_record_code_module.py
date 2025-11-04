@@ -59,8 +59,8 @@ POPUP_WIDTH = 420                  # Popup window width in pixels
 POPUP_HEIGHT = 420                 # Popup window height in pixels
 
 # PNG generation settings
-PNG_OUTPUT_WIDTH = 800             # PNG image generation width in pixels
-PNG_OUTPUT_HEIGHT = 800            # PNG image generation height in pixels
+PNG_OUTPUT_WIDTH = 750             # PNG image generation width in pixels
+PNG_OUTPUT_HEIGHT = 750            # PNG image generation height in pixels
 
 # Pygame rotation animation settings
 RECORD_ROTATION_FPS = 30           # Frames per second for rotation animation

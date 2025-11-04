@@ -1660,12 +1660,16 @@ def main():
                     try:
                         print(f"DEBUG: Closing rotating record popup on keypress")
                         rotating_record_rotation_stop_flag.set()
+                        # Wait for pygame thread to finish closing
+                        import time
+                        time.sleep(0.2)  # Give popup thread time to clean up
                         rotating_record_rotation_stop_flag = None
                         rotating_record_start_time = None
                         # Restore selector windows after keypress close (background, info_screen, and arrow windows stay visible)
                         jukebox_selection_window.UnHide()
                         control_button_window.UnHide()
                         song_playing_lookup_window.UnHide()
+                        print(f"DEBUG: Rotating record popup closed")
                     except Exception as e:
                         print(f"DEBUG: Error closing rotating record on keypress: {e}")
 
@@ -2583,12 +2587,16 @@ def main():
                                 if should_close:
                                     print(f"DEBUG: Closing rotating record popup (song ending)")
                                     rotating_record_rotation_stop_flag.set()
+                                    # Wait for pygame thread to finish closing
+                                    import time
+                                    time.sleep(0.2)  # Give popup thread time to clean up
                                     rotating_record_rotation_stop_flag = None
                                     rotating_record_start_time = None
                                     # Restore selector windows (background, info_screen, and arrow windows stay visible)
                                     jukebox_selection_window.UnHide()
                                     control_button_window.UnHide()
                                     song_playing_lookup_window.UnHide()
+                                    print(f"DEBUG: Rotating record popup closed")
                             else:
                                 print(f"DEBUG: Condition FALSE - VLC not ready. current_time_ms={current_time_ms}, duration_ms={duration_ms}")
                         except Exception as e:

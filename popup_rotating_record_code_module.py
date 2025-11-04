@@ -387,6 +387,13 @@ def display_rotating_record_popup(song_title, artist_name):
         img.save(OUTPUT_FILENAME, 'PNG')
         print(f"  Saved: {OUTPUT_FILENAME}")
 
+        # Resize the record image to match popup window dimensions (610x610)
+        print(f"Resizing record image to {POPUP_WIDTH}x{POPUP_HEIGHT}...")
+        resize_img = Image.open(OUTPUT_FILENAME)
+        resize_img = resize_img.resize((POPUP_WIDTH, POPUP_HEIGHT), Image.Resampling.LANCZOS)
+        resize_img.save(OUTPUT_FILENAME, 'PNG')
+        print(f"  Resized and saved: {OUTPUT_FILENAME}")
+
         # Use the record label for pygame rotation animation
         display_image = OUTPUT_FILENAME
 

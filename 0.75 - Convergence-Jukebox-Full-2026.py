@@ -1661,7 +1661,6 @@ def main():
                         print(f"DEBUG: Closing rotating record popup on keypress")
                         rotating_record_rotation_stop_flag.set()
                         # Wait for pygame thread to finish closing
-                        import time
                         time.sleep(0.2)  # Give popup thread time to clean up
                         rotating_record_rotation_stop_flag = None
                         rotating_record_start_time = None
@@ -2588,7 +2587,6 @@ def main():
                                     print(f"DEBUG: Closing rotating record popup (song ending)")
                                     rotating_record_rotation_stop_flag.set()
                                     # Wait for pygame thread to finish closing
-                                    import time
                                     time.sleep(0.2)  # Give popup thread time to clean up
                                     rotating_record_rotation_stop_flag = None
                                     rotating_record_start_time = None

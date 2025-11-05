@@ -5,6 +5,7 @@ Handles the display of 45rpm record labels with now-playing song information as 
 import threading
 from pathlib import Path
 import os
+import json
 import random
 import textwrap
 import time
@@ -142,9 +143,22 @@ def display_45rpm_now_playing_popup(MusicMasterSongList, counter, jukebox_select
 
     print(f"Found {len(png_files)} available record labels")
 
-    # Check if artist has a specific label assigned in MusicMasterSongList
-    # The label field contains the filename of the record label specific to this artist
-    artist_label = str(MusicMasterSongList[counter].get('label', ''))
+    # Check if artist has a specific label assigned in the_artist_record_labels.txt
+    # Load the artist record labels file and search for this artist
+    artist_record_labels_file = "the_artist_record_labels.txt"
+    artist_label = ""
+
+    try:
+        if os.path.exists(artist_record_labels_file):
+            with open(artist_record_labels_file, 'r') as f:
+                artist_record_labels = json.load(f)
+                # Search for matching artist (case-insensitive)
+                for entry in artist_record_labels:
+                    if entry.get('artist_name', '').lower() == artist.lower():
+                        artist_label = entry.get('artist_label', '')
+                        break
+    except Exception as e:
+        print(f"Error loading artist record labels: {e}")
 
     if artist_label and artist_label in png_files:
         # Use the assigned label for this artist

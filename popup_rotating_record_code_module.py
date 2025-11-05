@@ -7,6 +7,7 @@ All popup parameters are defined here to keep popup logic self-contained.
 """
 from pathlib import Path
 import os
+import json
 import time
 import random
 import threading
@@ -290,7 +291,7 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
             pass
 
 
-def display_rotating_record_popup(song_title, artist_name, label=""):
+def display_rotating_record_popup(song_title, artist_name):
     """
     Display a rotating record popup during song playback using pygame.
 
@@ -302,8 +303,6 @@ def display_rotating_record_popup(song_title, artist_name, label=""):
     Args:
         song_title (str): The title of the currently playing song
         artist_name (str): The artist name for the currently playing song
-        label (str): Optional specific record label filename to use. If provided and found,
-                     this label will be used instead of random selection.
 
     Returns:
         tuple: (rotation_stop_flag, popup_start_time) for lifecycle management
@@ -323,17 +322,32 @@ def display_rotating_record_popup(song_title, artist_name, label=""):
 
         print(f"Found {len(png_files)} available record labels")
 
-        # Check if artist has a specific label assigned (passed as parameter from MusicMasterSongList)
-        # The label parameter contains the filename of the record label specific to this artist
-        if label and label in png_files:
+        # Check if artist has a specific label assigned in the_artist_record_labels.txt
+        # Load the artist record labels file and search for this artist
+        artist_record_labels_file = "the_artist_record_labels.txt"
+        artist_label = ""
+
+        try:
+            if os.path.exists(artist_record_labels_file):
+                with open(artist_record_labels_file, 'r') as f:
+                    artist_record_labels = json.load(f)
+                    # Search for matching artist (case-insensitive)
+                    for entry in artist_record_labels:
+                        if entry.get('artist_name', '').lower() == artist_name.lower():
+                            artist_label = entry.get('artist_label', '')
+                            break
+        except Exception as e:
+            print(f"Error loading artist record labels: {e}")
+
+        if artist_label and artist_label in png_files:
             # Use the assigned label for this artist
-            selected_label = label
+            selected_label = artist_label
             print(f"Using assigned label for artist '{artist_name}': {selected_label}")
         else:
             # No assigned label or file not found, fall back to random selection
             selected_label = random.choice(png_files)
-            if label:
-                print(f"Assigned label '{label}' not found, using random selection")
+            if artist_label:
+                print(f"Assigned label '{artist_label}' not found, using random selection")
             else:
                 print(f"No assigned label for artist, using random selection")
             print(f"Randomly selected label: {selected_label}")

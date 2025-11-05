@@ -52,7 +52,7 @@ COMPOSITE_FILENAME = 'final_record_with_background.png'
 # Text rendering configuration
 MAX_TEXT_WIDTH = 300               # Maximum width for wrapped text (pixels)
 SONG_Y = 90                        # Y position offset for song title (from center)
-ARTIST_Y = 125                     # Y position offset for artist name (from center)
+ARTIST_Y = 110                     # Y position offset for artist name (from center)
 SONG_LINE_HEIGHT = 25              # Vertical spacing between song title lines
 ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
 POPUP_WIDTH = 420                  # Popup window width in pixels
@@ -366,9 +366,9 @@ def display_rotating_record_popup(song_title, artist_name):
         )
 
         # Auto-fit artist name text
-        # Start at 28pt, allow max 2 lines
+        # Start at 25pt, allow max 2 lines
         artist_lines, artist_font_size, artist_font = fit_text_to_width(
-            artist_name, FONT_PATH, 28, MAX_TEXT_WIDTH, 2, draw
+            artist_name, FONT_PATH, 25, MAX_TEXT_WIDTH, 2, draw
         )
 
         # Draw song title lines, centered horizontally

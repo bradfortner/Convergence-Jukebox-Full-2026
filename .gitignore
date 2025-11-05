@@ -38,6 +38,7 @@ Thumbs.db
 
 # Project specific
 music/
+record_labels/
 *.mp3
 log.txt
 CurrentSongPlaying.txt

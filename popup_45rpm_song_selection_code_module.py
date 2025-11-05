@@ -162,7 +162,7 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
     font_path = "fonts/OpenSans-ExtraBold.ttf"          # Font to use for text
     max_text_width = 300               # Maximum width for wrapped text (pixels)
     song_y = (height // 2) + 90        # Y position for song title (below center)
-    artist_y = (height // 2) + 110     # Y position for artist name (below song)
+    artist_y = (height // 2) + 120     # Y position for artist name (below song)
     song_line_height = 25              # Vertical spacing between song title lines
     artist_line_height = 30            # Vertical spacing between artist name lines
 

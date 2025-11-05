@@ -52,7 +52,7 @@ COMPOSITE_FILENAME = 'final_record_with_background.png'
 # Text rendering configuration
 MAX_TEXT_WIDTH = 300               # Maximum width for wrapped text (pixels)
 SONG_Y = 90                        # Y position offset for song title (from center)
-ARTIST_Y = 110                     # Y position offset for artist name (from center)
+ARTIST_Y = 120                     # Y position offset for artist name (from center)
 SONG_LINE_HEIGHT = 25              # Vertical spacing between song title lines
 ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
 POPUP_WIDTH = 420                  # Popup window width in pixels

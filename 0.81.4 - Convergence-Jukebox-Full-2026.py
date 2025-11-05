@@ -546,32 +546,53 @@ class JukeboxEngine:
         return self._write_json_file(self.statistics_file, self.song_statistics)
 
     def _load_artist_record_labels(self) -> None:
-        """Load artist record labels from file once at startup."""
+        """Load artist record labels from file once at startup.
+
+        This method reads the artist_record_labels.txt file containing a list of dictionaries
+        with artist_name and artist_label keys. The data is loaded once at program startup
+        and stored in memory to avoid repeated file I/O during song metadata generation.
+
+        Format: [{"artist_name": "beatles", "artist_label": "apple"}, ...]
+        """
+        # Read the JSON file containing artist-to-label mappings
         success, data = self._read_json_file(self.artist_record_labels_file)
+
+        # Validate that the file was read successfully and contains a list
         if success and isinstance(data, list):
+            # Store the loaded data in the instance variable for use during song processing
             self.artist_record_labels = data
             self._print_success(f"Loaded artist record labels ({len(data)} entries)")
         else:
+            # If file doesn't exist or is empty, initialize empty list
             self.artist_record_labels = []
             self._print_success("Artist record labels initialized")
 
     def _get_artist_label(self, artist_name: str) -> str:
         """Get record label for an artist from the loaded artist_record_labels list.
 
+        This method searches through the pre-loaded artist_record_labels data (loaded once
+        at startup) to find a matching artist. The search is case-insensitive to handle
+        variations in artist name capitalization.
+
         Args:
-            artist_name (str): Artist name to search for
+            artist_name (str): Artist name to search for in the artist_record_labels list
 
         Returns:
-            str: Artist label if found, empty string if not found
+            str: Artist label if a match is found, otherwise returns empty string
         """
+        # Return empty string if artist_name is None or empty
         if not artist_name:
             return ""
 
-        # Search through the loaded artist_record_labels list
+        # Iterate through the pre-loaded artist_record_labels list (loaded once at startup)
         for entry in self.artist_record_labels:
+            # Compare artist names case-insensitively (convert both to lowercase)
+            # This allows matching "Beatles", "beatles", "BEATLES", etc.
             if entry.get('artist_name', '').lower() == artist_name.lower():
+                # Return the corresponding artist_label value when a match is found
                 return entry.get('artist_label', '')
 
+        # No matching artist found, return empty string
         return ""
 
     def _record_song_play(self, song_index: int, play_type: str) -> None:
@@ -898,22 +919,29 @@ class JukeboxEngine:
                     song_duration: str = time.strftime("%M:%S", time.gmtime(song_duration_minutes_seconds))
 
                     # Extract and clean title and artist data by removing commas
+                    # Commas can interfere with data processing, so they are stripped out
                     clean_title = str(id3tag.title).replace(",", "") if id3tag.title else ""
                     clean_artist = str(id3tag.artist).replace(",", "") if id3tag.artist else ""
 
-                    # Get artist label from pre-loaded artist_record_labels
+                    # Artist Label Matching: Look up the record label for this artist
+                    # The _get_artist_label() method searches through the artist_record_labels list
+                    # that was loaded once at program startup. If the artist is found in the list,
+                    # the corresponding record label is returned. Otherwise, an empty string is returned.
+                    # This search uses case-insensitive matching to handle artist name variations.
                     artist_label = self._get_artist_label(clean_artist)
 
+                    # Build the song metadata tuple with all ID3 information plus the matched label
+                    # The label field will contain the record label if found, or empty string if not found
                     song_metadata: List[Any] = list((
-                        counter,
-                        file_path,
-                        clean_title,
-                        clean_artist,
-                        "%s" % id3tag.album,
-                        "%s" % id3tag.year,
-                        "%s" % id3tag.comment,
-                        song_duration,
-                        artist_label
+                        counter,                           # Sequential song number
+                        file_path,                         # Full path to MP3 file
+                        clean_title,                       # Song title (commas removed)
+                        clean_artist,                      # Artist name (commas removed)
+                        "%s" % id3tag.album,               # Album name
+                        "%s" % id3tag.year,                # Release year
+                        "%s" % id3tag.comment,             # Comments/notes field
+                        song_duration,                     # Duration formatted as MM:SS
+                        artist_label                       # Record label from artist_record_labels.txt (or empty if not found)
                     ))
                     self.music_id3_metadata_list.append(song_metadata)
                     counter += 1

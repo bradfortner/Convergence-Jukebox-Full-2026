@@ -290,7 +290,7 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
             pass
 
 
-def display_rotating_record_popup(song_title, artist_name):
+def display_rotating_record_popup(song_title, artist_name, label=""):
     """
     Display a rotating record popup during song playback using pygame.
 
@@ -302,6 +302,8 @@ def display_rotating_record_popup(song_title, artist_name):
     Args:
         song_title (str): The title of the currently playing song
         artist_name (str): The artist name for the currently playing song
+        label (str): Optional specific record label filename to use. If provided and found,
+                     this label will be used instead of random selection.
 
     Returns:
         tuple: (rotation_stop_flag, popup_start_time) for lifecycle management
@@ -321,11 +323,22 @@ def display_rotating_record_popup(song_title, artist_name):
 
         print(f"Found {len(png_files)} available record labels")
 
-        # Randomly select one blank record label
-        selected_label = random.choice(png_files)
-        label_path = os.path.join(BLANK_RECORDS_DIR, selected_label)
+        # Check if artist has a specific label assigned (passed as parameter from MusicMasterSongList)
+        # The label parameter contains the filename of the record label specific to this artist
+        if label and label in png_files:
+            # Use the assigned label for this artist
+            selected_label = label
+            print(f"Using assigned label for artist '{artist_name}': {selected_label}")
+        else:
+            # No assigned label or file not found, fall back to random selection
+            selected_label = random.choice(png_files)
+            if label:
+                print(f"Assigned label '{label}' not found, using random selection")
+            else:
+                print(f"No assigned label for artist, using random selection")
+            print(f"Randomly selected label: {selected_label}")
 
-        print(f"Randomly selected label: {selected_label}")
+        label_path = os.path.join(BLANK_RECORDS_DIR, selected_label)
 
         # Determine font color based on filename
         # If filename starts with "w_", use white font; otherwise use black

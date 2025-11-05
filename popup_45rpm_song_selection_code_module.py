@@ -138,11 +138,24 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
 
     print(f"Found {len(png_files)} available record labels")
 
-    # Randomly select one blank record label
-    selected_label = random.choice(png_files)
-    label_path = os.path.join(blank_records_dir, selected_label)
+    # Check if artist has a specific label assigned in MusicMasterSongList
+    # The label field contains the filename of the record label specific to this artist
+    artist_label = str(MusicMasterSongList[counter].get('label', ''))
 
-    print(f"Randomly selected label: {selected_label}")
+    if artist_label and artist_label in png_files:
+        # Use the assigned label for this artist
+        selected_label = artist_label
+        print(f"Using assigned label for artist '{artist}': {selected_label}")
+    else:
+        # No assigned label or file not found, fall back to random selection
+        selected_label = random.choice(png_files)
+        if artist_label:
+            print(f"Assigned label '{artist_label}' not found, using random selection")
+        else:
+            print(f"No assigned label for artist, using random selection")
+        print(f"Randomly selected label: {selected_label}")
+
+    label_path = os.path.join(blank_records_dir, selected_label)
 
     # Determine font color based on filename
     # If filename starts with "w_", use white font; otherwise use black

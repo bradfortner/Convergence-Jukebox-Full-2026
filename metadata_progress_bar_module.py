@@ -14,7 +14,7 @@ class MetadataProgressBar:
     Runs in a separate thread to avoid blocking the main process.
     """
 
-    def __init__(self, total_files: int, window_title: str = "Generating MP3 Metadata"):
+    def __init__(self, total_files: int, window_title: str = "Convergence Jukebox Welcome"):
         """
         Initialize the progress bar.
 
@@ -98,7 +98,7 @@ class MetadataProgressBar:
             self.screen.fill((30, 30, 30))
 
             # Draw title
-            title_text = self.font.render("Generating MP3 Metadata...", True, (255, 255, 255))
+            title_text = self.font.render("Loading Your Music Collection...", True, (255, 255, 255))
             self.screen.blit(title_text, (10, 10))
 
             # Calculate progress percentage

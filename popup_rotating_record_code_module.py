@@ -15,6 +15,47 @@ import pygame
 from PIL import Image, ImageDraw, ImageFont
 import FreeSimpleGUI as sg
 
+# Module-level cache for artist record labels (loaded once, reused for all popup calls)
+_artist_record_labels_cache = None
+
+def _get_cached_artist_label(artist_name):
+    """Load artist record labels once and cache at module level.
+
+    First call loads from disk and caches the data. Subsequent calls use cached data.
+    This avoids repeated disk I/O when multiple popups are displayed.
+
+    Args:
+        artist_name (str): Artist name to search for
+
+    Returns:
+        str: Record label filename if found, empty string otherwise
+    """
+    global _artist_record_labels_cache
+
+    # Load from disk only if not already cached
+    if _artist_record_labels_cache is None:
+        artist_record_labels_file = "the_artist_record_labels.txt"
+        try:
+            if os.path.exists(artist_record_labels_file):
+                with open(artist_record_labels_file, 'r') as f:
+                    _artist_record_labels_cache = json.load(f)
+                    print(f"Cached artist record labels ({len(_artist_record_labels_cache)} entries)")
+            else:
+                _artist_record_labels_cache = []
+        except Exception as e:
+            print(f"Error loading artist record labels: {e}")
+            _artist_record_labels_cache = []
+
+    # Search the cached data for matching artist
+    if not artist_name:
+        return ""
+
+    for entry in _artist_record_labels_cache:
+        if entry.get('artist_name', '').lower() == artist_name.lower():
+            return entry.get('artist_label', '')
+
+    return ""
+
 # ============================================================================
 # POPUP CONFIGURATION PARAMETERS
 # All timing and behavior parameters are defined here for easy customization
@@ -322,22 +363,9 @@ def display_rotating_record_popup(song_title, artist_name):
 
         print(f"Found {len(png_files)} available record labels")
 
-        # Check if artist has a specific label assigned in the_artist_record_labels.txt
-        # Load the artist record labels file and search for this artist
-        artist_record_labels_file = "the_artist_record_labels.txt"
-        artist_label = ""
-
-        try:
-            if os.path.exists(artist_record_labels_file):
-                with open(artist_record_labels_file, 'r') as f:
-                    artist_record_labels = json.load(f)
-                    # Search for matching artist (case-insensitive)
-                    for entry in artist_record_labels:
-                        if entry.get('artist_name', '').lower() == artist_name.lower():
-                            artist_label = entry.get('artist_label', '')
-                            break
-        except Exception as e:
-            print(f"Error loading artist record labels: {e}")
+        # Check if artist has a specific label assigned
+        # Uses cached artist record labels (loaded once on first call, then reused)
+        artist_label = _get_cached_artist_label(artist_name)
 
         if artist_label and artist_label in png_files:
             # Use the assigned label for this artist

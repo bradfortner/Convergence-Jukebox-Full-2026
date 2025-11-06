@@ -7,54 +7,12 @@ All popup parameters are defined here to keep popup logic self-contained.
 """
 from pathlib import Path
 import os
-import json
 import time
 import random
 import threading
 import pygame
 from PIL import Image, ImageDraw, ImageFont
 import FreeSimpleGUI as sg
-
-# Module-level cache for artist record labels (loaded once, reused for all popup calls)
-_artist_record_labels_cache = None
-
-def _get_cached_artist_label(artist_name):
-    """Load artist record labels once and cache at module level.
-
-    First call loads from disk and caches the data. Subsequent calls use cached data.
-    This avoids repeated disk I/O when multiple popups are displayed.
-
-    Args:
-        artist_name (str): Artist name to search for
-
-    Returns:
-        str: Record label filename if found, empty string otherwise
-    """
-    global _artist_record_labels_cache
-
-    # Load from disk only if not already cached
-    if _artist_record_labels_cache is None:
-        artist_record_labels_file = "the_artist_record_labels.txt"
-        try:
-            if os.path.exists(artist_record_labels_file):
-                with open(artist_record_labels_file, 'r') as f:
-                    _artist_record_labels_cache = json.load(f)
-                    print(f"Cached artist record labels ({len(_artist_record_labels_cache)} entries)")
-            else:
-                _artist_record_labels_cache = []
-        except Exception as e:
-            print(f"Error loading artist record labels: {e}")
-            _artist_record_labels_cache = []
-
-    # Search the cached data for matching artist
-    if not artist_name:
-        return ""
-
-    for entry in _artist_record_labels_cache:
-        if entry.get('artist_name', '').lower() == artist_name.lower():
-            return entry.get('artist_label', '')
-
-    return ""
 
 # ============================================================================
 # POPUP CONFIGURATION PARAMETERS
@@ -363,24 +321,11 @@ def display_rotating_record_popup(song_title, artist_name):
 
         print(f"Found {len(png_files)} available record labels")
 
-        # Check if artist has a specific label assigned
-        # Uses cached artist record labels (loaded once on first call, then reused)
-        artist_label = _get_cached_artist_label(artist_name)
-
-        if artist_label and artist_label in png_files:
-            # Use the assigned label for this artist
-            selected_label = artist_label
-            print(f"Using assigned label for artist '{artist_name}': {selected_label}")
-        else:
-            # No assigned label or file not found, fall back to random selection
-            selected_label = random.choice(png_files)
-            if artist_label:
-                print(f"Assigned label '{artist_label}' not found, using random selection")
-            else:
-                print(f"No assigned label for artist, using random selection")
-            print(f"Randomly selected label: {selected_label}")
-
+        # Randomly select one blank record label
+        selected_label = random.choice(png_files)
         label_path = os.path.join(BLANK_RECORDS_DIR, selected_label)
+
+        print(f"Randomly selected label: {selected_label}")
 
         # Determine font color based on filename
         # If filename starts with "w_", use white font; otherwise use black

@@ -35,15 +35,22 @@ The background thread WAS successfully writing the data, but the engine was simu
 Removed background thread queue. GUI now writes PaidMusicPlayList.txt immediately instead of queuing to async thread. This eliminates the window where the engine can overwrite queued writes.
 
 ## Solution Enhanced (0.82.6)
-Implemented Windows file locking (msvcrt.locking) to prevent any race conditions between GUI and Engine:
-- Added `read_paid_playlist()` helper function with file locking
-- Added `write_paid_playlist()` helper function with file locking
-- Replaced all four file operations (GUI read/write at lines 2533 & 2556, Engine read/write at lines 1131 & 1169) with locked versions
+Attempted Windows file locking (msvcrt.locking) to prevent race conditions, but this caused "[Errno 13] Permission denied" errors because the file locking calls were incompatible with text mode file operations.
 
-This ensures atomic read-modify-write operations on PaidMusicPlayList.txt, preventing the Engine from overwriting the GUI's writes even in rapid succession scenarios.
+## Solution Finalized (0.82.7)
+Replaced msvcrt.locking with robust retry logic and atomic file operations:
+- Added `read_paid_playlist()` with retry logic (5 retries, 10ms delays)
+- Added `write_paid_playlist()` with atomic operations (write to temp file, then rename)
+- Replaced all four file operations (GUI read/write at lines 2533 & 2556, Engine read/write at lines 1131 & 1169) with these functions
+
+This approach prevents race conditions without triggering permission errors:
+- Retry logic handles brief file access conflicts
+- Atomic writes ensure complete data or nothing (no partial writes)
+- Works seamlessly with text mode file operations
+- Cleans up temporary files on error
 
 ## Modules Modified
-- 0.82.6 - Convergence-Jukebox-Full-2026.py (main file with file locking) - COMMITTED TO GITHUB
+- 0.82.7 - Convergence-Jukebox-Full-2026.py (main file with atomic writes and retries) - COMMITTED TO GITHUB
 
 ## Testing Notes
 - When selecting multiple songs, watch both the file writes and the playback order

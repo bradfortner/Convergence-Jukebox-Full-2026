@@ -3,20 +3,23 @@
 ## Bug Description
 When users select multiple paid songs in quick succession, only the first song plays correctly. The second and subsequent paid songs are selected, appear in the upcoming display, but never play. The PaidMusicPlayList.txt file ends up empty.
 
-## Root Cause Identified
-**Race condition between GUI and Engine file writes:**
-- GUI reads PaidMusicPlayList.txt, appends new song, queues write via background thread
-- Engine continuously reloads PaidMusicPlayList.txt each loop iteration
-- When engine finishes playing a song and deletes it from the file, it overwrites what the background thread was trying to write
-- Result: Only the first song survives in the file; subsequent songs get overwritten
+## Root Cause Identified (0.82.8)
+**In-memory copy gets out of sync with the file:**
+- Engine reads PaidMusicPlayList.txt at loop start: [24]
+- Engine plays song 24 (takes 2+ minutes)
+- During playback, GUI adds songs to file: [24, 26, 28]
+- After playing, engine deletes from OLD in-memory copy (which only had [24])
+- Engine writes back an empty or incomplete list, losing songs 26, 28
+- Result: Songs added during playback are lost
 
 ## Investigation Findings
-From 0.82.4 logs:
-- First song queued [24] → written [24] → played ✓
-- Second song queued [24, 26] → written [24, 26] → but file ends up empty
-- Third song queued [24, 26, 40] → written [24, 26, 40] → but file ends up empty
+From 0.82.7 test log:
+- 14:21:01 - Engine reads file [24], starts playing
+- 14:23:50 - While playing, GUI adds [24, 26, 28] to file
+- After play completes - Engine deletes from stale in-memory copy, loses 26 & 28
+- File ends up empty because engine had old data in memory
 
-The background thread WAS successfully writing the data, but the engine was simultaneously reading and writing its own version, causing the newer songs to be lost.
+The file was being written correctly by the GUI, but the engine's in-memory copy was outdated.
 
 ## Code Flow
 **GUI Selection (lines 2500-2549):**
@@ -37,23 +40,30 @@ Removed background thread queue. GUI now writes PaidMusicPlayList.txt immediatel
 ## Solution Enhanced (0.82.6)
 Attempted Windows file locking (msvcrt.locking) to prevent race conditions, but this caused "[Errno 13] Permission denied" errors because the file locking calls were incompatible with text mode file operations.
 
-## Solution Finalized (0.82.7)
-Replaced msvcrt.locking with robust retry logic and atomic file operations:
-- Added `read_paid_playlist()` with retry logic (5 retries, 10ms delays)
-- Added `write_paid_playlist()` with atomic operations (write to temp file, then rename)
-- Replaced all four file operations (GUI read/write at lines 2533 & 2556, Engine read/write at lines 1131 & 1169) with these functions
+## Solution - Attempt 1 (0.82.6-0.82.7)
+File locking and atomic writes were implemented but were treating the wrong problem. The real issue was the engine's in-memory copy being outdated, not file access conflicts.
 
-This approach prevents race conditions without triggering permission errors:
-- Retry logic handles brief file access conflicts
-- Atomic writes ensure complete data or nothing (no partial writes)
-- Works seamlessly with text mode file operations
-- Cleans up temporary files on error
+## Solution - Final Fix (0.82.8)
+Re-read the file from disk AFTER playing a song but BEFORE deleting and writing back:
+1. Engine reads PaidMusicPlayList.txt: [24]
+2. Engine plays song 24
+3. **NEW: Engine re-reads file to capture additions: [24, 26, 28]**
+4. Engine deletes first song from updated list: [26, 28]
+5. Engine writes back: [26, 28]
+6. Loop continues, will play song 26 next
+
+Implementation (line 1167 in Engine playback loop):
+- Added `self.paid_music_playlist = read_paid_playlist(self.paid_music_playlist_file)` after play_song() completes
+- Added safety check: only delete if list is not empty
+- This ensures all selections made during playback are preserved
 
 ## Modules Modified
-- 0.82.7 - Convergence-Jukebox-Full-2026.py (main file with atomic writes and retries) - COMMITTED TO GITHUB
+- 0.82.8 - Convergence-Jukebox-Full-2026.py (main file with file re-read fix) - COMMITTED TO GITHUB
 
 ## Testing Notes
-- When selecting multiple songs, watch both the file writes and the playback order
-- Check PaidMusicPlayList.txt after selection to confirm all songs are present
-- Verify songs play in the order they were selected
-- Test with rapid succession selections to verify file locking prevents race conditions
+- Select a paid song and let it play for a while (don't skip)
+- While it's playing, select 1-2 more songs
+- After the first song finishes, verify the next song plays immediately
+- Repeat: the second song should play all the way through
+- Check log entries to confirm all songs are queued and played
+- Verify songs play in the order they were selected (not skipped)

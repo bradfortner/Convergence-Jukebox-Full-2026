@@ -1458,10 +1458,6 @@ def file_io_worker_thread():
 
             operation = task.get('operation')
 
-            with open('log.txt', 'a') as log:
-                now = datetime.now()
-                current_time = now.strftime("%H:%M:%S")
-                log.write('\n' + str(current_time) + ' Background thread: Received task with operation: ' + str(operation))
 
             if operation == 'save_song_selection':
                 paid_music_file_path = task.get('paid_music_file_path')
@@ -1471,29 +1467,9 @@ def file_io_worker_thread():
                 try:
                     # Write updated PaidMusicPlayList to disk
                     # NOTE: This assumes the GUI has properly prepared the list
-                    with open('log.txt', 'a') as log:
-                        now = datetime.now()
-                        current_time = now.strftime("%H:%M:%S")
-                        log.write('\n' + str(current_time) + ' Background thread writing PaidMusicPlayList: ' + str(PaidMusicPlayList))
                     with open(paid_music_file_path, 'w') as f:
                         json.dump(PaidMusicPlayList, f)
-
-                    # Write to log file
-                    now = datetime.now()
-                    current_time = now.strftime("%H:%M:%S")
-                    with open('log.txt', 'a') as log:
-                        log.write('\n' + str(current_time) + ' ' + (str(song_info[0]) + ' - ' + str(song_info[1] + ' Selected For Play,')))
-
-                    with open('log.txt', 'a') as log:
-                        now = datetime.now()
-                        current_time = now.strftime("%H:%M:%S")
-                        log.write('\n' + str(current_time) + ' Background thread: Successfully saved song selection to ' + str(paid_music_file_path))
-                    print(f'Background thread: Successfully saved song selection to {paid_music_file_path}')
                 except IOError as e:
-                    with open('log.txt', 'a') as log:
-                        now = datetime.now()
-                        current_time = now.strftime("%H:%M:%S")
-                        log.write('\n' + str(current_time) + ' Background thread IOError: ' + str(e))
                     print(f'Background thread error writing files: {e}')
 
         except Empty:
@@ -2572,18 +2548,10 @@ def main():
 
                             # Write PaidMusicPlayList directly to file immediately with file locking
                             write_paid_playlist(paid_music_file_path, PaidMusicPlayList)
-                            with open('log.txt', 'a') as log:
-                                now = datetime.now()
-                                current_time = now.strftime("%H:%M:%S")
-                                log.write('\n' + str(current_time) + ' Main code wrote PaidMusicPlayList: ' + str(PaidMusicPlayList))
                             #  end search
                             enable_all_buttons()
                             credit_amount -= 1
                             info_screen_window['--credits--'].Update('CREDITS ' + str(credit_amount))
-                            with open('log.txt', 'a') as log:
-                                now = datetime.now()
-                                current_time = now.strftime("%H:%M:%S")
-                                log.write('\n' + str(current_time) + ' Successfully saved song selection: ' + str(paid_song_selected_title) + ' - ' + str(paid_song_selected_artist))
                             # Call 45rpm popup display function
                             active_popup_window, popup_start_time, popup_duration = display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window)
                             # Update the upcoming selections display to show newly added paid song

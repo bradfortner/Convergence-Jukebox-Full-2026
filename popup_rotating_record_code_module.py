@@ -11,6 +11,7 @@ import time
 import random
 import threading
 import pygame
+from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import FreeSimpleGUI as sg
 
@@ -308,6 +309,10 @@ def display_rotating_record_popup(song_title, artist_name):
                - rotation_stop_flag: threading.Event to signal when to stop rotation
                - popup_start_time: time.time() when popup was created
     """
+    with open('log.txt', 'a') as log:
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        log.write('\n' + str(current_time) + ' popup_rotating_record_code_module: Popup opened')
 
     try:
         print(f"\n=== POPUP FUNCTION CALLED with title='{song_title}', artist='{artist_name}' ===")
@@ -447,6 +452,10 @@ def display_rotating_record_popup(song_title, artist_name):
         print("Pygame record rotation popup started")
 
         # Return rotation control flag and start time for lifecycle management
+        with open('log.txt', 'a') as log:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            log.write('\n' + str(current_time) + ' popup_rotating_record_code_module: Popup closed')
         return rotation_stop_flag, popup_start_time
 
     except Exception as e:

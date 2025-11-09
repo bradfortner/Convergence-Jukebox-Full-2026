@@ -6,6 +6,7 @@ import threading
 import os
 import random
 import time
+from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import vlc
 import FreeSimpleGUI as sg
@@ -26,6 +27,10 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
     Returns:
         None
     """
+    with open('log.txt', 'a') as log:
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        log.write('\n' + str(current_time) + ' popup_45rpm_song_selection_code_module: Popup opened')
 
     def wrap_text(text, font, max_width, draw):
         """
@@ -321,6 +326,10 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
 
         # Return the popup window to be processed by main event loop
         # The popup will be included in sg.read_all_windows() reads
+        with open('log.txt', 'a') as log:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            log.write('\n' + str(current_time) + ' popup_45rpm_song_selection_code_module: Popup closed')
         return popup_window, popup_start_time, popup_duration
 
     except Exception as e:

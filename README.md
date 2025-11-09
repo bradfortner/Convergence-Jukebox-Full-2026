@@ -1,8 +1,8 @@
 # Convergence Jukebox Full 2026
 
-An integrated jukebox application combining a VLC-based audio engine with a FreeSimpleGUI interface. The application runs the engine as a daemon thread while maintaining a responsive GUI on the main thread. Features comprehensive song management with 79-track collection, multiple playlist types, genre filtering, song statistics tracking, advanced search capabilities, and interactive 45 RPM record visualization.
+An integrated jukebox application combining a VLC-based audio engine with a FreeSimpleGUI interface. The application runs the engine as a daemon thread while maintaining a responsive GUI on the main thread. Features comprehensive song management with a music collection, multiple playlist types (paid and random), advanced search capabilities, and interactive 45 RPM record visualization.
 
-**Evolution**: This project evolved from the original Convergence Jukebox created in 2015. Version 0.76 represents a complete modernization with a new interface featuring dynamically generated 45 RPM record images and smooth rotation animations that bring a nostalgic retro aesthetic to digital music playback.
+**Evolution**: This project evolved from the original Convergence Jukebox created in 2015. Version 0.82.8 represents a stable, fully functional implementation with a modernized interface featuring dynamically generated 45 RPM record images and smooth rotation animations that bring a nostalgic retro aesthetic to digital music playback. Recent improvements include fixing a race condition bug in the paid music playlist system.
 
 ## Features
 
@@ -80,7 +80,7 @@ The application requires the following project module files:
 ## Usage
 
 ```bash
-python "0.76 - Convergence-Jukebox-Full-2026.py"
+python "0.82.8 - Convergence-Jukebox-Full-2026.py"
 ```
 
 The application will:
@@ -97,7 +97,10 @@ The application will:
 
 ```
 Convergence-Jukebox-Full-2026/
-├── 0.76 - Convergence-Jukebox-Full-2026.py    # Main integrated application
+├── 0.82.8 - Convergence-Jukebox-Full-2026.py # Main integrated application (CURRENT)
+├── depreciated_code/                          # Previous versions (0.82.0-0.82.7 debug versions)
+├── .claude/                                   # Claude Code configuration
+│   └── claude.md                              # Debugging notes and fixes
 ├── jukebox_config.json                        # Configuration file
 ├── song_statistics.json                       # Song statistics tracking
 ├── GenreFlagsList.txt                         # Genre flags data
@@ -106,19 +109,27 @@ Convergence-Jukebox-Full-2026/
 ├── PaidMusicPlayList.txt                      # Paid playlist storage
 ├── CurrentSongPlaying.txt                     # Current playing song info
 ├── log.txt                                    # Application log file
-├── music/                                     # Music directory (79 MP3 files)
+├── music/                                     # Music directory (MP3 files)
 ├── images/                                    # Image assets (UI graphics)
-├── jukebox_required_audio_files/              # UI sounds (buzz.mp3)
-└── Module files/                              # External GUI modules
+├── record_labels/                             # 45 RPM record label templates
+├── fonts/                                     # Font files for record labels
+├── jukebox_required_audio_files/              # UI sounds (buzz.mp3, success.mp3)
+└── Module files (in project root)
     ├── control_button_screen_layout_module.py
     ├── jukebox_selection_screen_layout_module.py
     ├── info_screen_layout_module.py
     ├── search_window_button_layout_module.py
     ├── popup_45rpm_song_selection_code_module.py
     ├── popup_rotating_record_code_module.py
+    ├── popup_45rpm_now_playing_code_module.py
     ├── font_size_window_updates_module.py
-    ├── disable_a/b/c_selection_buttons_module.py
+    ├── disable_a_selection_buttons_module.py
+    ├── disable_b_selection_buttons_module.py
+    ├── disable_c_selection_buttons_module.py
     ├── enable_all_buttons_module.py
+    ├── the_bands_name_check_module.py
+    ├── metadata_progress_bar_module.py
+    ├── upcoming_selections_update_module.py
     └── (and other UI/utility modules)
 ```
 
@@ -174,15 +185,43 @@ For full functionality, you will need:
 **2015 (Original)** - Convergence Jukebox
 - Initial jukebox application with basic music playback
 
-**0.76 - Convergence Jukebox Full 2026 (Current)**
+**0.76** - Convergence Jukebox Full 2026
 - Complete modernization and unified integration of engine and GUI
 - New retro interface with 45 RPM record image generation and smooth rotation animation
-- Stable base (Version 0.8) with enhanced features
+- Stable base with enhanced features
 - Input validation for data integrity
-- Refactored I/O methods for testability
 - Song statistics tracking and reporting
-- No internal threading (avoids memory leaks from earlier versions)
-- Enhanced from 11 years of development and refinement
+
+**0.80 - 0.81** - Debugging and Enhancement
+- Added logging and diagnostic features
+- Improved module organization
+
+**0.82.0 - 0.82.7** - Paid Song Bug Investigation and Fixes
+- Identified race condition between GUI and Engine accessing PaidMusicPlayList.txt
+- Attempted solutions with background thread removal, file locking, and atomic writes
+- All debug versions moved to depreciated_code folder
+
+**0.82.8 - Convergence Jukebox Full 2026 (CURRENT)**
+- Fixed paid music playlist bug by re-reading file after playing
+- Resolves issue where second and subsequent paid songs were lost
+- Cleaned up debug logging from popup modules and main code
+- Stable, fully functional implementation with proper playlist synchronization
+- Ready for production use
+
+## Paid Music Playlist System
+
+The jukebox features a paid music playlist system that prioritizes paid song selections over random playback:
+
+- **Selection**: Users can select paid songs by inserting credits (quarters)
+- **Priority**: Paid songs play immediately after the current song finishes, before returning to random playlist
+- **Queue Management**: Multiple paid songs can be selected and will play in the order they were selected
+- **File-based Storage**: Song selections are stored in `PaidMusicPlayList.txt` and synchronized between GUI and Engine
+
+### Bug Fix (v0.82.8)
+A race condition bug was identified and fixed where the second and subsequent paid songs would be lost during playback:
+- **Root Cause**: The Engine's in-memory copy of the paid playlist became out of sync with the file when songs were selected during playback
+- **Solution**: The Engine now re-reads the playlist file from disk after playing each song, ensuring all newly added selections are captured
+- This simple fix ensures all paid song selections are played in the correct order without loss of data
 
 ## License
 

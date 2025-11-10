@@ -2478,7 +2478,7 @@ def main():
                     if MusicMasterSongList[counter]['location'] == song_currently_playing:
                         # Update Jukebox Info Screen
                         song_title = MusicMasterSongList[counter]['title']
-                        if len(song_title) >= 25:
+                        if len(song_title) >= 22:
                             info_screen_window['--song_title_left--'].Update(song_title)
                             info_screen_window['--song_title_centered--'].Update('')
                         else:

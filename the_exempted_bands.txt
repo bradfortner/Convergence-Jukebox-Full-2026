@@ -1,1 +1,22 @@
-"Place Band Names Here In Proper Case With Each Band Placed On Separate Line With No Quotes"
+The Queen
+The Prince
+The Alabama
+The Alan Parsons
+The Berlin
+The Boston
+The Bread
+The Cher
+The Chicago
+The Devo
+The Drake
+The Duffy
+The Glenn Miller
+The Heart
+The Iron Maiden
+The Ivan
+The James Taylor
+The Jet
+The Journey
+The Kansas
+The Alan Parsons Project
+                    

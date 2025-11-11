@@ -67,3 +67,73 @@ Implementation (line 1167 in Engine playback loop):
 - Repeat: the second song should play all the way through
 - Check log entries to confirm all songs are queued and played
 - Verify songs play in the order they were selected (not skipped)
+
+---
+
+# Convergence Jukebox - Rotating Record Popup Timing Bug
+
+## Bug Description (0.82.98)
+The rotating record popup appears much sooner than the expected 20 seconds of idle time. While initial testing showed it sometimes waited the full 20 seconds, subsequent tests showed it would appear after only 10-12 seconds on average.
+
+## Root Cause Identified
+**Idle timer is only reset by certain keypress events:**
+- Line 1622 in main file checks: `if event.startswith('--') and ('KEY' in event or 'PRESSED' in event or event == '--ESC--')`
+- This only catches special formatted events like `--ESC--`, arrow keys, etc.
+- **Most frequently used keys bypass this check and DON'T reset the idle timer**
+
+## Complete Keymap
+
+### Main Interface Keys (DO NOT reset idle timer)
+| Key | Action |
+|-----|--------|
+| **x** | Add credit (quarter) |
+| **T** | Open title search |
+| **A** | Open artist search |
+| **a** | Select song category A |
+| **b** | Select song category B |
+| **c** | Select song category C |
+| **1-7** | Select song number 1-7 |
+| **S** | Complete song selection |
+
+### Main Interface Keys (DO reset idle timer)
+| Key | Action |
+|-----|--------|
+| **Escape** | Exit program |
+| **Right Arrow** | Move selection right |
+| **Left Arrow** | Move selection left |
+
+### Search Window Keys (All reset idle timer)
+| Key | Action |
+|-----|--------|
+| **Right Arrow** | Next result |
+| **Left Arrow** | Previous result |
+| **S** | Confirm selection |
+| **C** | Delete character |
+| **Escape** | Exit search |
+| **A-Z, 0-9** | Type search |
+
+### 45RPM Popup Window Keys
+| Key | Action | Resets Timer? |
+|-----|--------|---------------|
+| **x** | Add credit | ❌ No |
+| **Escape** | Close popup | ✅ Yes |
+
+## The Problem
+When user presses **x** (add credit), **a/b/c** (select category), or **1-7** (select song number), the 20-second idle timer is NOT reset.
+
+**Example sequence from test log:**
+- 10:53:29 - X pressed (add credit) → timer NOT reset
+- 10:53:39 - Popup appears (only 10 seconds later, not 20)
+
+## Solution
+Modify line 1622 to reset `last_keypress_time` for ALL keypress events, not just special formatted ones. This ensures:
+- Timer resets consistently whenever user interacts with jukebox
+- Popup waits full 20 seconds of actual idle time
+- Expected behavior matches observed behavior
+
+## Code Changes Needed
+Line 1620-1624: Expand the keypress detection condition to catch simple character events (x, a, b, c, 1-7, S, T, A)
+
+## Modules Modified
+- popup_rotating_record_code_module.py - Added logging (0.82.98)
+- 0.82.98 - Convergence-Jukebox-Full-2026.py - Added logging calls for popup show/close events

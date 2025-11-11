@@ -81,7 +81,7 @@ The application requires the following project module files:
 ## Usage
 
 ```bash
-python "0.82.97 - Convergence-Jukebox-Full-2026.py"
+python "0.83.12 - Convergence-Jukebox-Full-2026.py"
 ```
 
 The application will:
@@ -98,7 +98,7 @@ The application will:
 
 ```
 Convergence-Jukebox-Full-2026/
-├── 0.82.97 - Convergence-Jukebox-Full-2026.py # Main integrated application (CURRENT)
+├── 0.83.12 - Convergence-Jukebox-Full-2026.py # Main integrated application (CURRENT)
 ├── depreciated_code/                          # Previous versions (0.81-0.82.8 archived versions)
 ├── .claude/                                   # Claude Code configuration
 │   └── claude.md                              # Debugging notes and fixes

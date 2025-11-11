@@ -2410,24 +2410,31 @@ def main():
                         paid_song_selected_artist_no_the = paid_song_selected_artist.replace('The ', '')
                         paid_song_selected_artist = paid_song_selected_artist_no_the
 
-                    # add selection to paid song list using dictionary lookup instead of searching through all songs
+                    # add selection to paid song list using dictionary lookup with fallback to search
                     song_found = False
+                    counter = 0
 
-                    # Calculate button index from song selection (A1-A7=0-6, B1-B7=7-13, C1-C7=14-20)
-                    column_char = song_selected[0]  # 'A', 'B', or 'C'
-                    row_num = int(song_selected[1])  # 1-7
-                    column_num = {'A': 0, 'B': 1, 'C': 2}[column_char]
-                    button_index = column_num * 7 + (row_num - 1)
-
-                    # Look up song index directly from dictionary instead of searching
-                    button_key = f'--button{button_index}_top--'
+                    # First, try dictionary lookup for fast O(1) access
+                    button_key = f'--button{int(song_selected[1]) - 1 + (ord(song_selected[0]) - ord('A')) * 7}_top--'
                     if button_key in button_to_song_number:
-                        # Get the song index from dictionary
                         counter = button_to_song_number[button_key]
                         song_found = True
 
+                    # Fallback to search loop if dictionary lookup fails (ensures backwards compatibility)
+                    if not song_found:
+                        for i in MusicMasterSongList:
+                            button_title_truncated = str(paid_song_selected_title)[:22]
+                            button_artist_truncated = str(paid_song_selected_artist)[:22]
+                            library_title_truncated = str(MusicMasterSongList[counter]['title'][:22])
+                            library_artist_truncated = str(MusicMasterSongList[counter]['artist'][:22])
+
+                            if button_title_truncated == library_title_truncated and button_artist_truncated == library_artist_truncated:
+                                song_found = True
+                                break
+                            counter += 1
+
+                    if song_found:
                         # add song to upcoming list file
-                        # UpcomingSongPlayList
                         UpcomingSongPlayList.append(str(MusicMasterSongList[counter]['title'][:22]) + ' - ' + str(MusicMasterSongList[counter]['artist'][:22]))
                         #  add matched song number to variable
                         song_to_add = (MusicMasterSongList[counter]['number'])
@@ -2466,8 +2473,7 @@ def main():
                             active_popup_window, popup_start_time, popup_duration = display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window)
                             # Update the upcoming selections display to show newly added paid song
                             update_upcoming_selections(info_screen_window, UpcomingSongPlayList)
-
-                    if not song_found:
+                    else:
                         print(f"ERROR: Song '{paid_song_selected_title}' by '{paid_song_selected_artist}' not found in music library!")
                         enable_all_buttons()
                         control_button_window['--select--'].update(disabled=True)

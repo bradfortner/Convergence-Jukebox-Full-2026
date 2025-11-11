@@ -56,7 +56,6 @@ def update_upcoming_selections(window, upcoming_list):
     """Update upcoming selections display in the info screen window using individual element keys"""
     try:
         if not window:
-            print("DEBUG: Window is None, cannot update upcoming selections")
             return
 
         # Element keys for the upcoming songs display (from info_screen_layout_module.py)
@@ -79,27 +78,20 @@ def update_upcoming_selections(window, upcoming_list):
                 if key in window.AllKeysDict:
                     window[key].update('')
             except Exception as e:
-                print(f"DEBUG: Could not clear {key}: {e}")
                 continue
 
         # Update with actual upcoming songs
         if upcoming_list and len(upcoming_list) > 0:
-            print(f"DEBUG: Updating upcoming selections with {len(upcoming_list)} songs")
             for i, song in enumerate(upcoming_list):
                 if i >= len(upcoming_keys):
                     break  # Don't exceed available elements
                 try:
                     if upcoming_keys[i] in window.AllKeysDict:
                         window[upcoming_keys[i]].update(f"{i+1}. {song}")
-                        print(f"DEBUG: Updated {upcoming_keys[i]} with: {song}")
                 except Exception as e:
-                    print(f"DEBUG: Error updating {upcoming_keys[i]}: {e}")
                     continue
-        else:
-            print("DEBUG: No upcoming songs to display")
 
     except Exception as e:
-        print(f"DEBUG: Error in update_upcoming_selections: {e}")
         import traceback
         traceback.print_exc()
 import FreeSimpleGUI as sg
@@ -1621,12 +1613,10 @@ def main():
             # Check if it's a keypress event (starts with special prefixes)
             if event.startswith('--') and ('KEY' in event or 'PRESSED' in event or event == '--ESC--'):
                 last_keypress_time = time.time()
-                print(f"DEBUG: Keypress detected, reset idle timer")
 
                 # Close rotating record popup on any keypress
                 if rotating_record_rotation_stop_flag is not None:
                     try:
-                        print(f"DEBUG: Closing rotating record popup on keypress")
                         rotating_record_rotation_stop_flag.set()
                         log_popup_event("popup window rotating closed")
                         # Wait for pygame thread to finish closing
@@ -1637,27 +1627,23 @@ def main():
                         jukebox_selection_window.UnHide()
                         control_button_window.UnHide()
                         song_playing_lookup_window.UnHide()
-                        print(f"DEBUG: Rotating record popup closed")
                     except Exception as e:
-                        print(f"DEBUG: Error closing rotating record on keypress: {e}")
+                        pass
 
         # Check if pygame closed the popup via keypress (rotation_stop_flag was set)
         if rotating_record_rotation_stop_flag is not None and rotating_record_rotation_stop_flag.is_set():
             try:
-                print(f"DEBUG: Detected pygame closed popup - restoring windows")
                 log_popup_event("popup window rotating closed")
                 rotating_record_rotation_stop_flag = None
                 rotating_record_start_time = None
                 # Reset idle timer so popup won't reappear for 20 seconds
                 last_keypress_time = time.time()
-                print(f"DEBUG: Reset idle timer - popup will reappear after 20 seconds of idle")
                 # Restore selector windows (background, info_screen, and arrow windows stay visible)
                 jukebox_selection_window.UnHide()
                 control_button_window.UnHide()
                 song_playing_lookup_window.UnHide()
-                print(f"DEBUG: Windows restored")
             except Exception as e:
-                print(f"DEBUG: Error restoring windows after pygame close: {e}")
+                pass
 
         # Handle ESC key to exit program
         if event == '--ESC--':
@@ -2124,19 +2110,17 @@ def main():
                 # End of search window event loop code
             # Reset idle timer after exiting search window
             last_keypress_time = time.time()
-            print(f"DEBUG: Exited search window - reset idle timer, popup will reappear after 20 seconds")
 
             # Close rotating record popup if it's showing
             if rotating_record_rotation_stop_flag is not None:
                 try:
-                    print(f"DEBUG: Closing rotating record popup on search exit")
                     rotating_record_rotation_stop_flag.set()
                     # Wait for pygame thread to finish closing
                     time.sleep(0.2)  # Give popup thread time to clean up
                     rotating_record_rotation_stop_flag = None
                     rotating_record_start_time = None
                 except Exception as e:
-                    print(f"DEBUG: Error closing rotating record on search exit: {e}")
+                    pass
 
         #  keyboard entry PySimpleGUI
         if event == "--A--" or (event) == "a":
@@ -2537,21 +2521,12 @@ def main():
 
                                     # Only remove from upcoming list if the currently playing song matches the first upcoming song
                                     if current_song_str == upcoming_song_str:
-                                        print(f"DEBUG: Song match found! Current: '{current_song_str}' matches Upcoming: '{upcoming_song_str}'")
                                         try:
-                                            print(f"DEBUG: Removing first song from UpcomingSongPlayList. Current list: {UpcomingSongPlayList}")
                                             UpcomingSongPlayList.pop(0)
-                                            print(f"DEBUG: After removal, UpcomingSongPlayList: {UpcomingSongPlayList}")
                                         except IndexError: # Executed if no first entry in list
-                                            print("DEBUG: No songs in UpcomingSongPlayList to remove")
                                             pass
                                         # Update the display after removing the song
                                         update_upcoming_selections(info_screen_window, UpcomingSongPlayList)
-                                    else:
-                                        print(f"DEBUG: Song mismatch. Current: '{current_song_str}' does NOT match Upcoming: '{upcoming_song_str}'")
-                                        print(f"DEBUG: Not removing from upcoming list - waiting for actual paid song to play")
-                                else:
-                                    print("DEBUG: UpcomingSongPlayList is empty, no songs to remove")
                                 # Always update the now-playing popup
                                 # active_popup_window, popup_start_time, popup_duration = display_45rpm_now_playing_popup(MusicMasterSongList, counter, jukebox_selection_window, upcoming_selections_update)
                                 # Reset song start time when song changes
@@ -2564,19 +2539,12 @@ def main():
                             media = jukebox.vlc_media_player.get_media()
                             duration_ms = media.get_duration() if media else -1
 
-                            # DIAGNOSTIC: Log raw VLC values to understand what we're getting
-                            print(f"DEBUG DIAG: VLC raw values - current_time_ms={current_time_ms}, duration_ms={duration_ms}")
-
                             if current_time_ms > 0 and duration_ms > 0:
-                                print(f"DEBUG: Condition TRUE - proceeding with rotating record logic")
                                 # Convert to seconds
                                 elapsed_seconds = current_time_ms / 1000.0
                                 total_seconds = duration_ms / 1000.0
                                 time_remaining_seconds = total_seconds - elapsed_seconds
                                 time_since_keypress = time.time() - last_keypress_time
-
-                                # Debug output
-                                print(f"DEBUG Rotating: Elapsed={elapsed_seconds:.1f}s, TimeRemaining={time_remaining_seconds:.1f}s, KeypressIdle={time_since_keypress:.1f}s")
 
                                 # Conditions to SHOW rotating record popup
                                 should_show = (
@@ -2594,7 +2562,6 @@ def main():
 
                                 # Show popup if conditions met
                                 if should_show:
-                                    print(f"DEBUG: Showing rotating record popup")
                                     # Hide selector windows (keep background, info_screen, and arrow windows visible)
                                     jukebox_selection_window.Hide()
                                     control_button_window.Hide()
@@ -2603,7 +2570,6 @@ def main():
 
                                 # Close popup if song ending
                                 if should_close:
-                                    print(f"DEBUG: Closing rotating record popup (song ending)")
                                     rotating_record_rotation_stop_flag.set()
                                     log_popup_event("popup window rotating closed")
                                     # Wait for pygame thread to finish closing
@@ -2614,11 +2580,8 @@ def main():
                                     jukebox_selection_window.UnHide()
                                     control_button_window.UnHide()
                                     song_playing_lookup_window.UnHide()
-                                    print(f"DEBUG: Rotating record popup closed")
-                            else:
-                                print(f"DEBUG: Condition FALSE - VLC not ready. current_time_ms={current_time_ms}, duration_ms={duration_ms}")
                         except Exception as e:
-                            print(f"DEBUG: Error in rotating record logic: {e}")
+                            pass
 
                         if UpcomingSongPlayList != []:
                             # update upcoming selections on jukebox screens

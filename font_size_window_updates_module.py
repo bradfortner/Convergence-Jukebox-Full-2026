@@ -10,22 +10,31 @@ def reset_button_fonts(jukebox_selection_window, font_size_window_updates):
         jukebox_selection_window[font_size_window].Widget.config(font='Helvetica 12 bold')
 
 
-def update_selection_button_text(jukebox_selection_window, MusicMasterSongList, selection_window_number):
+def update_selection_button_text(jukebox_selection_window, MusicMasterSongList, selection_window_number, button_to_song_number=None):
     """
     Update all 21 selection buttons with song titles and artists from the master song list.
 
     This function loops through buttons 0-20, updating both the title (top) and
     artist (bottom) text for each button based on the selection window offset.
+    If button_to_song_number dictionary is provided, it also populates the mapping
+    from button keys to song indices to eliminate the need for searching through
+    the entire music list when a button is clicked.
 
     Args:
         jukebox_selection_window: The selection window object
         MusicMasterSongList: The master list of songs with title and artist data
         selection_window_number: The starting index in the master list for this window
+        button_to_song_number: Optional dictionary to map button keys to song indices
     """
     for button_index in range(21):
         offset = selection_window_number + button_index
         jukebox_selection_window[f'--button{button_index}_top--'].update(text=MusicMasterSongList[offset]['title'])
         jukebox_selection_window[f'--button{button_index}_bottom--'].update(text=MusicMasterSongList[offset]['artist'])
+
+        # Populate button-to-song-number mapping to eliminate need for search loop
+        if button_to_song_number is not None:
+            button_to_song_number[f'--button{button_index}_top--'] = offset
+            button_to_song_number[f'--button{button_index}_bottom--'] = offset
 
 
 def adjust_button_fonts_by_length(jukebox_selection_window, font_size_window_updates):

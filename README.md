@@ -2,7 +2,7 @@
 
 An integrated jukebox application combining a VLC-based audio engine with a FreeSimpleGUI interface. The application runs the engine as a daemon thread while maintaining a responsive GUI on the main thread. Features comprehensive song management with a music collection, multiple playlist types (paid and random), advanced search capabilities, and interactive 45 RPM record visualization.
 
-**Evolution**: This project evolved from the original Convergence Jukebox created in 2015. Version 0.82.8 represents a stable, fully functional implementation with a modernized interface featuring dynamically generated 45 RPM record images and smooth rotation animations that bring a nostalgic retro aesthetic to digital music playback. Recent improvements include fixing a race condition bug in the paid music playlist system.
+**Evolution**: This project evolved from the original Convergence Jukebox created in 2015. Version 0.82.97 represents the latest stable implementation with a modernized interface featuring dynamically generated 45 RPM record images and smooth rotation animations. Recent improvements include fixing a race condition bug in the paid music playlist system, optimizing popup module text rendering, and enhancing the info screen display with dynamic title character limiting and layout refinements.
 
 ## Features
 
@@ -80,7 +80,7 @@ The application requires the following project module files:
 ## Usage
 
 ```bash
-python "0.82.8 - Convergence-Jukebox-Full-2026.py"
+python "0.82.97 - Convergence-Jukebox-Full-2026.py"
 ```
 
 The application will:
@@ -97,8 +97,8 @@ The application will:
 
 ```
 Convergence-Jukebox-Full-2026/
-├── 0.82.8 - Convergence-Jukebox-Full-2026.py # Main integrated application (CURRENT)
-├── depreciated_code/                          # Previous versions (0.82.0-0.82.7 debug versions)
+├── 0.82.97 - Convergence-Jukebox-Full-2026.py # Main integrated application (CURRENT)
+├── depreciated_code/                          # Previous versions (0.81-0.82.8 archived versions)
 ├── .claude/                                   # Claude Code configuration
 │   └── claude.md                              # Debugging notes and fixes
 ├── jukebox_config.json                        # Configuration file
@@ -201,12 +201,22 @@ For full functionality, you will need:
 - Attempted solutions with background thread removal, file locking, and atomic writes
 - All debug versions moved to depreciated_code folder
 
-**0.82.8 - Convergence Jukebox Full 2026 (CURRENT)**
+**0.82.8 - Convergence Jukebox Full 2026**
 - Fixed paid music playlist bug by re-reading file after playing
 - Resolves issue where second and subsequent paid songs were lost
 - Cleaned up debug logging from popup modules and main code
 - Stable, fully functional implementation with proper playlist synchronization
-- Ready for production use
+
+**0.82.90 - 0.82.97 - Popup and Info Screen Enhancements (CURRENT)**
+- **0.82.90**: Updated popup modules with separate artist text width (250px vs 300px song title)
+- **0.82.91**: Implemented dynamic song title alignment using dual elements (centered/left)
+- **0.82.92**: Fixed blank line between title and artist by optimizing element layout
+- **0.82.93**: Reverted to separate rows to resolve window width overflow issues
+- **0.82.94**: Implemented manual padding approach for dynamic alignment
+- **0.82.95**: Simplified to left-justified display for all title/artist elements
+- **0.82.96**: Reverted back to center-justified display for better visual appearance
+- **0.82.97**: Added 22-character limit to song title display to prevent layout overflow
+- Archived versions 0.81-0.82.8 to depreciated_code folder for cleaner project structure
 
 ## Paid Music Playlist System
 

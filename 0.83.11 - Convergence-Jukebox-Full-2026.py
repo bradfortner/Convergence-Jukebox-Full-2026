@@ -1679,7 +1679,6 @@ def main():
             if event == '--POPUP_X_PRESSED--':
                 # Reset idle timer when credit key is pressed in popup (for rotating record popup)
                 last_keypress_time = time.time()
-                print(f"DEBUG: X key pressed in popup - reset idle timer")
                 credit_amount += 1
                 info_screen_window['--credits--'].Update('CREDITS ' + str(credit_amount))
                 print(f"Credit added via popup! Total credits: {credit_amount}")
@@ -1697,20 +1696,17 @@ def main():
         if (event) == "--selection_right--" or (event) == 'Right:39':
             # Reset idle timer when arrow key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Right arrow key pressed - reset idle timer")
             selection_window_number = selection_window_number + 21
             selection_buttons_update(selection_window_number)
         if (event) == "--selection_left--" or (event) == 'Left:37':
             # Reset idle timer when arrow key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Left arrow key pressed - reset idle timer")
             selection_window_number = selection_window_number - 21
             selection_buttons_update(selection_window_number)
         # Code to initiate search for title or artist
         if (event) == "--TITLE_SEARCH--" or (event) == "T" or (event) == "--ARTIST_SEARCH--" or (event) == "A":
             # Reset idle timer when search keys are pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Search key (T or A) pressed - reset idle timer")
             if (event) == "--TITLE_SEARCH--" or (event) == "T":
                 search_flag = "title"
             if (event) == "--ARTIST_SEARCH--" or (event) == "A":
@@ -2146,7 +2142,6 @@ def main():
         if event == "--A--" or (event) == "a":
             # Reset idle timer when category key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Category A key pressed - reset idle timer")
             selection_entry_letter = "A"
             disable_b_selection_buttons()
             disable_c_selection_buttons()
@@ -2154,7 +2149,6 @@ def main():
         if event == "--B--" or (event) == "b":
             # Reset idle timer when category key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Category B key pressed - reset idle timer")
             selection_entry_letter = "B"
             disable_a_selection_buttons()
             disable_c_selection_buttons()
@@ -2162,7 +2156,6 @@ def main():
         if event == "--C--" or (event) == "c":
             # Reset idle timer when category key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Category C key pressed - reset idle timer")
             selection_entry_letter = "C"
             disable_a_selection_buttons()
             disable_b_selection_buttons()
@@ -2171,7 +2164,6 @@ def main():
         if (event) == "x":
             # Reset idle timer when credit key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: X key pressed - reset idle timer")
             credit_amount += 1
             info_screen_window['--credits--'].Update('CREDITS ' + str(credit_amount))
             # Add credit to log file
@@ -2182,7 +2174,6 @@ def main():
         if event == "--1--" or (event) == "1":
             # Reset idle timer when number key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Number key 1 pressed - reset idle timer")
             selection_entry_number = "1"
             disable_numbered_selection_buttons()
             disable_a_selection_buttons()
@@ -2205,7 +2196,6 @@ def main():
         if event == "--2--" or (event) == "2":
             # Reset idle timer when number key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Number key 2 pressed - reset idle timer")
             selection_entry_number = "2"
             disable_numbered_selection_buttons()
             disable_a_selection_buttons()
@@ -2228,7 +2218,6 @@ def main():
         if event == "--3--" or (event) == "3":
             # Reset idle timer when number key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Number key 3 pressed - reset idle timer")
             selection_entry_number = "3"
             disable_numbered_selection_buttons()
             disable_a_selection_buttons()
@@ -2251,7 +2240,6 @@ def main():
         if event == "--4--" or (event) == "4":
             # Reset idle timer when number key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Number key 4 pressed - reset idle timer")
             selection_entry_number = "4"
             disable_numbered_selection_buttons()
             disable_a_selection_buttons()
@@ -2274,7 +2262,6 @@ def main():
         if event == "--5--" or (event) == "5":
             # Reset idle timer when number key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Number key 5 pressed - reset idle timer")
             selection_entry_number = "5"
             disable_numbered_selection_buttons()
             disable_a_selection_buttons()
@@ -2297,7 +2284,6 @@ def main():
         if event == "--6--" or (event) == "6":
             # Reset idle timer when number key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Number key 6 pressed - reset idle timer")
             selection_entry_number = "6"
             disable_numbered_selection_buttons()
             disable_a_selection_buttons()
@@ -2320,7 +2306,6 @@ def main():
         if event == "--7--" or (event) == "7":
             # Reset idle timer when number key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Number key 7 pressed - reset idle timer")
             selection_entry_number = "7"
             disable_numbered_selection_buttons()
             disable_a_selection_buttons()
@@ -2349,7 +2334,6 @@ def main():
         if event == "--select--" or (event) == 'S':
             # Reset idle timer when select key is pressed (for rotating record popup)
             last_keypress_time = time.time()
-            print(f"DEBUG: Select key (S) pressed - reset idle timer")
             print("Entering Song Selected")
             if credit_amount == 0:
                 #VLC Song Playback Code Begin

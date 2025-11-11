@@ -14,9 +14,9 @@ def create_info_screen_layout(master_songlist_number):
     info_screen_layout = [
         [sg.Text(text="Now Playing", border_width=0, pad=(0, 0), size=(18, 1), justification="center",
              text_color='SeaGreen3', font='Helvetica 20 bold')],
-        [sg.Text(text=' ', border_width=0, pad=(0, 0), size=(20, 1), justification="left",
+        [sg.Text(text=' ', border_width=0, pad=(0, 0), size=(20, 1), justification="center",
                  text_color='White', font='Helvetica 18 bold', key='--song_title--')],
-        [sg.Text(text=' ', border_width=0, pad=(0, 0), size=(24, 1), justification="left",
+        [sg.Text(text=' ', border_width=0, pad=(0, 0), size=(24, 1), justification="center",
                  text_color='White', font='Helvetica 16 bold', key='--song_artist--')],
         [sg.Text(text='  Mode: Playing Song', border_width=0, pad=(0, 0), size=(28, 1), justification="left",
                  text_color='SeaGreen3', font='Helvetica 12 bold')],

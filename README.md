@@ -76,6 +76,7 @@ The application requires the following project module files:
 - `disable_c_selection_buttons_module.py` - Button management (C selections)
 - `enable_all_buttons_module.py` - Button enabling functionality
 - `the_bands_name_check_module.py` - Band name formatting and exemptions
+- `background_image_module.py` - Base64-encoded PNG background image data (imported by main application)
 
 ## Usage
 
@@ -130,6 +131,7 @@ Convergence-Jukebox-Full-2026/
     ├── the_bands_name_check_module.py
     ├── metadata_progress_bar_module.py
     ├── upcoming_selections_update_module.py
+    ├── background_image_module.py
     └── (and other UI/utility modules)
 ```
 
@@ -207,7 +209,7 @@ For full functionality, you will need:
 - Cleaned up debug logging from popup modules and main code
 - Stable, fully functional implementation with proper playlist synchronization
 
-**0.82.90 - 0.82.97 - Popup and Info Screen Enhancements (CURRENT)**
+**0.82.90 - 0.82.97 - Popup and Info Screen Enhancements**
 - **0.82.90**: Updated popup modules with separate artist text width (250px vs 300px song title)
 - **0.82.91**: Implemented dynamic song title alignment using dual elements (centered/left)
 - **0.82.92**: Fixed blank line between title and artist by optimizing element layout
@@ -217,6 +219,13 @@ For full functionality, you will need:
 - **0.82.96**: Reverted back to center-justified display for better visual appearance
 - **0.82.97**: Added 22-character limit to song title display to prevent layout overflow
 - Archived versions 0.81-0.82.8 to depreciated_code folder for cleaner project structure
+
+**0.83.12 - Code Organization and Module Refactoring (CURRENT)**
+- **0.83.12**: Extracted background image data to separate module file
+  - Created `background_image_module.py` to store Base64-encoded PNG image separately
+  - Updated main application to import background_image from the new module
+  - Improves code organization and maintainability by separating large image data from main file
+  - Reduces main application file size while maintaining full functionality
 
 ## Paid Music Playlist System
 

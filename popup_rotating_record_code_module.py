@@ -16,6 +16,19 @@ from PIL import Image, ImageDraw, ImageFont
 import FreeSimpleGUI as sg
 
 # ============================================================================
+# POPUP LOGGING FUNCTION
+# ============================================================================
+
+def log_popup_event(message):
+    """Log popup events to log.txt with timestamp"""
+    try:
+        current_time = datetime.now().strftime("%H:%M:%S")
+        with open('log.txt', 'a') as log:
+            log.write('\n' + current_time + ', ' + message)
+    except Exception as e:
+        print(f"Error writing to log file: {e}")
+
+# ============================================================================
 # POPUP CONFIGURATION PARAMETERS
 # All timing and behavior parameters are defined here for easy customization
 # ============================================================================
@@ -447,6 +460,9 @@ def display_rotating_record_popup(song_title, artist_name):
         rotation_thread.start()
 
         print("Pygame record rotation popup started")
+
+        # Log popup opened event
+        log_popup_event("popup window rotating opened")
 
         # Return rotation control flag and start time for lifecycle management
         return rotation_stop_flag, popup_start_time

@@ -432,7 +432,7 @@ def fit_text_to_width(text, base_font_path, start_size, max_width, max_lines, dr
     return wrap_text(text, font, max_width, draw), min_font_size, font
 
 
-def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, window_width, window_height, no_titlebar=True):
+def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, window_width, window_height, no_titlebar=True, song_duration=180, elapsed_time=0):
     """
     Rotate a record image in real-time with authentic Wurlitzer tonearm animation.
 
@@ -528,9 +528,19 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         tonearm_length = int(window_width * 0.55)    # ~275 for 500px window
         tonearm = WurlitzerPaddleToneArm(tonearm_pivot_x, tonearm_pivot_y, tonearm_length)
 
+        # Calculate initial tonearm position based on song progress
+        song_progress = elapsed_time / song_duration if song_duration > 0 else 0
+        start_angle = -22  # Full start position
+        end_angle = 5      # Full end position
+        initial_angle = start_angle + (end_angle - start_angle) * song_progress
+
+        # Set tonearm to current position based on song progress
+        tonearm.current_angle = initial_angle
+        tonearm.target_angle = initial_angle
+
         # Timing and animation settings
-        play_time = 0               # Elapsed time for tonearm tracking
-        track_duration = 10         # Default tracking duration (seconds)
+        play_time = elapsed_time    # Start from current song position
+        track_duration = song_duration  # Tonearm sweeps over full song duration
 
         angle = 0                   # Record rotation angle
         running = True
@@ -604,7 +614,7 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
             pass
 
 
-def display_rotating_record_popup(song_title, artist_name):
+def display_rotating_record_popup(song_title, artist_name, song_duration=180, elapsed_time=0):
     """
     Display a rotating record popup during song playback using pygame.
 
@@ -752,7 +762,9 @@ def display_rotating_record_popup(song_title, artist_name):
                 window_y,
                 POPUP_WIDTH,
                 POPUP_HEIGHT,
-                POPUP_WINDOW_NO_TITLEBAR
+                POPUP_WINDOW_NO_TITLEBAR,
+                song_duration,
+                elapsed_time
             ),
             daemon=True
         )

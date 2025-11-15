@@ -72,8 +72,8 @@ SONG_Y = 90                        # Y position offset for song title (from cent
 ARTIST_Y = 120                     # Y position offset for artist name (from center)
 SONG_LINE_HEIGHT = 25              # Vertical spacing between song title lines
 ARTIST_LINE_HEIGHT = 30            # Vertical spacing between artist name lines
-POPUP_WIDTH = 420                  # Popup window width in pixels
-POPUP_HEIGHT = 420                 # Popup window height in pixels
+POPUP_WIDTH = 500                  # Popup window width in pixels
+POPUP_HEIGHT = 500                 # Popup window height in pixels
 
 # PNG generation settings
 PNG_OUTPUT_WIDTH = 750             # PNG image generation width in pixels

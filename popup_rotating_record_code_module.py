@@ -121,10 +121,10 @@ class ToneArm:
         self.length = length
 
         # Angle positions (in degrees)
-        self.play_angle = -45      # Playing start position
-        self.end_angle = -20       # End of record position
-        self.current_angle = -45   # Start at play position
-        self.target_angle = -45    # Target angle for smooth movement
+        self.play_angle = -10      # Playing start position
+        self.end_angle = 0         # End of record position
+        self.current_angle = -10   # Start at play position
+        self.target_angle = -10    # Target angle for smooth movement
 
         # State management (simplified - always playing)
         self.state = ToneArmState.PLAYING
@@ -194,10 +194,10 @@ class WurlitzerPaddleToneArm(ToneArm):
         self.top_width = 70                   # Top width of paddle (pixels)
 
         # Angle positions (override parent class defaults)
-        self.play_angle = -44        # Playing position (start)
-        self.end_angle = -20         # End position
-        self.current_angle = -44     # Start at play position
-        self.target_angle = -44      # Initial target
+        self.play_angle = -10        # Playing position (start)
+        self.end_angle = 0           # End position
+        self.current_angle = -10     # Start at play position
+        self.target_angle = -10      # Initial target
 
         # Visual parameters
         self.arm_color = (140, 140, 145)          # Gray metal
@@ -530,7 +530,7 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
 
         # Timing and animation settings
         play_time = 0               # Elapsed time for tonearm tracking
-        track_duration = 30         # Default tracking duration
+        track_duration = 10         # Default tracking duration (seconds)
 
         angle = 0                   # Record rotation angle
         running = True

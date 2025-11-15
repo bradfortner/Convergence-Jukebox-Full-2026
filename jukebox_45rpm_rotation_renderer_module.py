@@ -24,6 +24,7 @@ Usage:
 import pygame
 import math
 from enum import Enum
+from PIL import Image
 
 
 # ============================================================================
@@ -403,10 +404,23 @@ def display_record_with_tonearm(image_path, duration=30):
     panel_color = (40, 35, 45)        # Panel color
     brown_background = (101, 67, 33)  # Dark brown for record background
 
-    # Load and scale record image
+    # Load and scale record image using PIL raw bytes method
+    # This preserves exact color values without compression or color space conversion
     try:
-        record_image = pygame.image.load(image_path)
-        record_image = pygame.transform.scale(record_image, (288, 288))
+        # Load image with PIL
+        pil_image = Image.open(image_path)
+
+        # Convert to RGB if necessary (ensures compatibility)
+        if pil_image.mode != 'RGB':
+            pil_image = pil_image.convert('RGB')
+
+        # Scale to 288x288 for turntable display
+        pil_image = pil_image.resize((288, 288), Image.LANCZOS)
+
+        # Convert PIL image to pygame surface using raw bytes
+        # This preserves exact color values without any compression or color space conversion
+        raw_bytes = pil_image.tobytes()
+        record_image = pygame.image.fromstring(raw_bytes, pil_image.size, 'RGB')
         record_original = record_image.copy()
     except Exception as e:
         print(f"Error loading image '{image_path}': {e}")

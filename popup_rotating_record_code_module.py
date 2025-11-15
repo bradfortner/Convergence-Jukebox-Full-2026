@@ -121,10 +121,10 @@ class ToneArm:
         self.length = length
 
         # Angle positions (in degrees)
-        self.play_angle = -10      # Playing start position
-        self.end_angle = 0         # End of record position
-        self.current_angle = -10   # Start at play position
-        self.target_angle = -10    # Target angle for smooth movement
+        self.play_angle = -20      # Playing start position
+        self.end_angle = 10        # End of record position
+        self.current_angle = -20   # Start at play position
+        self.target_angle = -20    # Target angle for smooth movement
 
         # State management (simplified - always playing)
         self.state = ToneArmState.PLAYING
@@ -194,10 +194,10 @@ class WurlitzerPaddleToneArm(ToneArm):
         self.top_width = 70                   # Top width of paddle (pixels)
 
         # Angle positions (override parent class defaults)
-        self.play_angle = -10        # Playing position (start)
-        self.end_angle = 0           # End position
-        self.current_angle = -10     # Start at play position
-        self.target_angle = -10      # Initial target
+        self.play_angle = -20        # Playing position (start)
+        self.end_angle = 10          # End position
+        self.current_angle = -20     # Start at play position
+        self.target_angle = -20      # Initial target
 
         # Visual parameters
         self.arm_color = (140, 140, 145)          # Gray metal

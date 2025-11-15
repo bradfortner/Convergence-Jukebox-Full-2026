@@ -2566,7 +2566,7 @@ def main():
                                     jukebox_selection_window.Hide()
                                     control_button_window.Hide()
                                     song_playing_lookup_window.Hide()
-                                    rotating_record_rotation_stop_flag, rotating_record_start_time = display_rotating_record_popup(MusicMasterSongList[counter]['title'], MusicMasterSongList[counter]['artist'])
+                                    rotating_record_rotation_stop_flag, rotating_record_start_time = display_rotating_record_popup(MusicMasterSongList[counter]['title'], MusicMasterSongList[counter]['artist'], total_seconds, elapsed_seconds)
 
                                 # Close popup if song ending
                                 if should_close:

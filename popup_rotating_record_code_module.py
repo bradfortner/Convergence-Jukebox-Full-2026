@@ -523,7 +523,7 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         record_y = int(window_height * 0.50)  # ~210 for 420px window (centered)
 
         # Create Wurlitzer tonearm (scaled for popup window)
-        tonearm_pivot_x = 150  # Fixed position - left of center
+        tonearm_pivot_x = 100  # Fixed position - left of center
         tonearm_pivot_y = int(window_height * 0.95)  # ~475 for 500px window
         tonearm_length = int(window_width * 0.55)    # ~275 for 500px window
         tonearm = WurlitzerPaddleToneArm(tonearm_pivot_x, tonearm_pivot_y, tonearm_length)

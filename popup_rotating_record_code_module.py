@@ -109,7 +109,7 @@ class ToneArm:
 
     def __init__(self, x, y, length=200):
         """
-        Initialize tonearm at pivot position.
+        Initialize tonearm at pivot position, starting at play position.
 
         Args:
             x: X coordinate of pivot point
@@ -121,21 +121,16 @@ class ToneArm:
         self.length = length
 
         # Angle positions (in degrees)
-        self.park_angle = -90      # Parked position
         self.play_angle = -45      # Playing start position
         self.end_angle = -20       # End of record position
-        self.current_angle = -90   # Current angle
-        self.target_angle = -90    # Target angle for smooth movement
+        self.current_angle = -45   # Start at play position
+        self.target_angle = -45    # Target angle for smooth movement
 
-        # State management
-        self.state = ToneArmState.PARKED
+        # State management (simplified - always playing)
+        self.state = ToneArmState.PLAYING
 
-        # Animation parameters
-        self.swing_speed = 45      # degrees per second (swing out/return)
-        self.lower_speed = 2.0     # seconds to lower/lift
-        self.lower_timer = 0.0
-        self.current_height = 0    # Vertical offset (0 = down, positive = up)
-        self.lift_height = 30      # How high to lift when moving
+        # Animation parameters (only need tracking speed now)
+        self.current_height = 0    # Always on record surface
 
         # Visual effects
         self.play_wobble = 0       # Small wobble during playback
@@ -144,94 +139,34 @@ class ToneArm:
         # Colors (can be overridden by subclasses)
         self.needle_color = (200, 50, 50)
 
-    def play_record(self):
-        """Start playing - swing out to record."""
-        if self.state == ToneArmState.PARKED:
-            self.state = ToneArmState.SWINGING_OUT
-            self.target_angle = self.play_angle
-            self.current_height = self.lift_height
-
-    def return_to_park(self):
-        """Return to parked position."""
-        if self.state == ToneArmState.PLAYING:
-            self.state = ToneArmState.LIFTING
-            self.lower_timer = 0.0
-
     def is_playing(self):
-        """Check if currently playing."""
-        return self.state == ToneArmState.PLAYING
-
-    def is_parked(self):
-        """Check if parked."""
-        return self.state == ToneArmState.PARKED
+        """Check if currently playing (always true now)."""
+        return True
 
     def get_state(self):
-        """Get current state."""
+        """Get current state (always playing)."""
         return self.state
 
     def update(self, dt):
         """
-        Update tonearm animation.
+        Update tonearm animation - simplified to only track across record.
 
         Args:
             dt: Delta time in seconds
         """
         # Update wobble effect during playback
-        if self.state == ToneArmState.PLAYING:
-            self.wobble_timer += dt * 3
-            self.play_wobble = math.sin(self.wobble_timer) * 0.5
-        else:
-            self.play_wobble = 0
+        self.wobble_timer += dt * 3
+        self.play_wobble = math.sin(self.wobble_timer) * 0.5
 
-        # State machine for tonearm movement
-        if self.state == ToneArmState.SWINGING_OUT:
-            # Swing from park to play position
-            angle_diff = self.target_angle - self.current_angle
-            if abs(angle_diff) > 0.5:
-                move = self.swing_speed * dt
-                if angle_diff > 0:
-                    self.current_angle += min(move, angle_diff)
-                else:
-                    self.current_angle += max(-move, angle_diff)
+        # Smoothly move toward target angle during playback
+        angle_diff = self.target_angle - self.current_angle
+        if abs(angle_diff) > 0.1:
+            # Slow, continuous tracking movement
+            move_speed = 5  # degrees per second
+            if angle_diff > 0:
+                self.current_angle += min(move_speed * dt, angle_diff)
             else:
-                self.current_angle = self.target_angle
-                self.state = ToneArmState.LOWERING
-                self.lower_timer = 0.0
-
-        elif self.state == ToneArmState.LOWERING:
-            # Lower onto record
-            self.lower_timer += dt
-            progress = min(self.lower_timer / self.lower_speed, 1.0)
-            self.current_height = self.lift_height * (1.0 - progress)
-
-            if progress >= 1.0:
-                self.current_height = 0
-                self.state = ToneArmState.PLAYING
-
-        elif self.state == ToneArmState.LIFTING:
-            # Lift from record
-            self.lower_timer += dt
-            progress = min(self.lower_timer / self.lower_speed, 1.0)
-            self.current_height = self.lift_height * progress
-
-            if progress >= 1.0:
-                self.current_height = self.lift_height
-                self.state = ToneArmState.RETURNING
-                self.target_angle = self.park_angle
-
-        elif self.state == ToneArmState.RETURNING:
-            # Return to park position
-            angle_diff = self.target_angle - self.current_angle
-            if abs(angle_diff) > 0.5:
-                move = self.swing_speed * dt
-                if angle_diff > 0:
-                    self.current_angle += min(move, angle_diff)
-                else:
-                    self.current_angle += max(-move, angle_diff)
-            else:
-                self.current_angle = self.target_angle
-                self.current_height = 0
-                self.state = ToneArmState.PARKED
+                self.current_angle += max(-move_speed * dt, angle_diff)
 
     def draw(self, surface):
         """
@@ -252,18 +187,17 @@ class WurlitzerPaddleToneArm(ToneArm):
     def __init__(self, x, y, length=180):
         super().__init__(x, y, length)
 
-        # Tonearm dimensions (scaled for smaller popup)
+        # Tonearm dimensions (scaled for popup window)
         self.arm_length = length * 0.85       # Main paddle arm
         self.head_radius = length * 0.15      # Large circular head at top
         self.base_width = 70                  # Flared base width (pixels)
         self.top_width = 70                   # Top width of paddle (pixels)
 
         # Angle positions (override parent class defaults)
-        self.park_angle = -80        # Parked position (more backward)
         self.play_angle = -44        # Playing position (start)
         self.end_angle = -20         # End position
-        self.current_angle = -80     # Start at park position
-        self.target_angle = -80      # Initial target
+        self.current_angle = -44     # Start at play position
+        self.target_angle = -44      # Initial target
 
         # Visual parameters
         self.arm_color = (140, 140, 145)          # Gray metal
@@ -272,23 +206,6 @@ class WurlitzerPaddleToneArm(ToneArm):
         self.head_color = (130, 130, 135)         # Cartridge head
         self.base_color = (120, 120, 125)         # Base/pivot area
         self.pivot_brass = (180, 150, 100)        # Brass pivot hardware
-
-    def update(self, dt):
-        """Override parent update to handle tracking movement during playback."""
-        # Call parent update first
-        super().update(dt)
-
-        # Additional tracking movement during PLAYING state
-        if self.is_playing():
-            # Smoothly move toward target angle during playback
-            angle_diff = self.target_angle - self.current_angle
-            if abs(angle_diff) > 0.1:
-                # Slow, continuous tracking movement
-                move_speed = 5  # degrees per second
-                if angle_diff > 0:
-                    self.current_angle += min(move_speed * dt, angle_diff)
-                else:
-                    self.current_angle += max(-move_speed * dt, angle_diff)
 
     def draw(self, surface):
         """
@@ -612,14 +529,10 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         tonearm = WurlitzerPaddleToneArm(tonearm_pivot_x, tonearm_pivot_y, tonearm_length)
 
         # Timing and animation settings
-        auto_start_delay = 2.0      # Wait 2 seconds before auto-playing
-        elapsed_time = 0            # Time since popup started
-        auto_started = False        # Flag to track if auto-start happened
-
-        play_time = 0               # Elapsed time while tonearm is playing
+        play_time = 0               # Elapsed time for tonearm tracking
         track_duration = 30         # Default tracking duration
 
-        angle = 0
+        angle = 0                   # Record rotation angle
         running = True
 
         print(f"Pygame record rotation with tonearm started at ({window_x}, {window_y}) with size {window_width}x{window_height}")
@@ -638,42 +551,22 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
                     rotation_stop_flag.set()
                     running = False
 
-            # Auto-start tonearm after delay
-            if not auto_started:
-                elapsed_time += dt
-                if elapsed_time >= auto_start_delay:
-                    auto_started = True
-                    play_time = 0
-                    tonearm.play_record()
-                    print("Tonearm auto-started")
-
             # Update tonearm animation
             tonearm.update(dt)
 
-            # Update record rotation - start as soon as tonearm starts moving
-            if tonearm.get_state() in [ToneArmState.SWINGING_OUT, ToneArmState.LOWERING, ToneArmState.PLAYING]:
-                # Rotate record at 45 RPM (240° per second)
-                angle = (angle - RECORD_ROTATION_SPEED) % 360
-            elif tonearm.is_parked():
-                # Stop rotation when parked
-                angle = 0
-            else:
-                # Slow down record rotation when returning
-                if angle > 0:
-                    angle = (angle - RECORD_ROTATION_SPEED * 0.3) % 360
+            # Always rotate record at 45 RPM (240° per second)
+            angle = (angle - RECORD_ROTATION_SPEED) % 360
 
-            # Update tonearm tracking during playback
-            if tonearm.is_playing():
-                # Track play time and move tonearm across record
-                play_time += dt
+            # Track play time and move tonearm across record
+            play_time += dt
 
-                # Calculate tonearm position based on elapsed time
-                # Interpolate from play_angle to end_angle over track_duration
-                progress = min(play_time / track_duration, 1.0)  # 0.0 to 1.0
-                current_target = tonearm.play_angle + (tonearm.end_angle - tonearm.play_angle) * progress
-                tonearm.target_angle = current_target
+            # Calculate tonearm position based on elapsed time
+            # Interpolate from play_angle to end_angle over track_duration
+            progress = min(play_time / track_duration, 1.0)  # 0.0 to 1.0
+            current_target = tonearm.play_angle + (tonearm.end_angle - tonearm.play_angle) * progress
+            tonearm.target_angle = current_target
 
-                # If we reach the end, stay at end position (popup will close externally)
+            # Tonearm stays at end position when tracking completes (popup closes externally)
 
             # ===== DRAWING =====
 

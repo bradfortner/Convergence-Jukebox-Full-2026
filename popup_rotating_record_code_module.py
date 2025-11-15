@@ -601,9 +601,9 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
 
         clock = pygame.time.Clock()
 
-        # Record position - slightly higher to make room for tonearm
+        # Record position - centered in window
         record_x = window_width // 2
-        record_y = int(window_height * 0.45)  # ~189 for 420px window
+        record_y = int(window_height * 0.50)  # ~210 for 420px window (centered)
 
         # Create Wurlitzer tonearm (scaled for popup window)
         tonearm_pivot_x = record_x

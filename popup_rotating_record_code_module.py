@@ -543,9 +543,9 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         # Load image with PIL
         pil_image = Image.open(image_path)
 
-        # Convert to RGB if necessary (ensures compatibility)
-        if pil_image.mode != 'RGB':
-            pil_image = pil_image.convert('RGB')
+        # Convert to RGBA to preserve transparency
+        if pil_image.mode != 'RGBA':
+            pil_image = pil_image.convert('RGBA')
 
         # Set window position BEFORE pygame initialization
         import sys
@@ -595,9 +595,9 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         pil_image = pil_image.resize((record_display_size, record_display_size), Image.LANCZOS)
 
         # Convert PIL image to pygame surface using raw bytes
-        # This preserves exact color values without any compression or color space conversion
+        # This preserves exact color values and transparency
         raw_bytes = pil_image.tobytes()
-        original_surface = pygame.image.fromstring(raw_bytes, pil_image.size, 'RGB')
+        original_surface = pygame.image.fromstring(raw_bytes, pil_image.size, 'RGBA')
 
         clock = pygame.time.Clock()
 

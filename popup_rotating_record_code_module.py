@@ -590,8 +590,8 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
             except Exception as e:
                 print(f"Error moving window: {e}")
 
-        # Scale record to fit window with room for tonearm (336x336 for 420x420 window)
-        record_display_size = int(window_width * 0.80)  # ~336px for 420px window
+        # Scale record to fit window with room for tonearm (378x378 for 420x420 window)
+        record_display_size = int(window_width * 0.90)  # ~378px for 420px window
         pil_image = pil_image.resize((record_display_size, record_display_size), Image.LANCZOS)
 
         # Convert PIL image to pygame surface using raw bytes

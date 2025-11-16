@@ -16,27 +16,7 @@ from enum import Enum
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import FreeSimpleGUI as sg
-
-# ============================================================================
-# SONG LABEL CACHE
-# ============================================================================
-
-# Module-level cache to maintain consistent label assignments per song
-# Maps "song_title||artist_name" to selected label filename
-_song_label_cache = {}
-
-
-def clear_song_label_cache():
-    """
-    Clear the song-to-label cache.
-
-    Call this when the currently playing song changes to ensure the cache
-    doesn't grow indefinitely over long jukebox sessions.
-    """
-    global _song_label_cache
-    _song_label_cache.clear()
-    print("Song label cache cleared (rotating record popup)")
-
+from song_label_cache_module import get_or_assign_label
 
 # ============================================================================
 # POPUP LOGGING FUNCTION
@@ -666,19 +646,8 @@ def display_rotating_record_popup(song_title, artist_name, song_duration=180, el
 
         print(f"Found {len(png_files)} available record labels")
 
-        # Create unique song identifier for cache lookup
-        song_id = f"{song_title}||{artist_name}"
-
-        # Check cache for existing label assignment for this song
-        if song_id in _song_label_cache:
-            selected_label = _song_label_cache[song_id]
-            print(f"Using cached label for this song: {selected_label}")
-        else:
-            # First time for this song - randomly select and cache the choice
-            selected_label = random.choice(png_files)
-            _song_label_cache[song_id] = selected_label
-            print(f"First time for this song - randomly selected and cached: {selected_label}")
-
+        # Get or assign label using shared cache
+        selected_label = get_or_assign_label(song_title, artist_name, png_files)
         label_path = os.path.join(BLANK_RECORDS_DIR, selected_label)
 
         # Determine font color based on filename

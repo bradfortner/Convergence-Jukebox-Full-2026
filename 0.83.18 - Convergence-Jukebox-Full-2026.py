@@ -1287,12 +1287,10 @@ global rotating_record_start_time
 global last_keypress_time
 global song_start_time
 global last_displayed_time
-global current_song_counter
 rotating_record_rotation_stop_flag = None
 rotating_record_start_time = None
 last_keypress_time = time.time()
 last_displayed_time = ""
-current_song_counter = 0
 song_start_time = time.time()
 UpcomingSongPlayList = []
 all_songs_list = []
@@ -1626,33 +1624,10 @@ def main():
     threading.Thread(target=file_lookup_thread, args=(song_playing_lookup_window,), daemon=True).start()
     # Main Jukebox GUI
     while True:
-        global last_keypress_time, rotating_record_rotation_stop_flag, rotating_record_start_time, last_displayed_time, current_song_counter
+        global last_keypress_time, rotating_record_rotation_stop_flag, rotating_record_start_time
         window, event, values = sg.read_all_windows(timeout=100)  # 100ms timeout for smooth countdown updates
         print(event, values)
         print(event)  # prints buttons key name
-
-        # UPDATE COUNTDOWN TIMER (runs every loop cycle for smooth updates)
-        try:
-            current_time_ms = jukebox.vlc_media_player.get_time()
-            media = jukebox.vlc_media_player.get_media()
-            duration_ms = media.get_duration() if media else -1
-
-            if current_time_ms > 0 and duration_ms > 0:
-                elapsed_seconds = current_time_ms / 1000.0
-                total_seconds = duration_ms / 1000.0
-                time_remaining_seconds = total_seconds - elapsed_seconds
-                formatted_time = format_time_remaining(time_remaining_seconds)
-
-                # Build complete display string (use global current_song_counter)
-                if current_song_counter < len(MusicMasterSongList):
-                    display_string = '  Year: ' + MusicMasterSongList[current_song_counter]['year'] + '   Remaining: ' + formatted_time
-
-                    # Only update display if the complete string has changed (prevents flicker)
-                    if display_string != last_displayed_time:
-                        info_screen_window['--year--'].Update(display_string)
-                        last_displayed_time = display_string
-        except:
-            pass
 
         # KEYPRESS HANDLING FOR ROTATING RECORD POPUP
         # Reset idle timer on any keypress (except timeout events)
@@ -2528,15 +2503,13 @@ def main():
             print(f'closing window = {window.Title}')
             break
         if event == '--SONG_PLAYING_LOOKUP--':
-            global last_song_check, song_start_time, current_song_counter
+            global last_song_check, song_start_time, last_displayed_time
             with open('CurrentSongPlaying.txt', 'r') as CurrentSongPlayingOpen:
                 song_currently_playing = CurrentSongPlayingOpen.read()
                 #  search MusicMasterSonglist for location string
                 counter=0
                 for x in MusicMasterSongList:
                     if MusicMasterSongList[counter]['location'] == song_currently_playing:
-                        # Update global counter for use in main event loop
-                        current_song_counter = counter
                         # Update Jukebox Info Screen
                         song_title = MusicMasterSongList[counter]['title']
                         display_title = song_title[:22]  # Limit to first 22 characters
@@ -2547,9 +2520,31 @@ def main():
                             '  Title: ' + MusicMasterSongList[counter]['title'])
                         info_screen_window['--mini_song_artist--'].Update(
                             '  Artist: ' + MusicMasterSongList[counter]['artist'])
-                        info_screen_window['--year--'].Update(
-                            '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' +
-                            MusicMasterSongList[counter]['duration'])
+
+                        # UPDATE COUNTDOWN from VLC
+                        try:
+                            current_time_ms = jukebox.vlc_media_player.get_time()
+                            media = jukebox.vlc_media_player.get_media()
+                            duration_ms = media.get_duration() if media else -1
+
+                            if current_time_ms > 0 and duration_ms > 0:
+                                elapsed_seconds = current_time_ms / 1000.0
+                                total_seconds = duration_ms / 1000.0
+                                time_remaining_seconds = total_seconds - elapsed_seconds
+                                formatted_time = format_time_remaining(time_remaining_seconds)
+                                display_string = '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' + formatted_time
+                            else:
+                                display_string = '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' + MusicMasterSongList[counter]['duration']
+
+                            # Only update if changed
+                            if display_string != last_displayed_time:
+                                info_screen_window['--year--'].Update(display_string)
+                                last_displayed_time = display_string
+                        except:
+                            info_screen_window['--year--'].Update(
+                                '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' +
+                                MusicMasterSongList[counter]['duration'])
+
                         info_screen_window['--album--'].Update(
                             '  Album: ' + MusicMasterSongList[counter]['album'])
                         #  Check to see if curent song playing has changed

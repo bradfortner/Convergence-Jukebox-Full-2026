@@ -1390,7 +1390,7 @@ file_io_worker.start()
 def file_lookup_thread(song_playing_lookup_window):
     try:
         while True:
-            time.sleep(3)
+            time.sleep(1)
             song_playing_lookup_window.write_event_value('--SONG_PLAYING_LOOKUP--', f'counter = {1}')
     except KeyboardInterrupt:
         pass

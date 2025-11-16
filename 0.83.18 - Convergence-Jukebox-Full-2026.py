@@ -1621,7 +1621,7 @@ def main():
     # Main Jukebox GUI
     while True:
         global last_keypress_time, rotating_record_rotation_stop_flag, rotating_record_start_time
-        window, event, values = sg.read_all_windows(timeout=500)  # 500ms timeout to allow popup logic to check frequently
+        window, event, values = sg.read_all_windows(timeout=100)  # 100ms timeout for smooth countdown updates
         print(event, values)
         print(event)  # prints buttons key name
 

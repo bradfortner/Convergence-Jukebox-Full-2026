@@ -12,6 +12,22 @@ from PIL import Image, ImageDraw, ImageFont
 import FreeSimpleGUI as sg
 
 
+# Module-level cache to maintain consistent label assignments per song
+# Maps "song_title||artist_name" to selected label filename
+_song_label_cache = {}
+
+
+def clear_song_label_cache():
+    """
+    Clear the song-to-label cache.
+
+    Call this when the currently playing song changes to ensure the cache
+    doesn't grow indefinitely over long jukebox sessions.
+    """
+    global _song_label_cache
+    _song_label_cache.clear()
+    print("Song label cache cleared")
+
 
 def display_45rpm_now_playing_popup(MusicMasterSongList, counter, jukebox_selection_window, upcoming_selections_update, add_credit_callback=None):
     """
@@ -141,12 +157,21 @@ def display_45rpm_now_playing_popup(MusicMasterSongList, counter, jukebox_select
         raise FileNotFoundError(f"No .png files found in {blank_records_dir}")
 
     print(f"Found {len(png_files)} available record labels")
-    
-    # Randomly select one blank record label
-    selected_label = random.choice(png_files)
-    label_path = os.path.join(blank_records_dir, selected_label)
 
-    print(f"Randomly selected label: {selected_label}")
+    # Create unique song identifier for cache lookup
+    song_id = f"{song}||{artist}"
+
+    # Check cache for existing label assignment for this song
+    if song_id in _song_label_cache:
+        selected_label = _song_label_cache[song_id]
+        print(f"Using cached label for this song: {selected_label}")
+    else:
+        # First time for this song - randomly select and cache the choice
+        selected_label = random.choice(png_files)
+        _song_label_cache[song_id] = selected_label
+        print(f"First time for this song - randomly selected and cached: {selected_label}")
+
+    label_path = os.path.join(blank_records_dir, selected_label)
 
     # Determine font color based on filename
     # If filename starts with "w_", use white font; otherwise use black

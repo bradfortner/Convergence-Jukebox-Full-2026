@@ -64,10 +64,12 @@ def format_time_remaining(seconds):
     Returns:
         str: Formatted time string like "03:45" or "00:12"
     """
+    # Convert to integer first to eliminate floating point precision issues
+    seconds = int(seconds)
     if seconds < 0:
         seconds = 0
-    minutes = int(seconds // 60)
-    secs = int(seconds % 60)
+    minutes = seconds // 60
+    secs = seconds % 60
     return f"{minutes:02d}:{secs:02d}"
 
 # INLINE: Fixed function to update upcoming selections display using correct element keys
@@ -1639,11 +1641,13 @@ def main():
                 time_remaining_seconds = total_seconds - elapsed_seconds
                 formatted_time = format_time_remaining(time_remaining_seconds)
 
-                # Only update display if the time string has changed (prevents flicker)
-                if formatted_time != last_displayed_time:
-                    info_screen_window['--year--'].Update(
-                        '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' + formatted_time)
-                    last_displayed_time = formatted_time
+                # Build complete display string
+                display_string = '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' + formatted_time
+
+                # Only update display if the complete string has changed (prevents flicker)
+                if display_string != last_displayed_time:
+                    info_screen_window['--year--'].Update(display_string)
+                    last_displayed_time = display_string
         except:
             pass
 

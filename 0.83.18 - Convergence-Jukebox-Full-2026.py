@@ -1625,6 +1625,22 @@ def main():
         print(event, values)
         print(event)  # prints buttons key name
 
+        # UPDATE COUNTDOWN TIMER (runs every loop cycle for smooth updates)
+        try:
+            current_time_ms = jukebox.vlc_media_player.get_time()
+            media = jukebox.vlc_media_player.get_media()
+            duration_ms = media.get_duration() if media else -1
+
+            if current_time_ms > 0 and duration_ms > 0:
+                elapsed_seconds = current_time_ms / 1000.0
+                total_seconds = duration_ms / 1000.0
+                time_remaining_seconds = total_seconds - elapsed_seconds
+                formatted_time = format_time_remaining(time_remaining_seconds)
+                info_screen_window['--year--'].Update(
+                    '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' + formatted_time)
+        except:
+            pass
+
         # KEYPRESS HANDLING FOR ROTATING RECORD POPUP
         # Reset idle timer on any keypress (except timeout events)
         if event and event not in [None, sg.TIMEOUT_KEY, '--SONG_PLAYING_LOOKUP--']:
@@ -2565,11 +2581,6 @@ def main():
                                 total_seconds = duration_ms / 1000.0
                                 time_remaining_seconds = total_seconds - elapsed_seconds
                                 time_since_keypress = time.time() - last_keypress_time
-
-                                # Update time remaining display in info screen
-                                formatted_time = format_time_remaining(time_remaining_seconds)
-                                info_screen_window['--year--'].Update(
-                                    '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' + formatted_time)
 
                                 # Conditions to SHOW rotating record popup
                                 should_show = (

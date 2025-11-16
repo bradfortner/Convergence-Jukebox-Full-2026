@@ -1284,9 +1284,11 @@ global rotating_record_rotation_stop_flag
 global rotating_record_start_time
 global last_keypress_time
 global song_start_time
+global last_displayed_time
 rotating_record_rotation_stop_flag = None
 rotating_record_start_time = None
 last_keypress_time = time.time()
+last_displayed_time = ""
 song_start_time = time.time()
 UpcomingSongPlayList = []
 all_songs_list = []
@@ -1620,7 +1622,7 @@ def main():
     threading.Thread(target=file_lookup_thread, args=(song_playing_lookup_window,), daemon=True).start()
     # Main Jukebox GUI
     while True:
-        global last_keypress_time, rotating_record_rotation_stop_flag, rotating_record_start_time
+        global last_keypress_time, rotating_record_rotation_stop_flag, rotating_record_start_time, last_displayed_time
         window, event, values = sg.read_all_windows(timeout=100)  # 100ms timeout for smooth countdown updates
         print(event, values)
         print(event)  # prints buttons key name
@@ -1636,8 +1638,12 @@ def main():
                 total_seconds = duration_ms / 1000.0
                 time_remaining_seconds = total_seconds - elapsed_seconds
                 formatted_time = format_time_remaining(time_remaining_seconds)
-                info_screen_window['--year--'].Update(
-                    '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' + formatted_time)
+
+                # Only update display if the time string has changed (prevents flicker)
+                if formatted_time != last_displayed_time:
+                    info_screen_window['--year--'].Update(
+                        '  Year: ' + MusicMasterSongList[counter]['year'] + '   Remaining: ' + formatted_time)
+                    last_displayed_time = formatted_time
         except:
             pass
 

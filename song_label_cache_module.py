@@ -44,15 +44,21 @@ def get_or_assign_label(song_title, artist_name, available_labels):
 
 def clear_cache():
     """
-    Clear the entire song-to-label cache.
+    Clear the song-to-label cache only if it exceeds 50 songs.
 
-    Call this when the currently playing song changes to ensure the cache
-    doesn't grow indefinitely over long jukebox sessions.
+    This allows recently selected/played songs to maintain their label
+    assignments across different popups, while preventing unlimited
+    cache growth during long jukebox sessions.
     """
     global _song_label_cache
     cache_size = len(_song_label_cache)
-    _song_label_cache.clear()
-    print(f"[SHARED CACHE] Cleared cache ({cache_size} songs removed)")
+
+    # Only clear if cache has more than 50 songs
+    if cache_size > 50:
+        _song_label_cache.clear()
+        print(f"[SHARED CACHE] Cache limit exceeded - cleared {cache_size} songs")
+    else:
+        print(f"[SHARED CACHE] Cache size OK ({cache_size} songs) - not clearing")
 
 
 def get_cache_size():

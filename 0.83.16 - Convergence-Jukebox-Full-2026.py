@@ -41,7 +41,7 @@ from gc import disable
 from info_screen_layout_module import create_info_screen_layout
 from jukebox_selection_screen_layout_module import create_jukebox_selection_screen_layout
 from operator import itemgetter
-# from popup_45rpm_now_playing_code_module import display_45rpm_now_playing_popup
+from popup_45rpm_now_playing_code_module import display_45rpm_now_playing_popup, clear_song_label_cache as clear_now_playing_cache
 from metadata_progress_bar_module import MetadataProgressBar
 from popup_45rpm_song_selection_code_module import display_45rpm_popup, clear_song_label_cache
 from popup_rotating_record_code_module import display_rotating_record_popup, log_popup_event
@@ -2514,6 +2514,7 @@ def main():
                                 last_song_check = song_currently_playing
                                 # Clear the label cache when song changes to prevent memory buildup
                                 clear_song_label_cache()
+                                clear_now_playing_cache()
                                 # FIX: Only remove from UpcomingSongPlayList if the currently playing song matches the first upcoming song
                                 # This prevents paid songs from being removed when a random song plays instead
                                 if UpcomingSongPlayList:  # Only if there are upcoming songs

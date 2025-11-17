@@ -7,6 +7,7 @@ ensuring the same song always displays with the same record label regardless
 of which popup module displays it.
 """
 import random
+from artist_label_mapping_module import get_artist_label
 
 
 # Module-level cache to maintain consistent label assignments per song
@@ -16,7 +17,13 @@ _song_label_cache = {}
 
 def get_or_assign_label(song_title, artist_name, available_labels):
     """
-    Get cached label for a song, or assign and cache a new random label.
+    Get cached label for a song, or assign and cache a new label.
+
+    Priority order:
+    1. Check cache (ensures consistency across all popups)
+    2. If not in cache, check artist-specific mapping
+    3. If no mapping, randomly select from available labels
+    4. Cache and return the result
 
     Args:
         song_title (str): The title of the song
@@ -29,17 +36,27 @@ def get_or_assign_label(song_title, artist_name, available_labels):
     # Create unique song identifier
     song_id = f"{song_title}||{artist_name}"
 
-    # Check cache for existing label assignment
+    # Check cache first - this ensures consistency across all popups
     if song_id in _song_label_cache:
         label = _song_label_cache[song_id]
         print(f"[SHARED CACHE] Using cached label for '{song_title}': {label}")
         return label
+
+    # Not in cache - check for artist-specific label mapping
+    artist_specific_label = get_artist_label(artist_name)
+
+    if artist_specific_label and artist_specific_label in available_labels:
+        # Use artist-specific label
+        label = artist_specific_label
+        print(f"[SHARED CACHE] Artist-specific label for '{artist_name}': {label}")
     else:
-        # First time for this song - randomly select and cache the choice
+        # No artist mapping - randomly select
         label = random.choice(available_labels)
-        _song_label_cache[song_id] = label
-        print(f"[SHARED CACHE] New song '{song_title}' - assigned and cached: {label}")
-        return label
+        print(f"[SHARED CACHE] New song '{song_title}' - randomly assigned: {label}")
+
+    # Cache the label for future use
+    _song_label_cache[song_id] = label
+    return label
 
 
 def clear_cache():

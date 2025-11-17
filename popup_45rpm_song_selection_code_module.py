@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 import vlc
 import FreeSimpleGUI as sg
 from song_label_cache_module import get_or_assign_label
+from artist_label_mapping_module import get_artist_label
 
 
 def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, add_credit_callback=None):
@@ -140,8 +141,17 @@ def display_45rpm_popup(MusicMasterSongList, counter, jukebox_selection_window, 
 
     print(f"Found {len(png_files)} available record labels")
 
-    # Get or assign label using shared cache
-    selected_label = get_or_assign_label(song, artist, png_files)
+    # Check for artist-specific label mapping first
+    artist_specific_label = get_artist_label(artist)
+
+    if artist_specific_label and artist_specific_label in png_files:
+        # Use artist-specific label if mapped and available
+        selected_label = artist_specific_label
+        print(f"Using artist-specific label: {selected_label}")
+    else:
+        # Fall back to shared cache for random/consistent label selection
+        selected_label = get_or_assign_label(song, artist, png_files)
+
     label_path = os.path.join(blank_records_dir, selected_label)
 
     # Determine font color based on filename

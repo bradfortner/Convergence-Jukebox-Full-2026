@@ -44,7 +44,7 @@ def load_artist_label_mapping(file_path="RecordLabelAssignList.txt"):
 
         print(f"[ARTIST MAPPING] Loaded {len(_artist_label_mapping)} artist-to-label mappings")
         for artist, label in _artist_label_mapping.items():
-            print(f"  - {artist} → {label}")
+            print(f"  - {artist} -> {label}")
 
         return _artist_label_mapping
 
@@ -69,7 +69,7 @@ def get_artist_label(artist_name):
 
     for mapped_artist, label in _artist_label_mapping.items():
         if mapped_artist.lower() == artist_lower:
-            print(f"[ARTIST MAPPING] Found mapping: '{artist_name}' → {label}")
+            print(f"[ARTIST MAPPING] Found mapping: '{artist_name}' -> {label}")
             return label
 
     # No mapping found

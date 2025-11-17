@@ -615,7 +615,7 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
             pass
 
 
-def display_rotating_record_popup(song_title, artist_name, song_duration=180, elapsed_time=0):
+def display_rotating_record_popup(MusicMasterSongList, counter, song_duration=180, elapsed_time=0):
     """
     Display a rotating record popup during song playback using pygame.
 
@@ -625,8 +625,10 @@ def display_rotating_record_popup(song_title, artist_name, song_duration=180, el
     keypress or when the song has specified seconds remaining.
 
     Args:
-        song_title (str): The title of the currently playing song
-        artist_name (str): The artist name for the currently playing song
+        MusicMasterSongList (list): List containing song information dictionaries
+        counter (int): Index of the current song in MusicMasterSongList
+        song_duration (int): Duration of the song in seconds
+        elapsed_time (int): Time already elapsed in the song in seconds
 
     Returns:
         tuple: (rotation_stop_flag, popup_start_time) for lifecycle management
@@ -635,7 +637,12 @@ def display_rotating_record_popup(song_title, artist_name, song_duration=180, el
     """
 
     try:
-        print(f"\n=== POPUP FUNCTION CALLED with title='{song_title}', artist='{artist_name}' ===")
+        # Extract song information from MusicMasterSongList
+        song_title = str(MusicMasterSongList[counter]['title'])
+        artist_name = str(MusicMasterSongList[counter]['artist'])
+        year = MusicMasterSongList[counter].get('year', None)  # Get year, default to None if not present
+
+        print(f"\n=== POPUP FUNCTION CALLED with title='{song_title}', artist='{artist_name}', year={year} ===")
 
         # Get all .png files from the blank_record_labels directory
         print("Scanning for available record labels...")
@@ -646,8 +653,8 @@ def display_rotating_record_popup(song_title, artist_name, song_duration=180, el
 
         print(f"Found {len(png_files)} available record labels")
 
-        # Get or assign label using shared cache
-        selected_label = get_or_assign_label(song_title, artist_name, png_files)
+        # Get or assign label using shared cache (includes artist mapping and year range filtering)
+        selected_label = get_or_assign_label(song_title, artist_name, png_files, year)
         label_path = os.path.join(BLANK_RECORDS_DIR, selected_label)
 
         # Determine font color based on filename

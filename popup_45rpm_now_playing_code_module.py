@@ -129,7 +129,9 @@ def display_45rpm_now_playing_popup(MusicMasterSongList, counter, jukebox_select
     song = str(MusicMasterSongList[counter]['title'])
     # Record Artist Name
     artist = str(MusicMasterSongList[counter]['artist'])
-    
+    # Record Year
+    year = MusicMasterSongList[counter].get('year', None)
+
     # Path to blank record labels directory
     blank_records_dir = "record_labels/blank_record_labels"
 
@@ -142,8 +144,8 @@ def display_45rpm_now_playing_popup(MusicMasterSongList, counter, jukebox_select
 
     print(f"Found {len(png_files)} available record labels")
 
-    # Get or assign label using shared cache (includes artist mapping)
-    selected_label = get_or_assign_label(song, artist, png_files)
+    # Get or assign label using shared cache (includes artist mapping and year range filtering)
+    selected_label = get_or_assign_label(song, artist, png_files, year)
 
     label_path = os.path.join(blank_records_dir, selected_label)
 

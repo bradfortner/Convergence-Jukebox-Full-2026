@@ -8,6 +8,7 @@ of which popup module displays it.
 """
 import random
 from artist_label_mapping_module import get_artist_label
+from year_range_label_mapping_module import get_labels_for_year
 
 
 # Module-level cache to maintain consistent label assignments per song
@@ -15,20 +16,22 @@ from artist_label_mapping_module import get_artist_label
 _song_label_cache = {}
 
 
-def get_or_assign_label(song_title, artist_name, available_labels):
+def get_or_assign_label(song_title, artist_name, available_labels, year=None):
     """
     Get cached label for a song, or assign and cache a new label.
 
     Priority order:
     1. Check cache (ensures consistency across all popups)
     2. If not in cache, check artist-specific mapping
-    3. If no mapping, randomly select from available labels
-    4. Cache and return the result
+    3. If no artist mapping, filter labels by year range
+    4. If no year range, randomly select from all available labels
+    5. Cache and return the result
 
     Args:
         song_title (str): The title of the song
         artist_name (str): The artist name
         available_labels (list): List of available label filenames to choose from
+        year (int/str, optional): The year the song was created
 
     Returns:
         str: The label filename assigned to this song
@@ -50,9 +53,12 @@ def get_or_assign_label(song_title, artist_name, available_labels):
         label = artist_specific_label
         print(f"[SHARED CACHE] Artist-specific label for '{artist_name}': {label}")
     else:
-        # No artist mapping - randomly select
-        label = random.choice(available_labels)
-        print(f"[SHARED CACHE] New song '{song_title}' - randomly assigned: {label}")
+        # No artist mapping - filter by year range
+        year_filtered_labels = get_labels_for_year(year, available_labels)
+
+        # Randomly select from year-filtered labels
+        label = random.choice(year_filtered_labels)
+        print(f"[SHARED CACHE] New song '{song_title}' (year: {year}) - randomly assigned: {label}")
 
     # Cache the label for future use
     _song_label_cache[song_id] = label

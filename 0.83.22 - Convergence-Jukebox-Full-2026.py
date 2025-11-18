@@ -1878,9 +1878,8 @@ def main():
                             keys_entered = ""
                             # close artist search window
                             search_window.close()
+                            #Skip code that updates main Jukebox windows
                             break
-                        #Skip code that updates main Jukebox windows
-                        break  
                     if event == sg.WIN_CLOSED:  # if the X button clicked, just exit
                         break
                     # Code to update the search results based on the keys entered via the keypad                                         

@@ -2049,6 +2049,8 @@ def main():
                         keys_entered = keys_entered + "A"
                     print(keys_entered)
                     # Code to bring up search results based on keys entered
+                    # Clear previous search results before building new ones
+                    search_results = []
                     # Code to search for song title based on keys entered
                     if search_flag == "title":
                         for i, item in enumerate(MusicMasterSongList):
@@ -2148,7 +2150,8 @@ def main():
                             search_window["--result_three--"].update(keys_entered)
                             search_window["--result_four--"].update(keys_entered)
                             search_window["--result_five--"].update(keys_entered)
-                search_results = []
+                # Note: search_results is NOT cleared here - it's rebuilt on next keystroke
+                # This allows result buttons to access the stored song numbers when clicked
                 search_window["--letter_entry--"].Update(keys_entered)
                 # End of search window event loop code
             # Reset idle timer after exiting search window

@@ -68,6 +68,7 @@ The application requires the following project module files:
 - `jukebox_selection_screen_layout_module.py` - Song selection screen layout
 - `info_screen_layout_module.py` - Information display screen layout
 - `search_window_button_layout_module.py` - Search window interface
+- `search_module.py` - Search functionality for title and artist search
 - `popup_45rpm_song_selection_code_module.py` - 45 RPM popup for song selection
 - `popup_rotating_record_code_module.py` - Rotating record animation and display
 - `font_size_window_updates_module.py` - Dynamic font sizing for buttons
@@ -81,7 +82,7 @@ The application requires the following project module files:
 ## Usage
 
 ```bash
-python "0.83.12 - Convergence-Jukebox-Full-2026.py"
+python "0.83.42 - Convergence-Jukebox-Full-2026.py"
 ```
 
 The application will:
@@ -98,8 +99,8 @@ The application will:
 
 ```
 Convergence-Jukebox-Full-2026/
-├── 0.83.12 - Convergence-Jukebox-Full-2026.py # Main integrated application (CURRENT)
-├── depreciated_code/                          # Previous versions (0.81-0.82.8 archived versions)
+├── 0.83.42 - Convergence-Jukebox-Full-2026.py # Main integrated application (CURRENT)
+├── depreciated_code/                          # Previous versions (0.81-0.83.41 archived versions)
 ├── .claude/                                   # Claude Code configuration
 │   └── claude.md                              # Debugging notes and fixes
 ├── jukebox_config.json                        # Configuration file
@@ -120,6 +121,7 @@ Convergence-Jukebox-Full-2026/
     ├── jukebox_selection_screen_layout_module.py
     ├── info_screen_layout_module.py
     ├── search_window_button_layout_module.py
+    ├── search_module.py
     ├── popup_45rpm_song_selection_code_module.py
     ├── popup_rotating_record_code_module.py
     ├── popup_45rpm_now_playing_code_module.py
@@ -220,12 +222,21 @@ For full functionality, you will need:
 - **0.82.97**: Added 22-character limit to song title display to prevent layout overflow
 - Archived versions 0.81-0.82.8 to depreciated_code folder for cleaner project structure
 
-**0.83.12 - Code Organization and Module Refactoring (CURRENT)**
+**0.83.12 - Code Organization and Module Refactoring**
 - **0.83.12**: Extracted background image data to separate module file
   - Created `background_image_module.py` to store Base64-encoded PNG image separately
   - Updated main application to import background_image from the new module
   - Improves code organization and maintainability by separating large image data from main file
   - Reduces main application file size while maintaining full functionality
+
+**0.83.42 - Search Functionality Refactoring (CURRENT)**
+- **0.83.42**: Refactored search functionality into separate module
+  - Created `search_module.py` with extracted search logic (~530 lines)
+  - Moved title and artist search code from main file to dedicated module
+  - Implemented clean interface with `run_search()` function accepting window and callback parameters
+  - Reduced main application file by ~485 lines while maintaining full search functionality
+  - Both title search (T key) and artist search (A key) now use modular approach
+  - Improves code organization and maintainability for search features
 
 ## Paid Music Playlist System
 

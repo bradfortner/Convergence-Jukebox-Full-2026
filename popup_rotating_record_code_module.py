@@ -488,7 +488,7 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
         if sys.platform == 'win32':
             try:
                 import time as time_module
-                time_module.sleep(0.1)
+                time_module.sleep(0.3)  # Increased delay for window initialization
 
                 # Get the actual window handle from pygame
                 wm_info = pygame.display.get_wm_info()
@@ -496,19 +496,52 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
                     hwnd = wm_info['window']
                     print(f"Got window handle: {hwnd}")
 
-                    # Move the window to the specified position and set as topmost
-                    # HWND_TOPMOST = -1 to set window as always-on-top
-                    # SWP_SHOWWINDOW = 0x40 to ensure window is shown
+                    # Windows API constants
                     HWND_TOPMOST = -1
-                    result = ctypes.windll.user32.SetWindowPos(hwnd, HWND_TOPMOST, window_x, window_y, window_width, window_height, 0x40)
-                    if result:
-                        print(f"Window successfully moved to ({window_x}, {window_y})")
+                    SWP_SHOWWINDOW = 0x0040
+                    SWP_NOSIZE = 0x0001
+                    SWP_NOMOVE = 0x0002
+
+                    # Step 1: Move and size the window (without changing z-order yet)
+                    result1 = ctypes.windll.user32.SetWindowPos(
+                        hwnd,
+                        0,  # HWND_TOP (don't change z-order yet)
+                        window_x,
+                        window_y,
+                        window_width,
+                        window_height,
+                        SWP_SHOWWINDOW
+                    )
+
+                    if result1:
+                        print(f"✓ Window positioned at ({window_x}, {window_y})")
                     else:
-                        print(f"SetWindowPos returned 0 - may indicate failure")
+                        error_code = ctypes.windll.kernel32.GetLastError()
+                        print(f"✗ SetWindowPos (position) failed with error code: {error_code}")
+
+                    # Step 2: Set window as topmost (keep current position/size)
+                    result2 = ctypes.windll.user32.SetWindowPos(
+                        hwnd,
+                        HWND_TOPMOST,
+                        0, 0, 0, 0,  # Ignored due to SWP_NOMOVE | SWP_NOSIZE
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW
+                    )
+
+                    if result2:
+                        print(f"✓ Window set as TOPMOST")
+                    else:
+                        error_code = ctypes.windll.kernel32.GetLastError()
+                        print(f"✗ SetWindowPos (topmost) failed with error code: {error_code}")
+
+                    # Final verification
+                    if result1 and result2:
+                        print(f"✓✓ Pygame window successfully configured!")
                 else:
                     print("Could not get window handle from pygame")
             except Exception as e:
                 print(f"Error moving window: {e}")
+                import traceback
+                traceback.print_exc()
 
         # Scale record to fill window completely (420x420 for 420x420 window)
         record_display_size = int(window_width * 1.00)  # ~420px for 420px window

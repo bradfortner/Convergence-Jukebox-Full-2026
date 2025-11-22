@@ -137,3 +137,98 @@ Line 1620-1624: Expand the keypress detection condition to catch simple characte
 ## Modules Modified
 - popup_rotating_record_code_module.py - Added logging (0.82.98)
 - 0.82.98 - Convergence-Jukebox-Full-2026.py - Added logging calls for popup show/close events
+
+---
+
+# Convergence Jukebox - Pygame/Tkinter Z-Order Limitation
+
+## Issue Description (v0.83.52-59)
+Attempted to display a pygame rotating record popup window on top of FreeSimpleGUI (Tkinter-based) windows. Despite extensive debugging across 8 versions, the pygame window could not be made visible above topmost Tkinter windows.
+
+## Root Cause - Fundamental Framework Incompatibility
+**Pygame and Tkinter/FreeSimpleGUI use incompatible window management systems:**
+- FreeSimpleGUI wraps Tkinter, which uses native OS window handles
+- Pygame creates its own SDL-based window system
+- Windows OS treats these as fundamentally different window types
+- Z-order manipulation APIs (SetWindowPos, SetWindowLong, etc.) fail when trying to make pygame windows appear above topmost Tkinter windows
+
+## What Was Attempted (v0.83.52-59)
+
+### v0.83.52
+- Initial attempt: SetWindowPos with HWND_TOPMOST flag
+- Result: FAILED - Error code 0 (general failure)
+
+### v0.83.53
+- Added comprehensive debug logging
+- Result: Confirmed all conditions met, but window invisible
+
+### v0.83.54
+- Split SetWindowPos into two separate calls (position first, then topmost)
+- Result: FAILED - Error code 1400 (ERROR_INVALID_WINDOW_HANDLE)
+
+### v0.83.55
+- Single SetWindowPos call with all parameters
+- Added fallback using SetWindowLong + MoveWindow
+- Result: FAILED - Window created but invisible
+
+### v0.83.56
+- Hide ALL FreeSimpleGUI windows during popup
+- Result: SUCCESS - Popup visible on black screen (but background disappeared)
+
+### v0.83.57
+- 5-step aggressive Windows API sequence:
+  1. SetWindowLong with WS_EX_TOPMOST | WS_EX_LAYERED
+  2. MoveWindow to position
+  3. ShowWindow with SW_SHOW
+  4. SetForegroundWindow + BringWindowToTop
+  5. SetWindowPos final enforcement
+- Result: FAILED - All steps succeeded but window still invisible
+
+### v0.83.58
+- Temporarily disable HWND_TOPMOST on FreeSimpleGUI windows using SetWindowPos(HWND_NOTOPMOST)
+- Allow pygame window to appear, then restore topmost
+- Result: FAILED - Pygame window still invisible behind Tkinter windows
+
+### v0.83.59
+- Accepted reality and reverted to v0.83.56 approach (hide all windows)
+- Result: SUCCESS - Only working solution
+
+## Conclusion - Architectural Limitation
+
+**FACT: Pygame windows CANNOT appear above topmost Tkinter/FreeSimpleGUI windows.**
+
+This is not a bug - it's a fundamental architectural limitation of mixing these two GUI frameworks. After exhaustive testing with every available Windows API combination:
+- SetWindowPos (all flag variations)
+- SetWindowLong with extended styles
+- MoveWindow
+- ShowWindow
+- SetForegroundWindow
+- BringWindowToTop
+- Disabling topmost on competing windows
+
+**None of these approaches work when pygame and Tkinter windows coexist.**
+
+## Working Solution
+
+The ONLY working solution is to hide all Tkinter windows when showing pygame content:
+1. Hide all FreeSimpleGUI windows
+2. Show pygame window (appears on black screen)
+3. When pygame closes, restore all FreeSimpleGUI windows
+
+This is implemented in v0.83.56 and v0.83.59.
+
+## Recommendation for Future Development
+
+**DO NOT attempt to overlay pygame windows on top of FreeSimpleGUI/Tkinter windows.**
+
+If overlay functionality is required, choose ONE framework:
+- **Option 1:** Pure pygame for entire GUI (no Tkinter/FreeSimpleGUI)
+- **Option 2:** Pure Tkinter/FreeSimpleGUI (no pygame)
+- **Option 3:** Alternative framework like Kivy that handles all rendering internally
+
+Mixing pygame and Tkinter for overlapping UI elements will always fail due to incompatible window management systems.
+
+## Version History
+- v0.83.51 - Last stable version before popup experiments
+- v0.83.52-59 - Failed attempts to fix z-order (all approaches documented above)
+- v0.83.60 - Rollback to v0.83.51 baseline for clean slate

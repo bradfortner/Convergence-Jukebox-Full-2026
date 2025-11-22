@@ -1586,7 +1586,7 @@ def main():
     #  essential code for background image placement and transparent windows placed overtop from https://www.pysimplegui.org/en/latest/Demos/#demo_window_background_imagepy
     background_layout = [[sg.Image(data=background_image)]]
     window_background = sg.Window('Background', background_layout, return_keyboard_events=True, use_default_focus=False, no_titlebar=True, finalize=True, margins=(0, 0),
-                                  element_padding=(0, 0), size=(1280, 720), right_click_menu=[[''], ['Exit', ]], transparent_color=sg.theme_background_color())
+                                  element_padding=(0, 0), size=(1280, 720), right_click_menu=[[''], ['Exit', ]], transparent_color=sg.theme_background_color(), keep_on_top=True)
     song_playing_lookup_layout = [[sg.Text()]]
     info_screen_layout = create_info_screen_layout(master_songlist_number)
     jukebox_selection_screen_layout = create_jukebox_selection_screen_layout(MusicMasterSongList, selection_window_number, dir_path)
@@ -1614,7 +1614,7 @@ def main():
                 element_padding=((0, 0), (0, 0)), relative_location=(-448, 0),return_keyboard_events=True, use_default_focus=False)
     control_button_window = sg.Window('Control Screen', control_button_screen_layout, finalize=True,
                 keep_on_top=True, transparent_color=sg.theme_background_color(), no_titlebar=True,return_keyboard_events=True, use_default_focus=False, element_padding=((0, 0), (0, 0)), relative_location=(150, 306))
-    song_playing_lookup_window = sg.Window('Song Playing Lookup Thread', song_playing_lookup_layout, no_titlebar=True, finalize=True,return_keyboard_events=True, use_default_focus=False)
+    song_playing_lookup_window = sg.Window('Song Playing Lookup Thread', song_playing_lookup_layout, no_titlebar=True, finalize=True,return_keyboard_events=True, use_default_focus=False, keep_on_top=True)
 
     # Bind ESC key to all main windows for exit functionality
     window_background.bind('<Escape>', '--ESC--')

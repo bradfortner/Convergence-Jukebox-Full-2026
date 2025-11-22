@@ -506,40 +506,49 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
                     HWND_TOPMOST = -1
                     SWP_SHOWWINDOW = 0x0040
                     SWP_NOACTIVATE = 0x0010
+                    GWL_EXSTYLE = -20
+                    WS_EX_TOPMOST = 0x00000008
+                    WS_EX_LAYERED = 0x00080000
 
-                    # Single call: Position, size, AND set topmost in one operation
-                    # This avoids handle invalidation between calls
-                    result = ctypes.windll.user32.SetWindowPos(
+                    # Multi-step approach to force window topmost
+                    print("Step 1: Setting extended window style to topmost...")
+
+                    # Get current extended style
+                    ex_style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+                    # Add topmost AND layered flags
+                    new_style = ex_style | WS_EX_TOPMOST | WS_EX_LAYERED
+                    # Set new style
+                    ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, new_style)
+                    print(f"✓ Extended style set (WS_EX_TOPMOST | WS_EX_LAYERED)")
+
+                    # Step 2: Position and size the window
+                    print("Step 2: Positioning window...")
+                    ctypes.windll.user32.MoveWindow(hwnd, window_x, window_y, window_width, window_height, True)
+                    print(f"✓ Window positioned at ({window_x}, {window_y})")
+
+                    # Step 3: Show the window
+                    print("Step 3: Showing window...")
+                    SW_SHOW = 5
+                    ctypes.windll.user32.ShowWindow(hwnd, SW_SHOW)
+                    print(f"✓ Window shown")
+
+                    # Step 4: Force to foreground
+                    print("Step 4: Bringing window to foreground...")
+                    ctypes.windll.user32.SetForegroundWindow(hwnd)
+                    ctypes.windll.user32.BringWindowToTop(hwnd)
+                    print(f"✓ Window brought to foreground")
+
+                    # Step 5: Final topmost enforcement
+                    print("Step 5: Final topmost enforcement...")
+                    SWP_NOMOVE = 0x0002
+                    SWP_NOSIZE = 0x0001
+                    ctypes.windll.user32.SetWindowPos(
                         hwnd,
-                        HWND_TOPMOST,  # Set as topmost
-                        window_x,       # X position
-                        window_y,       # Y position
-                        window_width,   # Width
-                        window_height,  # Height
-                        SWP_SHOWWINDOW | SWP_NOACTIVATE  # Show window, don't activate
+                        HWND_TOPMOST,
+                        0, 0, 0, 0,
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW
                     )
-
-                    if result:
-                        print(f"✓✓ Window positioned at ({window_x}, {window_y}) and set as TOPMOST!")
-                    else:
-                        error_code = ctypes.windll.kernel32.GetLastError()
-                        print(f"✗ SetWindowPos failed with error code: {error_code}")
-
-                        # Try alternative method using SetWindowLong
-                        print("Attempting alternative method with extended styles...")
-                        GWL_EXSTYLE = -20
-                        WS_EX_TOPMOST = 0x00000008
-
-                        # Get current extended style
-                        ex_style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
-                        # Add topmost flag
-                        new_style = ex_style | WS_EX_TOPMOST
-                        # Set new style
-                        ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, new_style)
-
-                        # Force position update
-                        ctypes.windll.user32.MoveWindow(hwnd, window_x, window_y, window_width, window_height, True)
-                        print(f"✓ Used alternative method (SetWindowLong + MoveWindow)")
+                    print(f"✓✓ Pygame window fully configured and forced topmost!")
 
                 else:
                     print("Could not get window handle from pygame")

@@ -496,9 +496,11 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
                     hwnd = wm_info['window']
                     print(f"Got window handle: {hwnd}")
 
-                    # Move the window to the specified position
+                    # Move the window to the specified position and set as topmost
+                    # HWND_TOPMOST = -1 to set window as always-on-top
                     # SWP_SHOWWINDOW = 0x40 to ensure window is shown
-                    result = ctypes.windll.user32.SetWindowPos(hwnd, 0, window_x, window_y, window_width, window_height, 0x40)
+                    HWND_TOPMOST = -1
+                    result = ctypes.windll.user32.SetWindowPos(hwnd, HWND_TOPMOST, window_x, window_y, window_width, window_height, 0x40)
                     if result:
                         print(f"Window successfully moved to ({window_x}, {window_y})")
                     else:

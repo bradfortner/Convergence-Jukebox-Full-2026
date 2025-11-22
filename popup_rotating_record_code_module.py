@@ -496,46 +496,51 @@ def rotate_record_pygame(image_path, rotation_stop_flag, window_x, window_y, win
                     hwnd = wm_info['window']
                     print(f"Got window handle: {hwnd}")
 
+                    # Verify handle is valid before proceeding
+                    if not ctypes.windll.user32.IsWindow(hwnd):
+                        print(f"✗ Window handle {hwnd} is not valid!")
+                    else:
+                        print(f"✓ Window handle validated")
+
                     # Windows API constants
                     HWND_TOPMOST = -1
                     SWP_SHOWWINDOW = 0x0040
-                    SWP_NOSIZE = 0x0001
-                    SWP_NOMOVE = 0x0002
+                    SWP_NOACTIVATE = 0x0010
 
-                    # Step 1: Move and size the window (without changing z-order yet)
-                    result1 = ctypes.windll.user32.SetWindowPos(
+                    # Single call: Position, size, AND set topmost in one operation
+                    # This avoids handle invalidation between calls
+                    result = ctypes.windll.user32.SetWindowPos(
                         hwnd,
-                        0,  # HWND_TOP (don't change z-order yet)
-                        window_x,
-                        window_y,
-                        window_width,
-                        window_height,
-                        SWP_SHOWWINDOW
+                        HWND_TOPMOST,  # Set as topmost
+                        window_x,       # X position
+                        window_y,       # Y position
+                        window_width,   # Width
+                        window_height,  # Height
+                        SWP_SHOWWINDOW | SWP_NOACTIVATE  # Show window, don't activate
                     )
 
-                    if result1:
-                        print(f"✓ Window positioned at ({window_x}, {window_y})")
+                    if result:
+                        print(f"✓✓ Window positioned at ({window_x}, {window_y}) and set as TOPMOST!")
                     else:
                         error_code = ctypes.windll.kernel32.GetLastError()
-                        print(f"✗ SetWindowPos (position) failed with error code: {error_code}")
+                        print(f"✗ SetWindowPos failed with error code: {error_code}")
 
-                    # Step 2: Set window as topmost (keep current position/size)
-                    result2 = ctypes.windll.user32.SetWindowPos(
-                        hwnd,
-                        HWND_TOPMOST,
-                        0, 0, 0, 0,  # Ignored due to SWP_NOMOVE | SWP_NOSIZE
-                        SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW
-                    )
+                        # Try alternative method using SetWindowLong
+                        print("Attempting alternative method with extended styles...")
+                        GWL_EXSTYLE = -20
+                        WS_EX_TOPMOST = 0x00000008
 
-                    if result2:
-                        print(f"✓ Window set as TOPMOST")
-                    else:
-                        error_code = ctypes.windll.kernel32.GetLastError()
-                        print(f"✗ SetWindowPos (topmost) failed with error code: {error_code}")
+                        # Get current extended style
+                        ex_style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+                        # Add topmost flag
+                        new_style = ex_style | WS_EX_TOPMOST
+                        # Set new style
+                        ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, new_style)
 
-                    # Final verification
-                    if result1 and result2:
-                        print(f"✓✓ Pygame window successfully configured!")
+                        # Force position update
+                        ctypes.windll.user32.MoveWindow(hwnd, window_x, window_y, window_width, window_height, True)
+                        print(f"✓ Used alternative method (SetWindowLong + MoveWindow)")
+
                 else:
                     print("Could not get window handle from pygame")
             except Exception as e:

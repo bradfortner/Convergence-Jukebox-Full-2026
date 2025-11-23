@@ -40,8 +40,8 @@ SCREEN_HEIGHT = 720
 BACKGROUND_IMAGE_PATH = "images/Full Jukebox Background Master 2026.png"
 
 # Button grid layout constants
-GRID_START_X = 430  # Testing position for alignment with background
-GRID_START_Y = 250
+GRID_START_X = 465  # Testing position for alignment with background
+GRID_START_Y = 218
 
 # Button image paths
 BUTTON_ID_BG = "images/button_id_bg.png"

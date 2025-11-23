@@ -73,6 +73,7 @@ B_BUTTON_IMG = "images/b_button.png"
 C_BUTTON_IMG = "images/c_button.png"
 NUM_BUTTON_IMG = "images/{}_button.png"  # Format with number 1-7
 SELECT_BUTTON_IMG = "images/select_button.png"
+CORRECT_BUTTON_IMG = "images/correct_button.png"
 BLANK_BUTTON_IMG = "images/blank_button.png"
 
 # ============================================================================
@@ -317,6 +318,7 @@ class ControlButtons:
             self.b_button_img = pygame.image.load(B_BUTTON_IMG)
             self.c_button_img = pygame.image.load(C_BUTTON_IMG)
             self.select_button_img = pygame.image.load(SELECT_BUTTON_IMG)
+            self.correct_button_img = pygame.image.load(CORRECT_BUTTON_IMG)
             self.blank_button_img = pygame.image.load(BLANK_BUTTON_IMG)
 
             # Load number button images (1-7)
@@ -390,9 +392,26 @@ class ControlButtons:
             })
             current_x += 50
 
-        # Row 2: Skip blanks (50px + 150px + 35px = 235px), then 3-7, skip blank, SELECT
-        current_x = self.start_x + 235
+        # Row 2: Skip blank (50px), CORRECT button (150px), skip blank (35px), then 3-7, skip blank, SELECT
+        current_x = self.start_x
         current_y = self.start_y + 50 + 25  # 50px button height + 25px spacing
+
+        # Skip blank (50px)
+        current_x += 50
+
+        # CORRECT button
+        buttons.append({
+            'key': 'CORRECT',
+            'x': current_x,
+            'y': current_y,
+            'image': self.correct_button_img,
+            'enabled': True,
+            'rect': pygame.Rect(current_x, current_y, 150, 50)
+        })
+        current_x += 150
+
+        # Skip blank (35px)
+        current_x += 35
 
         # Number buttons 3-7
         for num in [3, 4, 5, 6, 7]:
@@ -442,6 +461,10 @@ class ControlButtons:
             elif key == 'SELECT':
                 # SELECT enabled only if both letter and number selected
                 button['enabled'] = (selection_letter is not None) and (selection_number is not None)
+
+            elif key == 'CORRECT':
+                # CORRECT button always enabled
+                button['enabled'] = True
 
     def draw(self, screen):
         """Draw all control buttons

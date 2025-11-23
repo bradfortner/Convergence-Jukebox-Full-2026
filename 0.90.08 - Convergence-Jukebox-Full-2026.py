@@ -64,7 +64,7 @@ CONTROL_START_Y = 586
 
 # Info screen constants (relative_location=(-448, 0) → absolute position)
 INFO_START_X = 32
-INFO_START_Y = 0
+INFO_START_Y = 100
 
 # Color constants (RGB)
 COLOR_SEAGREEN3 = (67, 205, 128)
@@ -588,7 +588,7 @@ class InfoScreen:
 
         # "Now Playing" header
         text = self.font_header_large.render("Now Playing", True, COLOR_SEAGREEN3)
-        rect = text.get_rect(center=(self.start_x + 224, current_y))
+        rect = text.get_rect(center=(self.start_x + 145, current_y))
         screen.blit(text, rect)
         current_y += 30
 
@@ -596,22 +596,18 @@ class InfoScreen:
         if self.current_song_index is not None and self.current_song_index < len(self.song_list):
             song = self.song_list[self.current_song_index]
             title_text = song['title'][:20]
-        else:
-            title_text = "Sample Song Title"
-        text = self.font_song_title.render(title_text, True, COLOR_WHITE)
-        rect = text.get_rect(center=(self.start_x + 224, current_y))
-        screen.blit(text, rect)
+            text = self.font_song_title.render(title_text, True, COLOR_WHITE)
+            rect = text.get_rect(center=(self.start_x + 145, current_y))
+            screen.blit(text, rect)
         current_y += 25
 
         # Current artist
         if self.current_song_index is not None and self.current_song_index < len(self.song_list):
             song = self.song_list[self.current_song_index]
             artist_text = song['artist'][:24]
-        else:
-            artist_text = "Sample Artist Name"
-        text = self.font_song_artist.render(artist_text, True, COLOR_WHITE)
-        rect = text.get_rect(center=(self.start_x + 224, current_y))
-        screen.blit(text, rect)
+            text = self.font_song_artist.render(artist_text, True, COLOR_WHITE)
+            rect = text.get_rect(center=(self.start_x + 145, current_y))
+            screen.blit(text, rect)
         current_y += 25
 
         # Mode indicator
@@ -624,20 +620,16 @@ class InfoScreen:
         if self.current_song_index is not None and self.current_song_index < len(self.song_list):
             song = self.song_list[self.current_song_index]
             mini_title = song['title'][:28]
-        else:
-            mini_title = "Sample Mini Song Title Here"
-        text = self.font_info.render(mini_title, True, COLOR_SEAGREEN3)
-        screen.blit(text, (self.start_x, current_y))
+            text = self.font_info.render(mini_title, True, COLOR_SEAGREEN3)
+            screen.blit(text, (self.start_x, current_y))
         current_y += 18
 
         # Mini artist
         if self.current_song_index is not None and self.current_song_index < len(self.song_list):
             song = self.song_list[self.current_song_index]
             mini_artist = song['artist'][:28]
-        else:
-            mini_artist = "Sample Mini Artist Name"
-        text = self.font_info.render(mini_artist, True, COLOR_SEAGREEN3)
-        screen.blit(text, (self.start_x, current_y))
+            text = self.font_info.render(mini_artist, True, COLOR_SEAGREEN3)
+            screen.blit(text, (self.start_x, current_y))
         current_y += 18
 
         # Year & Time Remaining
@@ -647,25 +639,21 @@ class InfoScreen:
                 year_time = f"  Year: {song['year']}   Remaining: {self.time_remaining}"
             else:
                 year_time = f"  Year: {song['year']}   Length: {song['duration']}"
-        else:
-            year_time = "  Year: 1985   Remaining: 03:45"
-        text = self.font_info.render(year_time, True, COLOR_SEAGREEN3)
-        screen.blit(text, (self.start_x, current_y))
+            text = self.font_info.render(year_time, True, COLOR_SEAGREEN3)
+            screen.blit(text, (self.start_x, current_y))
         current_y += 18
 
         # Album
         if self.current_song_index is not None and self.current_song_index < len(self.song_list):
             song = self.song_list[self.current_song_index]
             album_text = song['album'][:28]
-        else:
-            album_text = "Sample Album Name Goes Here"
-        text = self.font_info.render(album_text, True, COLOR_SEAGREEN3)
-        screen.blit(text, (self.start_x, current_y))
+            text = self.font_info.render(album_text, True, COLOR_SEAGREEN3)
+            screen.blit(text, (self.start_x, current_y))
         current_y += 30
 
         # "Upcoming Selections" header
         text = self.font_header_medium.render("Upcoming Selections", True, COLOR_SEAGREEN3)
-        rect = text.get_rect(center=(self.start_x + 224, current_y))
+        rect = text.get_rect(center=(self.start_x + 145, current_y))
         screen.blit(text, rect)
         current_y += 28
 
@@ -679,12 +667,8 @@ class InfoScreen:
                 if song_idx < len(self.song_list):
                     song = self.song_list[song_idx]
                     upcoming_text = f"{song['title'][:15]} - {song['artist'][:10]}"
-                else:
-                    upcoming_text = f"Sample Song {i+1} - Artist {i+1}"
-            else:
-                upcoming_text = f"Sample Song {i+1} - Artist {i+1}"
-            text = self.font_info.render(upcoming_text, True, COLOR_SEAGREEN3)
-            screen.blit(text, (self.start_x, current_y))
+                    text = self.font_info.render(upcoming_text, True, COLOR_SEAGREEN3)
+                    screen.blit(text, (self.start_x, current_y))
             current_y += 18
 
         # Spacer
@@ -693,20 +677,20 @@ class InfoScreen:
         # Credits display
         credits_text = f"CREDITS {self.credits}"
         text = self.font_credits.render(credits_text, True, COLOR_WHITE)
-        rect = text.get_rect(center=(self.start_x + 224, current_y))
+        rect = text.get_rect(center=(self.start_x + 145, current_y))
         screen.blit(text, rect)
         current_y += 30
 
         # "Twenty-Five Cents Per Selection"
         text = self.font_info.render("Twenty-Five Cents Per Selection", True, COLOR_SEAGREEN3)
-        rect = text.get_rect(center=(self.start_x + 224, current_y))
+        rect = text.get_rect(center=(self.start_x + 145, current_y))
         screen.blit(text, rect)
         current_y += 18
 
         # Total songs available
         total_text = f"{len(self.song_list)} Song Selections Available"
         text = self.font_info.render(total_text, True, COLOR_SEAGREEN3)
-        rect = text.get_rect(center=(self.start_x + 224, current_y))
+        rect = text.get_rect(center=(self.start_x + 145, current_y))
         screen.blit(text, rect)
 
 # ============================================================================

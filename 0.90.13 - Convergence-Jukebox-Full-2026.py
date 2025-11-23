@@ -1,6 +1,6 @@
 """
 CONVERGENCE JUKEBOX - PYGAME MIGRATION VERSION
-Version 0.90.13 - Pure Pygame Implementation (Feature: Band Name "The" Prefix)
+Version 0.90.13 - Pure Pygame Implementation (Fix: Dim Selected Control Buttons)
 
 This version begins the migration from FreeSimpleGUI to pure Pygame.
 
@@ -10,12 +10,11 @@ Migration Goals:
 - Create foundation for future touchscreen/arcade features
 
 Version 0.90.13 Changes:
-- Implemented the_bands.txt and the_exempted_bands.txt functionality
-- Artist names from the_bands.txt automatically receive "The " prefix
-- Exempted bands (the_exempted_bands.txt) skip the prefix application
-- Prefix applied on initial load and after arrow navigation
-- Fixed CORRECT button keypress: Shift+C clears selection (matches original)
-- Column C selection remains lowercase 'c' (only when no selection exists)
+- Fixed control button dimming: selected letter (A/B/C) now dims when pressed
+- Fixed control button dimming: selected number (1-7) now dims when pressed
+- Matches original behavior: pressed buttons dim to show they're locked in
+- Modified ControlButtons.draw() to accept selection_letter and selection_number parameters
+- Visual feedback now matches original FreeSimpleGUI version
 
 Next Steps:
 - Add 45rpm selection popup
@@ -50,8 +49,6 @@ BUZZ_SOUND_PATH = "jukebox_required_audio_files/buzz.mp3"
 SUCCESS_SOUND_PATH = "jukebox_required_audio_files/success.mp3"
 PAID_MUSIC_PLAYLIST_PATH = "PaidMusicPlayList.txt"
 CURRENT_SONG_PLAYING_PATH = "CurrentSongPlaying.txt"
-THE_BANDS_PATH = "the_bands.txt"
-THE_EXEMPTED_BANDS_PATH = "the_exempted_bands.txt"
 
 # Button grid layout constants
 GRID_START_X = 465
@@ -253,30 +250,6 @@ class ButtonGrid:
         self.selection_window_number = new_selection_window_number
         # Rebuild the button layout with new song data
         self.buttons = self._create_button_layout()
-
-    def apply_the_prefix(self, the_bands_text, exempted_bands_list):
-        """Apply 'The ' prefix to band names based on configuration files
-
-        Args:
-            the_bands_text: Content from the_bands.txt (comma-separated lowercase names)
-            exempted_bands_list: List of band names to exempt from 'The ' prefix
-        """
-        # Process all artist buttons in the grid
-        for row in self.buttons:
-            for button in row:
-                if button['type'] == 'artist' and button['text']:
-                    artist = button['text']
-
-                    # Check if this artist name (lowercase) is in the_bands.txt
-                    if artist.lower() in the_bands_text:
-                        # Build the updated name with "The " prefix
-                        the_artist = 'The ' + artist
-
-                        # Check if this name is in the exemption list
-                        if the_artist not in exempted_bands_list:
-                            # Apply the prefix (truncate to 22 chars if needed)
-                            button['text'] = the_artist[:22]
-                            print(f"Applied 'The ' prefix: {artist} → {button['text']}")
 
     def draw(self, screen, selection_letter=None, selection_number=None):
         """Draw all buttons in the grid
@@ -525,16 +498,31 @@ class ControlButtons:
                 # CORRECT button always enabled
                 button['enabled'] = True
 
-    def draw(self, screen):
+    def draw(self, screen, selection_letter=None, selection_number=None):
         """Draw all control buttons
 
         Args:
             screen: Pygame surface to draw on
+            selection_letter: Currently selected letter (A, B, or C) or None
+            selection_number: Currently selected number (1-7) or None
         """
         for button in self.buttons:
-            # Draw button (dimmed if disabled)
-            img = button['image']
+            # Determine if button should be dimmed
+            should_dim = False
+
+            # Dim if button is disabled
             if not button['enabled']:
+                should_dim = True
+            # Also dim if this button is the selected letter
+            elif button['key'] in ['A', 'B', 'C'] and button['key'] == selection_letter:
+                should_dim = True
+            # Also dim if this button is the selected number
+            elif button['key'] in ['1', '2', '3', '4', '5', '6', '7'] and button['key'] == str(selection_number):
+                should_dim = True
+
+            # Draw button
+            img = button['image']
+            if should_dim:
                 # Create dimmed version
                 dimmed = img.copy()
                 dimmed.set_alpha(100)
@@ -979,23 +967,6 @@ def main():
         print(f"Error loading success sound: {e}")
         success_sound = None
 
-    # Load the_bands.txt and the_exempted_bands.txt for artist name processing
-    the_bands_text = ""
-    exempted_bands_list = []
-    try:
-        with open(THE_BANDS_PATH, 'r') as f:
-            the_bands_text = f.read()
-        print(f"Loaded band names from {THE_BANDS_PATH}")
-    except FileNotFoundError:
-        print(f"Warning: {THE_BANDS_PATH} not found - skipping 'The' prefix application")
-
-    try:
-        with open(THE_EXEMPTED_BANDS_PATH, 'r') as f:
-            exempted_bands_list = [line.strip() for line in f if line.strip()]
-        print(f"Loaded {len(exempted_bands_list)} exempted bands from {THE_EXEMPTED_BANDS_PATH}")
-    except FileNotFoundError:
-        print(f"Warning: {THE_EXEMPTED_BANDS_PATH} not found - no exemptions will be applied")
-
     # Create button grid with song data
     try:
         button_grid = ButtonGrid(GRID_START_X, GRID_START_Y, song_list, selection_window_number=0)
@@ -1003,11 +974,6 @@ def main():
         print(f"Error creating button grid: {e}")
         pygame.quit()
         sys.exit(1)
-
-    # Apply "The " prefix to band names
-    if the_bands_text:
-        print("Applying 'The ' prefix to band names...")
-        button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
     # Create control buttons
     try:
@@ -1053,11 +1019,10 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    print("Convergence Jukebox v0.90.13 - Band Name 'The' Prefix Implementation")
+    print("Convergence Jukebox v0.90.13 - Dim Selected Control Buttons")
     print("Press ESC to exit")
     print("Press X to add credit")
     print("Press A/B/C to select column, 1-7 to select song, S to confirm")
-    print("Press Shift+C to clear selection (CORRECT button)")
     print("Music plays continuously: paid songs → random songs → check for more paid songs...")
 
     while running:
@@ -1087,8 +1052,6 @@ def main():
                             buzz_sound.play()
                     selection_window_number = new_window_number
                     button_grid.update_selection_window(selection_window_number)
-                    if the_bands_text:
-                        button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
                 elif event.key == pygame.K_LEFT:
                     new_window_number = selection_window_number - 21
@@ -1098,8 +1061,6 @@ def main():
                             buzz_sound.play()
                     selection_window_number = new_window_number
                     button_grid.update_selection_window(selection_window_number)
-                    if the_bands_text:
-                        button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
                 # Letter selection (A, B, C)
                 elif event.key == pygame.K_a:
@@ -1114,19 +1075,17 @@ def main():
                         control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
                         print(f"Selected column: B")
 
-                elif event.key == pygame.K_c:
-                    # Check if Shift is pressed (uppercase 'C' for CORRECT button)
-                    if event.mod & pygame.KMOD_SHIFT:
-                        # CORRECT button - reset selection (Shift+C)
-                        selection_entry_letter = None
-                        selection_entry_number = None
-                        control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
-                        print("CORRECT: Selection cleared")
-                    elif selection_entry_letter is None:
-                        # Column C selection (lowercase 'c')
+                elif event.key == pygame.K_c and event.mod == 0:
+                    if selection_entry_letter is None:
                         selection_entry_letter = 'C'
                         control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
                         print(f"Selected column: C")
+                    else:
+                        # CORRECT button - reset selection
+                        selection_entry_letter = None
+                        selection_entry_number = None
+                        control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
+                        print("Selection cleared")
 
                 # Number selection (1-7)
                 elif event.key in [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7]:
@@ -1196,8 +1155,6 @@ def main():
                                 buzz_sound.play()
                         selection_window_number = new_window_number
                         button_grid.update_selection_window(selection_window_number)
-                        if the_bands_text:
-                            button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
                     elif arrow_left_rect.collidepoint(mouse_pos):
                         new_window_number = selection_window_number - 21
@@ -1207,8 +1164,6 @@ def main():
                                 buzz_sound.play()
                         selection_window_number = new_window_number
                         button_grid.update_selection_window(selection_window_number)
-                        if the_bands_text:
-                            button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
                     # Check control buttons
                     else:
@@ -1291,7 +1246,7 @@ def main():
         screen.blit(arrow_right_img, (ARROW_RIGHT_X, ARROW_RIGHT_Y))
 
         # Draw control buttons
-        control_buttons.draw(screen)
+        control_buttons.draw(screen, selection_entry_letter, selection_entry_number)
 
         # Draw info screen
         info_screen.draw(screen)

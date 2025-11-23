@@ -57,8 +57,8 @@ ARROW_LEFT_X = 520
 ARROW_LEFT_Y = 160
 
 # Control button constants (relative_location=(150, 306) converted to absolute)
-CONTROL_START_X = 150
-CONTROL_START_Y = 306
+CONTROL_START_X = 455
+CONTROL_START_Y = 586
 
 # Button image paths
 BUTTON_ID_BG = "images/button_id_bg.png"
@@ -394,7 +394,7 @@ class ControlButtons:
 
         # Row 2: Skip blank (50px), CORRECT button (150px), skip blank (35px), then 3-7, skip blank, SELECT
         current_x = self.start_x
-        current_y = self.start_y + 50 + 25  # 50px button height + 25px spacing
+        current_y = self.start_y + 50 + 0 # would have them touching
 
         # Skip blank (50px)
         current_x += 50
@@ -649,6 +649,14 @@ def main():
                         control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
                         print(f"Selected row: {selection_entry_number}")
 
+                # CORRECT (C key) - Reset selection
+                elif event.key == pygame.K_c and event.mod == 0:  # C key without modifiers
+                    # Reset selection state
+                    selection_entry_letter = None
+                    selection_entry_number = None
+                    control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
+                    print("Selection cleared")
+
                 # SELECT (S key)
                 elif event.key == pygame.K_s:
                     if selection_entry_letter is not None and selection_entry_number is not None:
@@ -736,6 +744,13 @@ def main():
                                     selection_entry_number = int(clicked_key)
                                     control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
                                     print(f"Selected row: {selection_entry_number}")
+
+                            elif clicked_key == 'CORRECT':
+                                # Reset selection state
+                                selection_entry_letter = None
+                                selection_entry_number = None
+                                control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
+                                print("Selection cleared")
 
                             elif clicked_key == 'SELECT':
                                 if selection_entry_letter is not None and selection_entry_number is not None:

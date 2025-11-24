@@ -109,8 +109,8 @@ SONG_LINE_HEIGHT = 25                  # Vertical spacing between song title lin
 ARTIST_LINE_HEIGHT = 30                # Vertical spacing between artist name lines
 PNG_OUTPUT_WIDTH = 750                 # PNG image generation width
 PNG_OUTPUT_HEIGHT = 750                # PNG image generation height
-RECORD_ROTATION_FPS = 30               # Frames per second for rotation
-RECORD_ROTATION_SPEED = 8              # Degrees per frame (240° per second at 30fps)
+RECORD_ROTATION_FPS = 15               # Frames per second for rotation
+RECORD_ROTATION_SPEED = 5              # Degrees per frame (240° per second at 30fps)
 PYGAME_BACKGROUND_COLOR = (64, 64, 64) # Dark grey background
 
 # ============================================================================
@@ -1655,7 +1655,7 @@ def main():
                             record_y = SCREEN_HEIGHT // 2
                             tonearm_pivot_x = record_x - 200
                             tonearm_pivot_y = record_y + 280
-                            popup_tonearm = WurlitzerPaddleToneArm(tonearm_pivot_x, tonearm_pivot_y, 200)
+                            popup_tonearm = WurlitzerPaddleToneArm(tonearm_pivot_x, tonearm_pivot_y, 350)
 
                             # Set tonearm position based on song progress
                             song_progress = elapsed_seconds / total_seconds if total_seconds > 0 else 0

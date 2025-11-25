@@ -430,8 +430,9 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                     keys_entered = ""
                     search_results = []
 
-                # Enter - select current focused result
+                # Enter - select current focused button or result
                 elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                    # If focused on a result button, select that result
                     if current_focused.startswith('RESULT_'):
                         result_idx = int(current_focused.split('_')[1])
                         if result_idx < len(search_results):
@@ -452,6 +453,22 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                                         'song_number': song_number,
                                         'song_selected': None
                                     }
+
+                    # If focused on keyboard button, add that character
+                    elif current_focused in BUTTON_GRID:
+                        if current_focused == 'SPACE':
+                            keys_entered += " "
+                        elif current_focused == 'DELETE':
+                            if keys_entered:
+                                keys_entered = keys_entered[:-1]
+                        elif current_focused == 'CLEAR':
+                            keys_entered = ""
+                            search_results = []
+                        elif current_focused == 'EXIT':
+                            return None
+                        elif len(current_focused) == 1 or current_focused == "'":
+                            # Single character button (letter, number, or apostrophe)
+                            keys_entered += current_focused
 
                 # Arrow key navigation
                 elif event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:

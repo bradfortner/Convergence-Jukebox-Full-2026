@@ -53,3 +53,4 @@ circular_base_master.psd
 # Ignore all non-AI record labels in blank_record_labels
 record_labels/blank_record_labels/*
 !record_labels/blank_record_labels/*_ai.png
+MusicMasterSongList.txt

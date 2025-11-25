@@ -1,3 +1,45 @@
+# WORKING MODE - DO IT RIGHT, NOT FAST
+
+**ALWAYS operate in "do it right" mode, NOT "just get it done" mode.**
+
+Before taking ANY action:
+1. **Verify assumptions** - Don't assume, check
+2. **Check dependencies** - Understand what depends on what
+3. **Test your logic** - Think through the consequences
+4. **Double-check** - Review before executing
+
+Example: Before moving modules, check the ENTIRE dependency chain, not just direct imports.
+
+---
+
+# Git Commit Procedure - MANDATORY
+
+## Follow These Steps Every Time
+
+When asked to commit/push files or directories to GitHub, **ALWAYS** follow this procedure:
+
+### Step 1: Check Status
+Run `git status [path]` and review what files will be staged. Look for:
+- Backup folders (e.g., "- Copy", ".bak", "backup")
+- Temporary files (e.g., ".tmp", "~", ".swp")
+- System files (e.g., "Thumbs.db", ".DS_Store")
+- Build artifacts (e.g., "__pycache__", "node_modules")
+
+### Step 2: Show User the File List
+Present the complete list of files that will be added, including any suspicious patterns.
+
+### Step 3: Ask for Confirmation
+**ASK THE USER**: "I found X files to commit. This includes [list concerning items]. Should I proceed or exclude anything?"
+
+### Step 4: Only After Approval
+Then run: `git add`, `git commit`, `git push`
+
+## Why This Matters
+- **DON'T** blindly run `git add` on entire directories
+- **DO** verify what's being committed and get explicit approval
+
+---
+
 # Convergence Jukebox - Paid Song Bug Debugging
 
 ## Bug Description

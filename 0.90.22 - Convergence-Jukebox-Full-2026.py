@@ -348,8 +348,8 @@ class WurlitzerPaddleToneArm(ToneArm):
         self.base_width = 70
         self.top_width = 70
 
-        self.play_angle = -22
-        self.end_angle = 5
+        self.play_angle = -8
+        self.end_angle = 12
         self.current_angle = -22
         self.target_angle = -22
 
@@ -1651,8 +1651,8 @@ def main():
                             popup_record_surface = pygame.image.fromstring(raw_bytes, pil_image.size, 'RGBA')
 
                             # Create tonearm
-                            record_x = SCREEN_WIDTH // 2
-                            record_y = SCREEN_HEIGHT // 2
+                            record_x = SCREEN_WIDTH // 2 + 177
+                            record_y = SCREEN_HEIGHT // 2 + 110
                             tonearm_pivot_x = record_x - 200
                             tonearm_pivot_y = record_y + 280
                             popup_tonearm = WurlitzerPaddleToneArm(tonearm_pivot_x, tonearm_pivot_y, 350)
@@ -1726,8 +1726,8 @@ def main():
             screen.blit(overlay, (0, 0))
 
             # Brown background circle behind record
-            record_x = SCREEN_WIDTH // 2
-            record_y = SCREEN_HEIGHT // 2
+            record_x = SCREEN_WIDTH // 2 + 177
+            record_y = SCREEN_HEIGHT // 2 + 110
             brown_background = (101, 67, 33)
             background_radius = 275
             pygame.draw.circle(screen, brown_background, (record_x, record_y), background_radius)

@@ -216,36 +216,38 @@ def find_first_song_by_artist(artist_name: str, music_master_song_list: List[Dic
 # ============================================================================
 
 # Button grid mapping: {button_key: (row, col)}
+# Result buttons are on the SAME ROW as keyboard buttons, in column 11 (right side)
 BUTTON_GRID = {
-    # Row 0: Numbers
+    # Row 0: Numbers (cols 0-10) + result_one (col 11)
     '1': (0, 0), '2': (0, 1), '3': (0, 2), '4': (0, 3), '5': (0, 4),
     '6': (0, 5), '7': (0, 6), '8': (0, 7), '9': (0, 8), '0': (0, 9), '-': (0, 10),
-    # Row 1: Letters A-K
+    'RESULT_0': (0, 11),
+    # Row 1: Letters A-K (cols 0-10) + result_two (col 11)
     'A': (1, 0), 'B': (1, 1), 'C': (1, 2), 'D': (1, 3), 'E': (1, 4),
     'F': (1, 5), 'G': (1, 6), 'H': (1, 7), 'I': (1, 8), 'J': (1, 9), 'K': (1, 10),
-    # Row 2: Letters L-V
+    'RESULT_1': (1, 11),
+    # Row 2: Letters L-V (cols 0-10) + result_three (col 11)
     'L': (2, 0), 'M': (2, 1), 'N': (2, 2), 'O': (2, 3), 'P': (2, 4),
     'Q': (2, 5), 'R': (2, 6), 'S': (2, 7), 'T': (2, 8), 'U': (2, 9), 'V': (2, 10),
-    # Row 3: Letters W-Z, apostrophe
+    'RESULT_2': (2, 11),
+    # Row 3: Letters W-Z, apostrophe (cols 0-4) + result_four (col 11)
     'W': (3, 0), 'X': (3, 1), 'Y': (3, 2), 'Z': (3, 3), "'": (3, 4),
-    # Row 4: Special buttons
+    'RESULT_3': (3, 11),
+    # Row 4: Special buttons (cols 0-3) + result_five (col 11)
     'DELETE': (4, 0), 'SPACE': (4, 1), 'CLEAR': (4, 2), 'EXIT': (4, 3),
-    # Row 5: Result buttons
-    'RESULT_0': (5, 0), 'RESULT_1': (5, 1), 'RESULT_2': (5, 2),
-    'RESULT_3': (5, 3), 'RESULT_4': (5, 4)
+    'RESULT_4': (4, 11)
 }
 
 # Reverse mapping: {(row, col): button_key}
 GRID_TO_BUTTON = {v: k for k, v in BUTTON_GRID.items()}
 
-# Row column limits for navigation
+# Row column limits for navigation (including result button at col 11)
 ROW_COL_LIMITS = {
-    0: 10,  # Row 0 has cols 0-10 (11 buttons)
-    1: 10,  # Row 1 has cols 0-10 (11 buttons)
-    2: 10,  # Row 2 has cols 0-10 (11 buttons)
-    3: 4,   # Row 3 has cols 0-4 (5 buttons)
-    4: 3,   # Row 4 has cols 0-3 (4 buttons)
-    5: 4    # Row 5 has cols 0-4 (5 result buttons)
+    0: 11,  # Row 0: Numbers (0-10) + result button (11)
+    1: 11,  # Row 1: A-K (0-10) + result button (11)
+    2: 11,  # Row 2: L-V (0-10) + result button (11)
+    3: 11,  # Row 3: W-Z, ' (0-4) + gap + result button (11)
+    4: 11   # Row 4: DELETE, SPACE, CLEAR, EXIT (0-3) + gap + result button (11)
 }
 
 
@@ -704,13 +706,22 @@ def handle_arrow_navigation(current_focused: str, arrow_key: int,
         target_row = current_row + 1
         target_col = current_col
 
+        # Stay within bounds (only rows 0-4 exist)
+        if target_row > 4:
+            return current_focused
+
         # Adjust column if target row has fewer columns
-        if target_row <= 5 and target_row in ROW_COL_LIMITS:
-            if target_col > ROW_COL_LIMITS[target_row]:
+        if target_row in ROW_COL_LIMITS:
+            # Handle shorter rows (row 3 has cols 0-4, row 4 has cols 0-3)
+            if target_row == 3 and target_col > 4 and target_col < 11:
+                target_col = 4  # Jump to last button in row
+            elif target_row == 4 and target_col > 3 and target_col < 11:
+                target_col = 3  # Jump to last button in row
+            elif target_col > ROW_COL_LIMITS[target_row]:
                 target_col = ROW_COL_LIMITS[target_row]
 
-            # Don't navigate to result buttons if no results
-            if target_row == 5 and num_results == 0:
+            # If navigating to result button column, check if results exist
+            if target_col == 11 and num_results == 0:
                 return current_focused
 
             if (target_row, target_col) in GRID_TO_BUTTON:
@@ -720,10 +731,22 @@ def handle_arrow_navigation(current_focused: str, arrow_key: int,
         target_row = current_row
         target_col = current_col + 1
 
+        # Handle gap between keyboard buttons and result buttons
+        # Row 3: cols 0-4 (W-Z, '), then gap, then col 11 (result)
+        # Row 4: cols 0-3 (DELETE, SPACE, CLEAR, EXIT), then gap, then col 11 (result)
+        if target_row == 3 and target_col > 4 and target_col < 11:
+            target_col = 11  # Jump to result button
+        elif target_row == 4 and target_col > 3 and target_col < 11:
+            target_col = 11  # Jump to result button
+
         # Wrap or stay at edge
         if target_row in ROW_COL_LIMITS:
             if target_col > ROW_COL_LIMITS[target_row]:
                 target_col = 0  # Wrap to start of row
+
+            # Check if result button exists and has visible results
+            if target_col == 11 and num_results == 0:
+                return current_focused  # Can't navigate to invisible result button
 
             if (target_row, target_col) in GRID_TO_BUTTON:
                 return GRID_TO_BUTTON[(target_row, target_col)]
@@ -732,10 +755,30 @@ def handle_arrow_navigation(current_focused: str, arrow_key: int,
         target_row = current_row
         target_col = current_col - 1
 
+        # Handle gap when navigating LEFT from result button
+        # Row 3: result at col 11, jump back to col 4 (')
+        # Row 4: result at col 11, jump back to col 3 (EXIT)
+        if target_col > 4 and target_col < 11:
+            if target_row == 3:
+                target_col = 4  # Jump to apostrophe
+            elif target_row == 4:
+                target_col = 3  # Jump to EXIT
+            elif target_row in [0, 1, 2]:
+                target_col = 10  # Jump to last keyboard button in full rows
+
         # Wrap or stay at edge
         if target_col < 0:
             if target_row in ROW_COL_LIMITS:
-                target_col = ROW_COL_LIMITS[target_row]  # Wrap to end of row
+                target_col = ROW_COL_LIMITS[target_row]  # Wrap to end of row (result button if visible)
+                # Can't wrap to invisible result button
+                if target_col == 11 and num_results == 0:
+                    # Wrap to last keyboard button instead
+                    if target_row == 3:
+                        target_col = 4
+                    elif target_row == 4:
+                        target_col = 3
+                    else:
+                        target_col = 10
 
         if target_row in ROW_COL_LIMITS and 0 <= target_col <= ROW_COL_LIMITS[target_row]:
             if (target_row, target_col) in GRID_TO_BUTTON:

@@ -1657,7 +1657,7 @@ def main():
                             popup_record_surface = pygame.image.fromstring(raw_bytes, pil_image.size, 'RGBA')
 
                             # Create tonearm
-                            record_x = SCREEN_WIDTH // 2 + 177
+                            record_x = SCREEN_WIDTH // 2 + 170
                             record_y = SCREEN_HEIGHT // 2 + 110
                             tonearm_pivot_x = record_x - 200
                             tonearm_pivot_y = record_y + 280
@@ -1728,7 +1728,7 @@ def main():
         # Draw rotating record popup (if active)
         if popup_active and popup_record_surface and popup_tonearm:
             # Brown background circle behind record
-            record_x = SCREEN_WIDTH // 2 + 177
+            record_x = SCREEN_WIDTH // 2 + 170
             record_y = SCREEN_HEIGHT // 2 + 110
             brown_background = (101, 67, 33)
             background_radius = 275

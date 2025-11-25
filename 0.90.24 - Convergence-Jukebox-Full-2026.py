@@ -640,8 +640,8 @@ def generate_selection_record_label(song_title, artist_name, available_labels, y
         composite.paste(record_label, (x_position, y_position), record_label)
 
         # Resize to 320x320
-        popup_width = 320
-        popup_height = 320
+        popup_width = 250
+        popup_height = 250
         composite = composite.resize((popup_width, popup_height), Image.Resampling.LANCZOS)
 
         # Save composite
@@ -1979,8 +1979,8 @@ def main():
                 selection_img = pygame.image.load('final_record_with_background.png')
 
                 # Position at (32, 300)
-                popup_x = 32
-                popup_y = 300
+                popup_x = 58
+                popup_y = 350
 
                 # Draw black border/background
                 border_size = 2

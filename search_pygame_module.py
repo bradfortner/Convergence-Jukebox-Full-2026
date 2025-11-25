@@ -394,6 +394,16 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
         except:
             pass
 
+    # Load magnifying glass icon
+    magglass_surf = None
+    magglass_path = "images/magglass.png"
+    if os.path.exists(magglass_path):
+        try:
+            magglass_image = pygame.image.load(magglass_path)
+            magglass_surf = pygame.transform.scale(magglass_image, (25, 25))
+        except:
+            pass
+
     # Main event loop
     clock = pygame.time.Clock()
     running = True
@@ -572,7 +582,13 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
         header_surf = font_header.render(header_text, True, COLOR_BLACK)
         screen.blit(header_surf, (320, HEADER_Y + 10))
 
-        # Draw search text
+        # Draw magnifying glass icon before search text
+        if magglass_surf:
+            magglass_x = SEARCH_TEXT_X - 35
+            magglass_y = SEARCH_TEXT_Y + 2
+            screen.blit(magglass_surf, (magglass_x, magglass_y))
+
+        # Draw search text (no placeholder, starts empty)
         search_text_bg = pygame.Rect(SEARCH_TEXT_X, SEARCH_TEXT_Y, 500, 30)
         pygame.draw.rect(screen, COLOR_WHITE, search_text_bg)
         if keys_entered:
@@ -583,7 +599,7 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
         button_rects = draw_keyboard_grid(screen, font_button, current_focused)
 
         # Draw result buttons and merge their rects
-        result_rects = draw_result_buttons(screen, font_result, search_results, current_focused, search_type)
+        result_rects = draw_result_buttons(screen, font_result, search_results, current_focused, search_type, keys_entered)
         button_rects.update(result_rects)
 
         # Update display
@@ -653,7 +669,7 @@ def draw_keyboard_grid(surface: pygame.Surface, font: pygame.font.Font,
 
 def draw_result_buttons(surface: pygame.Surface, font: pygame.font.Font,
                        search_results: List[Dict], current_focused: str,
-                       search_type: str) -> Dict[str, pygame.Rect]:
+                       search_type: str, keys_entered: str) -> Dict[str, pygame.Rect]:
     """Draw the result display buttons on the right side and return their rectangles."""
     result_rects = {}
 
@@ -670,8 +686,8 @@ def draw_result_buttons(surface: pygame.Surface, font: pygame.font.Font,
             rect = draw_wide_button(surface, x, y, RESULT_WIDTH, RESULT_HEIGHT,
                            text, font, is_focused, is_visible=True)
             result_rects[button_key] = rect
-        elif len(search_results) == 0 and i == 0:
-            # Show "not found" message
+        elif len(search_results) == 0 and i == 0 and len(keys_entered) >= MIN_QUERY_LENGTH:
+            # Show "not found" message ONLY when user has typed enough characters
             if search_type == "title":
                 text = "Song Title Not On Jukebox"
             else:

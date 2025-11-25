@@ -575,25 +575,29 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
             logo_x = (SCREEN_WIDTH - logo_surf.get_width()) // 2
             screen.blit(logo_surf, (logo_x, 20))
 
-        # Draw header
+        # Draw header with magnifying glass and search box all on white background
         header_text = f"Search For {'Title' if search_type == 'title' else 'Artist'}"
+
+        # Single white background for entire header row (text + icon + search box)
         header_bg_rect = pygame.Rect(300, HEADER_Y, 680, 40)
         pygame.draw.rect(screen, COLOR_WHITE, header_bg_rect)
-        header_surf = font_header.render(header_text, True, COLOR_BLACK)
-        screen.blit(header_surf, (320, HEADER_Y + 10))
 
-        # Draw magnifying glass icon before search text
+        # Draw "Search For Title/Artist" text
+        header_surf = font_header.render(header_text, True, COLOR_BLACK)
+        header_text_x = 320
+        screen.blit(header_surf, (header_text_x, HEADER_Y + 10))
+
+        # Draw magnifying glass icon after header text
         if magglass_surf:
-            magglass_x = SEARCH_TEXT_X - 35
-            magglass_y = SEARCH_TEXT_Y + 2
+            magglass_x = header_text_x + header_surf.get_width() + 10
+            magglass_y = HEADER_Y + 8
             screen.blit(magglass_surf, (magglass_x, magglass_y))
 
-        # Draw search text (no placeholder, starts empty)
-        search_text_bg = pygame.Rect(SEARCH_TEXT_X, SEARCH_TEXT_Y, 500, 30)
-        pygame.draw.rect(screen, COLOR_WHITE, search_text_bg)
-        if keys_entered:
-            search_surf = font_header.render(keys_entered, True, COLOR_BLACK)
-            screen.blit(search_surf, (SEARCH_TEXT_X + 5, SEARCH_TEXT_Y + 5))
+            # Draw search text box after magnifying glass (starts empty, no placeholder)
+            search_text_x = magglass_x + 35
+            if keys_entered:
+                search_surf = font_header.render(keys_entered, True, COLOR_BLACK)
+                screen.blit(search_surf, (search_text_x, HEADER_Y + 10))
 
         # Draw keyboard grid
         button_rects = draw_keyboard_grid(screen, font_button, current_focused)

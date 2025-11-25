@@ -430,10 +430,13 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                     keys_entered = ""
                     search_results = []
 
-                # Enter - select current focused button or result
-                elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                # S key - select current focused button (or add S if S button is focused)
+                elif event.key == pygame.K_s:
+                    # If focused on S button itself, add 'S' to search
+                    if current_focused == 'S':
+                        keys_entered += 'S'
                     # If focused on a result button, select that result
-                    if current_focused.startswith('RESULT_'):
+                    elif current_focused.startswith('RESULT_'):
                         result_idx = int(current_focused.split('_')[1])
                         if result_idx < len(search_results):
                             # Handle selection
@@ -453,8 +456,7 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                                         'song_number': song_number,
                                         'song_selected': None
                                     }
-
-                    # If focused on keyboard button, add that character
+                    # If focused on any other keyboard button, add that character
                     elif current_focused in BUTTON_GRID:
                         if current_focused == 'SPACE':
                             keys_entered += " "
@@ -480,6 +482,52 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                 elif event.key == pygame.K_DELETE:
                     if keys_entered:
                         keys_entered = keys_entered[:-1]
+
+            # Mouse click handling
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left click
+                    mouse_pos = event.pos
+                    # Check if clicked on any button
+                    for button_key, button_rect in button_rects.items():
+                        if button_rect.collidepoint(mouse_pos):
+                            # Clicked on a keyboard button - add that character
+                            if button_key in BUTTON_GRID and not button_key.startswith('RESULT_'):
+                                if button_key == 'SPACE':
+                                    keys_entered += " "
+                                elif button_key == 'DELETE':
+                                    if keys_entered:
+                                        keys_entered = keys_entered[:-1]
+                                elif button_key == 'CLEAR':
+                                    keys_entered = ""
+                                    search_results = []
+                                elif button_key == 'EXIT':
+                                    return None
+                                elif len(button_key) == 1 or button_key == "'":
+                                    # Single character button
+                                    keys_entered += button_key
+                                # Also set focus to clicked button
+                                current_focused = button_key
+                            # Clicked on a result button - select that result
+                            elif button_key.startswith('RESULT_'):
+                                result_idx = int(button_key.split('_')[1])
+                                if result_idx < len(search_results):
+                                    result = search_results[result_idx]
+                                    if search_type == "title":
+                                        song_data = result['song_data']
+                                        return {
+                                            'song_number': song_data['number'],
+                                            'song_selected': 'A1',
+                                            'song_data': song_data
+                                        }
+                                    else:  # artist search
+                                        artist_name = result['artist_name']
+                                        song_number = find_first_song_by_artist(artist_name, music_master_song_list)
+                                        if song_number is not None:
+                                            return {
+                                                'song_number': song_number,
+                                                'song_selected': None
+                                            }
+                            break  # Stop checking other buttons
 
         # Perform search if query is long enough
         if len(keys_entered) >= MIN_QUERY_LENGTH:
@@ -517,8 +565,9 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
         # Draw keyboard grid
         button_rects = draw_keyboard_grid(screen, font_button, current_focused)
 
-        # Draw result buttons
-        draw_result_buttons(screen, font_result, search_results, current_focused, search_type)
+        # Draw result buttons and merge their rects
+        result_rects = draw_result_buttons(screen, font_result, search_results, current_focused, search_type)
+        button_rects.update(result_rects)
 
         # Update display
         pygame.display.flip()
@@ -587,8 +636,10 @@ def draw_keyboard_grid(surface: pygame.Surface, font: pygame.font.Font,
 
 def draw_result_buttons(surface: pygame.Surface, font: pygame.font.Font,
                        search_results: List[Dict], current_focused: str,
-                       search_type: str):
-    """Draw the result display buttons on the right side."""
+                       search_type: str) -> Dict[str, pygame.Rect]:
+    """Draw the result display buttons on the right side and return their rectangles."""
+    result_rects = {}
+
     for i in range(MAX_RESULTS):
         x = RESULT_X
         y = RESULT_Y + i * (RESULT_HEIGHT + RESULT_SPACING)
@@ -599,16 +650,20 @@ def draw_result_buttons(surface: pygame.Surface, font: pygame.font.Font,
         if i < len(search_results):
             # Show result
             text = search_results[i]['display']
-            draw_wide_button(surface, x, y, RESULT_WIDTH, RESULT_HEIGHT,
+            rect = draw_wide_button(surface, x, y, RESULT_WIDTH, RESULT_HEIGHT,
                            text, font, is_focused, is_visible=True)
+            result_rects[button_key] = rect
         elif len(search_results) == 0 and i == 0:
             # Show "not found" message
             if search_type == "title":
                 text = "Song Title Not On Jukebox"
             else:
                 text = "Artist Not On Jukebox"
-            draw_wide_button(surface, x, y, RESULT_WIDTH, RESULT_HEIGHT,
+            rect = draw_wide_button(surface, x, y, RESULT_WIDTH, RESULT_HEIGHT,
                            text, font, False, is_visible=True)
+            result_rects[button_key] = rect
+
+    return result_rects
 
 
 def handle_arrow_navigation(current_focused: str, arrow_key: int,

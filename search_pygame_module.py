@@ -776,16 +776,17 @@ def handle_arrow_navigation(current_focused: str, arrow_key: int,
         target_row = current_row
         target_col = current_col - 1
 
-        # Handle gap when navigating LEFT from result button
+        # Handle gap ONLY when navigating LEFT FROM result button (current_col == 11)
         # Row 3: result at col 11, jump back to col 4 (')
         # Row 4: result at col 11, jump back to col 3 (EXIT)
-        if target_col > 4 and target_col < 11:
+        # Rows 0,1,2: result at col 11, jump back to col 10 (last keyboard button)
+        if current_col == 11 and target_col == 10:
+            # Coming from result button, jump over gap
             if target_row == 3:
                 target_col = 4  # Jump to apostrophe
             elif target_row == 4:
                 target_col = 3  # Jump to EXIT
-            elif target_row in [0, 1, 2]:
-                target_col = 10  # Jump to last keyboard button in full rows
+            # Rows 0, 1, 2 stay at col 10 (no jump needed)
 
         # Wrap or stay at edge
         if target_col < 0:

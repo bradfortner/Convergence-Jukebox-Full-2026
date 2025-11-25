@@ -694,10 +694,24 @@ def handle_arrow_navigation(current_focused: str, arrow_key: int,
         target_row = current_row - 1
         target_col = current_col
 
+        # Stay within bounds
+        if target_row < 0:
+            return current_focused
+
         # Adjust column if target row has fewer columns
-        if target_row >= 0 and target_row in ROW_COL_LIMITS:
+        if target_row in ROW_COL_LIMITS:
             if target_col > ROW_COL_LIMITS[target_row]:
                 target_col = ROW_COL_LIMITS[target_row]
+
+            # If navigating to result button column when no results exist
+            if target_col == 11 and num_results == 0:
+                # Navigate to last keyboard button in that row instead
+                if target_row == 3:
+                    target_col = 4  # Apostrophe
+                elif target_row == 4:
+                    target_col = 3  # EXIT
+                else:
+                    target_col = 10  # Last letter in rows 0, 1, 2
 
             if (target_row, target_col) in GRID_TO_BUTTON:
                 return GRID_TO_BUTTON[(target_row, target_col)]
@@ -720,9 +734,15 @@ def handle_arrow_navigation(current_focused: str, arrow_key: int,
             elif target_col > ROW_COL_LIMITS[target_row]:
                 target_col = ROW_COL_LIMITS[target_row]
 
-            # If navigating to result button column, check if results exist
+            # If navigating to result button column when no results exist
             if target_col == 11 and num_results == 0:
-                return current_focused
+                # Navigate to last keyboard button in that row instead
+                if target_row == 3:
+                    target_col = 4  # Apostrophe
+                elif target_row == 4:
+                    target_col = 3  # EXIT
+                else:
+                    target_col = 10  # Last letter in rows 0, 1, 2
 
             if (target_row, target_col) in GRID_TO_BUTTON:
                 return GRID_TO_BUTTON[(target_row, target_col)]
@@ -744,9 +764,10 @@ def handle_arrow_navigation(current_focused: str, arrow_key: int,
             if target_col > ROW_COL_LIMITS[target_row]:
                 target_col = 0  # Wrap to start of row
 
-            # Check if result button exists and has visible results
+            # Check if trying to navigate to result button when no results exist
             if target_col == 11 and num_results == 0:
-                return current_focused  # Can't navigate to invisible result button
+                # Wrap to start of row instead of getting stuck
+                target_col = 0
 
             if (target_row, target_col) in GRID_TO_BUTTON:
                 return GRID_TO_BUTTON[(target_row, target_col)]

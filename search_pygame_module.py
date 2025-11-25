@@ -12,6 +12,7 @@ Features:
 
 import pygame
 import os
+import time
 from typing import List, Dict, Optional, Tuple, Any
 
 # ============================================================================
@@ -351,9 +352,12 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
         music_master_song_list: Original unsorted song list
 
     Returns:
-        {'song_number': int, 'song_selected': str, 'song_data': dict} for title search
-        {'song_number': int, 'song_selected': None} for artist search
+        {'song_number': int, 'song_selected': str, 'song_data': dict, 'last_keypress_time': float} for title search
+        {'song_number': int, 'song_selected': None, 'last_keypress_time': float} for artist search
         None if cancelled
+
+        last_keypress_time is the timestamp of the last keypress in the search window,
+        used by main file to reset the rotating record popup idle timer.
     """
     # Initialize pygame if not already initialized
     if not pygame.get_init():
@@ -378,6 +382,7 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
     search_results = []
     current_focused = 'A'  # Start with A button focused
     button_rects = {}  # Store button rectangles for click detection
+    last_keypress_time = time.time()  # Track last keypress for idle timer reset
 
     # Load logo if available
     logo_surf = None
@@ -400,6 +405,9 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                 return None
 
             elif event.type == pygame.KEYDOWN:
+                # Update last keypress time for idle timer
+                last_keypress_time = time.time()
+
                 # ESC key - exit
                 if event.key == pygame.K_ESCAPE:
                     return None
@@ -420,7 +428,8 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                                 return {
                                     'song_number': song_data['number'],
                                     'song_selected': 'A1',
-                                    'song_data': song_data
+                                    'song_data': song_data,
+                                    'last_keypress_time': last_keypress_time
                                 }
                             else:  # artist search
                                 artist_name = result['artist_name']
@@ -428,7 +437,8 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                                 if song_number is not None:
                                     return {
                                         'song_number': song_number,
-                                        'song_selected': None
+                                        'song_selected': None,
+                                        'last_keypress_time': last_keypress_time
                                     }
                     # If focused on any other keyboard button, add that character
                     elif current_focused in BUTTON_GRID:
@@ -522,7 +532,8 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                                         return {
                                             'song_number': song_data['number'],
                                             'song_selected': 'A1',
-                                            'song_data': song_data
+                                            'song_data': song_data,
+                                            'last_keypress_time': last_keypress_time
                                         }
                                     else:  # artist search
                                         artist_name = result['artist_name']
@@ -530,7 +541,8 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                                         if song_number is not None:
                                             return {
                                                 'song_number': song_number,
-                                                'song_selected': None
+                                                'song_selected': None,
+                                                'last_keypress_time': last_keypress_time
                                             }
                             break  # Stop checking other buttons
 

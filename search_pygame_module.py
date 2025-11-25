@@ -402,35 +402,7 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                 if event.key == pygame.K_ESCAPE:
                     return None
 
-                # Letter keys
-                elif event.key >= pygame.K_a and event.key <= pygame.K_z:
-                    char = chr(event.key).upper()
-                    keys_entered += char
-
-                # Number keys
-                elif event.key >= pygame.K_0 and event.key <= pygame.K_9:
-                    char = chr(event.key)
-                    keys_entered += char
-
-                # Special characters
-                elif event.key == pygame.K_SPACE:
-                    keys_entered += " "
-                elif event.key == pygame.K_MINUS or event.key == pygame.K_KP_MINUS:
-                    keys_entered += "-"
-                elif event.key == pygame.K_QUOTE:
-                    keys_entered += "'"
-
-                # Backspace / Delete
-                elif event.key == pygame.K_BACKSPACE:
-                    if keys_entered:
-                        keys_entered = keys_entered[:-1]
-
-                # Clear
-                elif event.key == pygame.K_c and (event.mod & pygame.KMOD_CTRL):
-                    keys_entered = ""
-                    search_results = []
-
-                # S key - select current focused button (or add S if S button is focused)
+                # S key - special handling (SELECT for keyboard navigation, or type 'S' directly)
                 elif event.key == pygame.K_s:
                     # If focused on S button itself, add 'S' to search
                     if current_focused == 'S':
@@ -471,6 +443,37 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
                         elif len(current_focused) == 1 or current_focused == "'":
                             # Single character button (letter, number, or apostrophe)
                             keys_entered += current_focused
+                    else:
+                        # Not focused on any special button, just typing S directly
+                        keys_entered += 'S'
+
+                # Other letter keys (A-Z except S)
+                elif event.key >= pygame.K_a and event.key <= pygame.K_z:
+                    char = chr(event.key).upper()
+                    keys_entered += char
+
+                # Number keys
+                elif event.key >= pygame.K_0 and event.key <= pygame.K_9:
+                    char = chr(event.key)
+                    keys_entered += char
+
+                # Special characters
+                elif event.key == pygame.K_SPACE:
+                    keys_entered += " "
+                elif event.key == pygame.K_MINUS or event.key == pygame.K_KP_MINUS:
+                    keys_entered += "-"
+                elif event.key == pygame.K_QUOTE:
+                    keys_entered += "'"
+
+                # Backspace / Delete
+                elif event.key == pygame.K_BACKSPACE:
+                    if keys_entered:
+                        keys_entered = keys_entered[:-1]
+
+                # Clear
+                elif event.key == pygame.K_c and (event.mod & pygame.KMOD_CTRL):
+                    keys_entered = ""
+                    search_results = []
 
                 # Arrow key navigation
                 elif event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:

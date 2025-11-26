@@ -1,6 +1,6 @@
 """
 CONVERGENCE JUKEBOX - PYGAME MIGRATION VERSION
-Version 0.90.40 - Fix Pygame Double Initialization Crash
+Version 0.90.41 - Add Comprehensive Logging System
 
 This version begins the migration from FreeSimpleGUI to pure Pygame.
 
@@ -8,6 +8,18 @@ Migration Goals:
 - Eliminate Pygame/Tkinter z-order conflicts
 - Enable seamless rotating record popup integration
 - Create foundation for future touchscreen/arcade features
+
+Version 0.90.41 Changes:
+- ADDED comprehensive logging to log.txt for all jukebox events
+- Log program startup with date/time
+- Log songlist generation (new) and usage (existing)
+- Log random playlist generation with active genre filters
+- Log every random song played with title, artist
+- Log every paid song played with title, artist
+- Log quarter insertions (credits added)
+- Log record image generation with song info and label .png filename
+- Log when rotating record image pulled from cache
+- Fixed AttributeError in logging code (used LOG_FILE_PATH constant)
 
 Version 0.90.40 Changes:
 - FIXED pygame double initialization crash (exit code 3489660927)
@@ -431,6 +443,17 @@ def generate_record_image(song_title, artist_name, year=None):
         img.save(OUTPUT_FILENAME, 'PNG')
         print(f"Generated record image: {OUTPUT_FILENAME}")
 
+        # Log record image creation
+        from datetime import datetime
+        now = datetime.now().replace(microsecond=0)
+        log_date = now.strftime("%Y-%m-%d")
+        log_time = now.strftime("%H:%M:%S")
+        try:
+            with open('log.txt', 'a') as log:
+                log.write(f'\n{log_date}, {log_time}, {song_title}, {artist_name}, New Record Image Pressed, {selected_label}')
+        except IOError as log_error:
+            print(f"[ERROR] Failed to write to log.txt: {log_error}")
+
         return OUTPUT_FILENAME
 
     except Exception as e:
@@ -756,6 +779,17 @@ def generate_selection_record_label(song_title, artist_name, available_labels, y
     filename = 'final_record_pressing.png'
     img.save(filename, 'PNG')
     print(f"[SELECTION POPUP] Saved record label: {filename}")
+
+    # Log record image creation
+    from datetime import datetime
+    now = datetime.now().replace(microsecond=0)
+    log_date = now.strftime("%Y-%m-%d")
+    log_time = now.strftime("%H:%M:%S")
+    try:
+        with open('log.txt', 'a') as log:
+            log.write(f'\n{log_date}, {log_time}, {song_title}, {artist_name}, New Record Image Pressed, {selected_label}')
+    except IOError as log_error:
+        print(f"[ERROR] Failed to write to log.txt: {log_error}")
 
     # Composite with green background
     try:
@@ -1517,6 +1551,35 @@ class PlaybackEngine:
         if len(self.random_playlist) == 0:
             print("[WARNING] No songs match the current genre filters!")
 
+        # Log random playlist generation with active genres
+        from datetime import datetime
+        now = datetime.now().replace(microsecond=0)
+        log_date = now.strftime("%Y-%m-%d")
+        log_time = now.strftime("%H:%M:%S")
+
+        # Build genre list for log entry
+        active_genres = []
+        if self.genre0 != "null":
+            active_genres.append(self.genre0)
+        if self.genre1 != "null":
+            active_genres.append(self.genre1)
+        if self.genre2 != "null":
+            active_genres.append(self.genre2)
+        if self.genre3 != "null":
+            active_genres.append(self.genre3)
+
+        # If no genres set, log "all genres"
+        if not active_genres:
+            genre_text = "all genres"
+        else:
+            genre_text = ", ".join(active_genres)
+
+        try:
+            with open(LOG_FILE_PATH, 'a') as log:
+                log.write(f'\n{log_date}, {log_time}, Random playlist generated with genres: {genre_text}')
+        except IOError as log_error:
+            print(f"[ERROR] Failed to write to log.txt: {log_error}")
+
     def update(self):
         """Update playback state - called every frame"""
         # Check if current song finished
@@ -1572,6 +1635,17 @@ class PlaybackEngine:
                 self.current_song_index = song_index
                 self.is_paid_song = True
 
+                # Log paid song play
+                from datetime import datetime
+                now = datetime.now().replace(microsecond=0)
+                log_date = now.strftime("%Y-%m-%d")
+                log_time = now.strftime("%H:%M:%S")
+                try:
+                    with open(LOG_FILE_PATH, 'a') as log:
+                        log.write(f'\n{log_date}, {log_time}, {song["title"]}, {song["artist"]}, Paid')
+                except IOError as log_error:
+                    print(f"[ERROR] Failed to write to log.txt: {log_error}")
+
                 # Remove from upcoming display list (song is now playing, not upcoming)
                 if len(self.upcoming_song_list) > 0:
                     # Check if this song matches the first upcoming entry
@@ -1614,6 +1688,17 @@ class PlaybackEngine:
 
                 self.current_song_index = song_index
                 self.is_paid_song = False
+
+                # Log random song play
+                from datetime import datetime
+                now = datetime.now().replace(microsecond=0)
+                log_date = now.strftime("%Y-%m-%d")
+                log_time = now.strftime("%H:%M:%S")
+                try:
+                    with open(LOG_FILE_PATH, 'a') as log:
+                        log.write(f'\n{log_date}, {log_time}, {song["title"]}, {song["artist"]}, Random')
+                except IOError as log_error:
+                    print(f"[ERROR] Failed to write to log.txt: {log_error}")
 
                 # Remove from random playlist (move to end for continuous play)
                 self.random_playlist.pop(0)
@@ -1678,16 +1763,18 @@ def setup_files():
 
     # Get current timestamp for log file
     now = datetime.now().replace(microsecond=0)
+    log_date = now.strftime("%Y-%m-%d")
+    log_time = now.strftime("%H:%M:%S")
 
     # Setup log file
     try:
         if not os.path.exists(LOG_FILE_PATH):
             with open(LOG_FILE_PATH, 'w') as log:
-                log.write(str(now) + ' Jukebox Engine Started - New Log File Created,')
+                log.write(f'{log_date}, {log_time}, Jukebox Program Started For The Day')
             print(f"[INIT] Created log file: {LOG_FILE_PATH}")
         else:
             with open(LOG_FILE_PATH, 'a') as log:
-                log.write('\n' + str(now) + ' Jukebox Engine Restarted,')
+                log.write(f'\n{log_date}, {log_time}, Jukebox Program Started For The Day')
     except IOError as e:
         print(f"[ERROR] Failed to setup log.txt: {e}")
 
@@ -1857,6 +1944,17 @@ def generate_music_master_song_list_dictionary(music_id3_metadata_list, output_f
             with open(output_file, 'w') as master_list_file:
                 json.dump(music_master_song_list, master_list_file)
             print(f"[SUCCESS] Saved master song list to {os.path.basename(output_file)}")
+
+            # Log new songlist generation
+            from datetime import datetime
+            now = datetime.now().replace(microsecond=0)
+            log_date = now.strftime("%Y-%m-%d")
+            log_time = now.strftime("%H:%M:%S")
+            try:
+                with open(LOG_FILE_PATH, 'a') as log:
+                    log.write(f'\n{log_date}, {log_time}, New Songlist Generated')
+            except IOError as log_error:
+                print(f"[ERROR] Failed to write to log.txt: {log_error}")
         except (IOError, json.JSONDecodeError) as e:
             print(f"[ERROR] Failed to save MusicMasterSongList.txt: {e}")
             return []
@@ -1925,6 +2023,17 @@ def main():
                 with open(SONG_LIST_PATH, 'r') as master_list_file:
                     song_list = json.load(master_list_file)
                 print(f"[LOADED] {len(song_list)} songs from {SONG_LIST_PATH}")
+
+                # Log existing songlist usage
+                from datetime import datetime
+                now = datetime.now().replace(microsecond=0)
+                log_date = now.strftime("%Y-%m-%d")
+                log_time = now.strftime("%H:%M:%S")
+                try:
+                    with open(LOG_FILE_PATH, 'a') as log:
+                        log.write(f'\n{log_date}, {log_time}, Using Existing Songlist')
+                except IOError as log_error:
+                    print(f"[ERROR] Failed to write to log.txt: {log_error}")
             except (IOError, json.JSONDecodeError) as e:
                 print(f"[ERROR] Failed to load MusicMasterSongList.txt: {e}")
                 print("[REGENERATE] Corrupted file - regenerating...")
@@ -2080,7 +2189,7 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    print("Convergence Jukebox v0.90.32 - Implement Genre Filtering for Random Playlist")
+    print("Convergence Jukebox v0.90.41 - Add Comprehensive Logging System")
     print("Press ESC to exit")
     print("Press X to add credit")
     print("Press T for title search, Shift+A for artist search")
@@ -2121,6 +2230,17 @@ def main():
                 elif event.key == pygame.K_x:
                     credits += 1
                     print(f"Credit added! Total credits: {credits}")
+
+                    # Log quarter insertion
+                    from datetime import datetime
+                    now = datetime.now().replace(microsecond=0)
+                    log_date = now.strftime("%Y-%m-%d")
+                    log_time = now.strftime("%H:%M:%S")
+                    try:
+                        with open(LOG_FILE_PATH, 'a') as log:
+                            log.write(f'\n{log_date}, {log_time}, Quarter Inserted')
+                    except IOError as log_error:
+                        print(f"[ERROR] Failed to write to log.txt: {log_error}")
 
                 # Search functions (T for title, Shift+A for artist)
                 elif event.key == pygame.K_t:
@@ -2423,8 +2543,23 @@ def main():
                         print(f"Song: {song['title']} by {song['artist']}")
                         print(f"Elapsed: {elapsed_seconds:.1f}s, Remaining: {time_remaining_seconds:.1f}s")
 
+                        # Check if record image already exists (cache check)
+                        image_already_exists = os.path.exists(OUTPUT_FILENAME)
+
                         # Generate record image
                         popup_record_image = generate_record_image(song['title'], song['artist'], year)
+
+                        # Log if image was pulled from cache (existed before generate call)
+                        if image_already_exists:
+                            from datetime import datetime
+                            now = datetime.now().replace(microsecond=0)
+                            log_date = now.strftime("%Y-%m-%d")
+                            log_time = now.strftime("%H:%M:%S")
+                            try:
+                                with open(LOG_FILE_PATH, 'a') as log:
+                                    log.write(f'\n{log_date}, {log_time}, Rotating Record Image Pulled From Cache')
+                            except IOError as log_error:
+                                print(f"[ERROR] Failed to write to log.txt: {log_error}")
 
                         if popup_record_image and os.path.exists(popup_record_image):
                             # Load and scale record image

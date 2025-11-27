@@ -54,3 +54,7 @@ circular_base_master.psd
 record_labels/blank_record_labels/*
 !record_labels/blank_record_labels/*_ai.png
 MusicMasterSongList.txt
+
+# Ignore mutagen_testing image files
+mutagen_testing/mutagen_images/*
+!mutagen_testing/mutagen_images/.gitkeep

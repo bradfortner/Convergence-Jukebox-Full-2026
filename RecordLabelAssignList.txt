@@ -1,1 +1,1 @@
-[["Beach Boys","capitol_records.png"]]
+[["Beach Boys","capitol_records.png"],["Petula Clark","pye_records.png"],["Jan and Dean","dore_records.png"],["Dave Clark Five","w_columbia_records.png"],["Four Tops","motown_yesteryear.png"],["Supremes","motown_yesteryear.png"],["Rolling Stones","w_decca_records_bg.png"],["Herman's Hermits","w_columbia_records.png"],["Sonny & Cher","atco_records_bg.png"],["Cher","atco_records_bg.png"], ["Simon & Garfunkel","w_columbia_records.png"],["Who","w_decca_records_bg.png"],["Doors","elektra_records_1.png"]]

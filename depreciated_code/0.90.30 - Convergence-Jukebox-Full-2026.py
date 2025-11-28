@@ -129,6 +129,9 @@ CURRENT_SONG_PLAYING_PATH = "CurrentSongPlaying.txt"
 LOG_FILE_PATH = "log.txt"
 GENRE_FLAGS_FILE_PATH = "GenreFlagsList.txt"
 MUSIC_MASTER_SONG_LIST_CHECK_PATH = "MusicMasterSongListCheck.txt"
+YEAR_RANGE_LABEL_LIST_PATH = "YearRangeLabelList.txt"
+RECORD_LABEL_ASSIGN_LIST_PATH = "RecordLabelAssignList.txt"
+FULL_YEAR_RANGE_LABEL_LIST_PATH = "FullYearRangeLabelList.txt"
 
 # Button grid layout constants
 GRID_START_X = 465
@@ -1524,11 +1527,14 @@ def setup_files():
     Check for required files on disk. If they don't exist, create them with default content.
 
     This function ensures all necessary data files exist before the jukebox starts.
-    Creates 4 files if missing:
+    Creates 7 files if missing:
     - log.txt: Playback and error logging
     - GenreFlagsList.txt: Genre filter flags
     - MusicMasterSongListCheck.txt: Song list change tracking
     - PaidMusicPlayList.txt: Queue of user-selected paid songs
+    - YearRangeLabelList.txt: Year range to record label mapping
+    - RecordLabelAssignList.txt: Artist to record label assignments
+    - FullYearRangeLabelList.txt: Complete year range label data
     """
     from datetime import datetime
 
@@ -1574,6 +1580,33 @@ def setup_files():
             print(f"[INIT] Created paid playlist file: {PAID_MUSIC_PLAYLIST_PATH}")
     except (IOError, json.JSONDecodeError) as e:
         print(f"[ERROR] Failed to setup PaidMusicPlayList.txt: {e}")
+
+    # Setup year range label list file
+    try:
+        if not os.path.exists(YEAR_RANGE_LABEL_LIST_PATH):
+            with open(YEAR_RANGE_LABEL_LIST_PATH, 'w') as year_range_file:
+                year_range_file.write('[]')
+            print(f"[INIT] Created year range label list file: {YEAR_RANGE_LABEL_LIST_PATH}")
+    except IOError as e:
+        print(f"[ERROR] Failed to setup YearRangeLabelList.txt: {e}")
+
+    # Setup record label assign list file
+    try:
+        if not os.path.exists(RECORD_LABEL_ASSIGN_LIST_PATH):
+            with open(RECORD_LABEL_ASSIGN_LIST_PATH, 'w') as label_assign_file:
+                label_assign_file.write('[]')
+            print(f"[INIT] Created record label assign list file: {RECORD_LABEL_ASSIGN_LIST_PATH}")
+    except IOError as e:
+        print(f"[ERROR] Failed to setup RecordLabelAssignList.txt: {e}")
+
+    # Setup full year range label list file
+    try:
+        if not os.path.exists(FULL_YEAR_RANGE_LABEL_LIST_PATH):
+            with open(FULL_YEAR_RANGE_LABEL_LIST_PATH, 'w') as full_year_range_file:
+                full_year_range_file.write('[]')
+            print(f"[INIT] Created full year range label list file: {FULL_YEAR_RANGE_LABEL_LIST_PATH}")
+    except IOError as e:
+        print(f"[ERROR] Failed to setup FullYearRangeLabelList.txt: {e}")
 
 # ============================================================================
 # SECTION 9: MAIN APPLICATION

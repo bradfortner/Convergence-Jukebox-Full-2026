@@ -1,6 +1,6 @@
 """
 CONVERGENCE JUKEBOX - PYGAME MIGRATION VERSION
-Version 0.90.41 - Add Comprehensive Logging System
+Version 0.90.42 - Fix Unicode Console Error
 
 This version begins the migration from FreeSimpleGUI to pure Pygame.
 
@@ -8,6 +8,11 @@ Migration Goals:
 - Eliminate Pygame/Tkinter z-order conflicts
 - Enable seamless rotating record popup integration
 - Create foundation for future touchscreen/arcade features
+
+Version 0.90.42 Changes:
+- FIXED UnicodeEncodeError crash on Windows console
+- Replaced Unicode arrow characters (→) with ASCII arrows (->) in print statement
+- Program was crashing before reaching main loop due to cp1252 encoding issue
 
 Version 0.90.41 Changes:
 - ADDED comprehensive logging to log.txt for all jukebox events
@@ -2189,12 +2194,12 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    print("Convergence Jukebox v0.90.41 - Add Comprehensive Logging System")
+    print("Convergence Jukebox v0.90.42 - Fix Unicode Console Error")
     print("Press ESC to exit")
     print("Press X to add credit")
     print("Press T for title search, Shift+A for artist search")
     print("Press A/B/C to select column, 1-7 to select song, S to confirm")
-    print("Music plays continuously: paid songs → random songs → check for more paid songs...")
+    print("Music plays continuously: paid songs -> random songs -> check for more paid songs...")
 
     while running:
         # Update playback engine

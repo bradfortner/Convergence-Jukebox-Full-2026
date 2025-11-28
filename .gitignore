@@ -58,3 +58,4 @@ MusicMasterSongList.txt
 # Ignore mutagen_testing image files
 mutagen_testing/mutagen_images/*
 !mutagen_testing/mutagen_images/.gitkeep
+nul

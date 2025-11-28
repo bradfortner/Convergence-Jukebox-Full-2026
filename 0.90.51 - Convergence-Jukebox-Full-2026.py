@@ -10,10 +10,10 @@ Migration Goals:
 - Create foundation for future touchscreen/arcade features
 
 Version 0.90.51 Changes:
-- FIXED duplicate genre tags in log output
-- Normalizes all genre tags to lowercase for consistency
-- Strips whitespace and filters empty strings
-- Eliminates case variation duplicates (e.g., "boomr&b" vs "boomR&B")
+- FIXED duplicate genre tags caused by whitespace
+- Strips whitespace from each genre tag
+- Filters out empty strings
+- Preserves original case (e.g., "boomr&b" and "boomR&B" remain separate)
 
 Version 0.90.50 Changes:
 - FIXED genre logging to extract individual genre tags (not combinations)
@@ -2105,10 +2105,10 @@ def main():
             # Split by spaces to get individual genre tags
             genre_tags = comment.split()
             for tag in genre_tags:
-                # Normalize: strip whitespace, convert to lowercase, filter empty
-                normalized_tag = tag.strip().lower()
-                if normalized_tag:  # Only add non-empty tags
-                    all_genres.add(normalized_tag)
+                # Strip whitespace and filter empty strings
+                cleaned_tag = tag.strip()
+                if cleaned_tag:  # Only add non-empty tags
+                    all_genres.add(cleaned_tag)
 
     # Sort genres alphabetically for readability
     sorted_genres = sorted(all_genres)

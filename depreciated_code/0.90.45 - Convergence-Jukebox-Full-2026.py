@@ -1,6 +1,6 @@
 """
 CONVERGENCE JUKEBOX - PYGAME MIGRATION VERSION
-Version 0.90.46 - Fix Song Selection Popup Display
+Version 0.90.45 - Reverted to 0.90.41 (Comprehensive Logging System)
 
 This version begins the migration from FreeSimpleGUI to pure Pygame.
 
@@ -8,14 +8,6 @@ Migration Goals:
 - Eliminate Pygame/Tkinter z-order conflicts
 - Enable seamless rotating record popup integration
 - Create foundation for future touchscreen/arcade features
-
-Version 0.90.46 Changes:
-- FIXED song selection popup not displaying when songs are selected
-- Pre-load selection popup image into pygame surface (instead of loading from disk every frame)
-- Added file existence verification before image loading
-- Added comprehensive debug logging for popup activation and rendering
-- Selection popup now works like rotating popup (load once, draw multiple frames)
-- Matches architecture pattern from version 0.83.60 but using pygame instead of FreeSimpleGUI
 
 Version 0.90.45 Changes:
 - Reverted codebase to commit e7e4a9a (Version 0.90.41)
@@ -2387,8 +2379,6 @@ def main():
 
                                 # Generate and show selection popup
                                 try:
-                                    print(f"[SELECTION POPUP] Starting popup generation for: {song['title']} - {song['artist']}")
-
                                     # Get available labels
                                     blank_records_dir = "record_labels/blank_record_labels"
                                     png_files = [f for f in os.listdir(blank_records_dir) if f.endswith('.png')]
@@ -2401,34 +2391,16 @@ def main():
                                         png_files,
                                         year
                                     )
-                                    print(f"[SELECTION POPUP] Image generated: {composite_path}")
-
-                                    # Verify file exists before loading
-                                    if not os.path.exists(composite_path):
-                                        raise FileNotFoundError(f"Generated image file not found: {composite_path}")
-
-                                    # Pre-load image into pygame surface (like rotating popup does)
-                                    print(f"[SELECTION POPUP] Loading image into pygame surface...")
-                                    pil_image = Image.open(composite_path)
-                                    if pil_image.mode != 'RGBA':
-                                        pil_image = pil_image.convert('RGBA')
-
-                                    # Convert PIL to pygame surface
-                                    raw_bytes = pil_image.tobytes()
-                                    selection_popup_surface = pygame.image.fromstring(raw_bytes, pil_image.size, 'RGBA')
-                                    print(f"[SELECTION POPUP] Surface created: {selection_popup_surface.get_size()}")
 
                                     # Activate selection popup
                                     selection_popup_active = True
                                     selection_popup_start_time = time.time()
-                                    print(f"[SELECTION POPUP] Activated for 3 seconds (surface ready)")
+                                    print(f"[SELECTION POPUP] Activated for 3 seconds")
 
                                 except Exception as e:
-                                    print(f"[SELECTION POPUP] Error during generation/loading: {e}")
+                                    print(f"[SELECTION POPUP] Error: {e}")
                                     import traceback
                                     traceback.print_exc()
-                                    selection_popup_active = False
-                                    selection_popup_surface = None
 
                                 # If nothing playing, start playback
                                 if not playback_engine.player.is_playing():
@@ -2685,10 +2657,13 @@ def main():
         # Draw info screen
         info_screen.draw(screen)
 
-        # Draw song selection popup (if active and surface loaded)
-        if selection_popup_active and selection_popup_surface:
+        # Draw song selection popup (if active)
+        if selection_popup_active:
             try:
-                # Position at (58, 350)
+                # Load the composite image
+                selection_img = pygame.image.load('final_record_with_background.png')
+
+                # Position at (32, 300)
                 popup_x = 58
                 popup_y = 350
 
@@ -2696,18 +2671,15 @@ def main():
                 border_size = 2
                 pygame.draw.rect(screen, (0, 0, 0),
                                (popup_x - border_size, popup_y - border_size,
-                                selection_popup_surface.get_width() + border_size * 2,
-                                selection_popup_surface.get_height() + border_size * 2))
+                                selection_img.get_width() + border_size * 2,
+                                selection_img.get_height() + border_size * 2))
 
-                # Draw the pre-loaded record image surface
-                screen.blit(selection_popup_surface, (popup_x, popup_y))
+                # Draw the record image
+                screen.blit(selection_img, (popup_x, popup_y))
 
             except Exception as e:
-                print(f"[SELECTION POPUP] Error rendering surface: {e}")
-                import traceback
-                traceback.print_exc()
+                print(f"[SELECTION POPUP] Error rendering: {e}")
                 selection_popup_active = False
-                selection_popup_surface = None
 
         # Draw rotating record popup (if active)
         if popup_active and popup_record_surface and popup_tonearm:

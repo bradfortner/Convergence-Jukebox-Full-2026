@@ -2378,10 +2378,12 @@ def main():
                                     success_sound.play()
 
                                 # Generate and show selection popup
+                                print("[DEBUG] About to generate selection popup...")
                                 try:
                                     # Get available labels
                                     blank_records_dir = "record_labels/blank_record_labels"
                                     png_files = [f for f in os.listdir(blank_records_dir) if f.endswith('.png')]
+                                    print(f"[DEBUG] Found {len(png_files)} label files")
 
                                     # Generate record label image
                                     year = song.get('year', None)

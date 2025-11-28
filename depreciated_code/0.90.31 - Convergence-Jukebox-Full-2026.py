@@ -1350,6 +1350,12 @@ class PlaybackEngine:
         self.upcoming_song_list = []  # Display strings for upcoming songs
         self.is_paid_song = False  # Track if current song is paid or random
 
+        # Genre filter flags
+        self.genre0 = 'null'
+        self.genre1 = 'null'
+        self.genre2 = 'null'
+        self.genre3 = 'null'
+
     def load_paid_playlist(self):
         """Load paid playlist from file"""
         try:
@@ -1374,19 +1380,72 @@ class PlaybackEngine:
         except Exception as e:
             print(f"Error saving paid playlist: {e}")
 
+    def load_genre_flags(self):
+        """Load genre filter flags from GenreFlagsList.txt
+
+        Reads the genre flags file and sets the 4 genre filter slots.
+        If file doesn't exist or is invalid, defaults to 'null' for all slots.
+        """
+        try:
+            if os.path.exists(GENRE_FLAGS_FILE_PATH):
+                with open(GENRE_FLAGS_FILE_PATH, 'r') as f:
+                    genre_list = json.load(f)
+                self.genre0 = genre_list[0] if len(genre_list) > 0 else 'null'
+                self.genre1 = genre_list[1] if len(genre_list) > 1 else 'null'
+                self.genre2 = genre_list[2] if len(genre_list) > 2 else 'null'
+                self.genre3 = genre_list[3] if len(genre_list) > 3 else 'null'
+
+                # Print genre filter status
+                print("\n[GENRE FILTERS]")
+                if self.genre0 != 'null':
+                    print(f"  Genre 0: {self.genre0}")
+                if self.genre1 != 'null':
+                    print(f"  Genre 1: {self.genre1}")
+                if self.genre2 != 'null':
+                    print(f"  Genre 2: {self.genre2}")
+                if self.genre3 != 'null':
+                    print(f"  Genre 3: {self.genre3}")
+                if (self.genre0 == 'null' and self.genre1 == 'null' and
+                    self.genre2 == 'null' and self.genre3 == 'null'):
+                    print("  No genre filters set - playing all songs")
+            else:
+                # File doesn't exist, use defaults
+                self.genre0 = self.genre1 = self.genre2 = self.genre3 = 'null'
+                print("[GENRE FILTERS] No genre filters set - playing all songs")
+        except Exception as e:
+            print(f"[ERROR] Failed to load genre flags: {e}")
+            self.genre0 = self.genre1 = self.genre2 = self.genre3 = 'null'
+
     def generate_random_playlist(self):
-        """Generate random playlist from all songs (skips songs marked 'norandom')"""
+        """Generate random playlist from all songs (respects genre filters, skips 'norandom')"""
+        # Load current genre filter settings
+        self.load_genre_flags()
+
         self.random_playlist = []
 
         for index, song in enumerate(self.song_list):
             # Skip songs marked with 'norandom' in comment field
             if 'norandom' in song.get('comment', '').lower():
                 continue
-            self.random_playlist.append(index)
+
+            # If no genre filters are set, add all songs
+            if (self.genre0 == "null" and self.genre1 == "null" and
+                self.genre2 == "null" and self.genre3 == "null"):
+                self.random_playlist.append(index)
+            else:
+                # Add songs matching any of the genre filters
+                comment = song.get('comment', '')
+                if (self.genre0 != "null" and self.genre0 in comment) or \
+                   (self.genre1 != "null" and self.genre1 in comment) or \
+                   (self.genre2 != "null" and self.genre2 in comment) or \
+                   (self.genre3 != "null" and self.genre3 in comment):
+                    self.random_playlist.append(index)
 
         # Shuffle the playlist
         random.shuffle(self.random_playlist)
-        print(f"Generated random playlist with {len(self.random_playlist)} songs")
+        print(f"[RANDOM PLAYLIST] Generated {len(self.random_playlist)} songs")
+        if len(self.random_playlist) == 0:
+            print("[WARNING] No songs match the current genre filters!")
 
     def update(self):
         """Update playback state - called every frame"""

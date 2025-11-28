@@ -114,6 +114,9 @@ BUZZ_SOUND_PATH = "jukebox_required_audio_files/buzz.mp3"
 SUCCESS_SOUND_PATH = "jukebox_required_audio_files/success.mp3"
 PAID_MUSIC_PLAYLIST_PATH = "PaidMusicPlayList.txt"
 CURRENT_SONG_PLAYING_PATH = "CurrentSongPlaying.txt"
+LOG_FILE_PATH = "log.txt"
+GENRE_FLAGS_FILE_PATH = "GenreFlagsList.txt"
+MUSIC_MASTER_SONG_LIST_CHECK_PATH = "MusicMasterSongListCheck.txt"
 
 # Button grid layout constants
 GRID_START_X = 465
@@ -1501,11 +1504,74 @@ class PlaybackEngine:
         return self.upcoming_song_list.copy()
 
 # ============================================================================
-# SECTION 8: MAIN APPLICATION
+# SECTION 8: FILE INITIALIZATION
+# ============================================================================
+
+def setup_files():
+    """
+    Check for required files on disk. If they don't exist, create them with default content.
+
+    This function ensures all necessary data files exist before the jukebox starts.
+    Creates 4 files if missing:
+    - log.txt: Playback and error logging
+    - GenreFlagsList.txt: Genre filter flags
+    - MusicMasterSongListCheck.txt: Song list change tracking
+    - PaidMusicPlayList.txt: Queue of user-selected paid songs
+    """
+    from datetime import datetime
+
+    # Get current timestamp for log file
+    now = datetime.now().replace(microsecond=0)
+
+    # Setup log file
+    try:
+        if not os.path.exists(LOG_FILE_PATH):
+            with open(LOG_FILE_PATH, 'w') as log:
+                log.write(str(now) + ' Jukebox Engine Started - New Log File Created,')
+            print(f"[INIT] Created log file: {LOG_FILE_PATH}")
+        else:
+            with open(LOG_FILE_PATH, 'a') as log:
+                log.write('\n' + str(now) + ' Jukebox Engine Restarted,')
+    except IOError as e:
+        print(f"[ERROR] Failed to setup log.txt: {e}")
+
+    # Setup genre flags file
+    try:
+        if not os.path.exists(GENRE_FLAGS_FILE_PATH):
+            with open(GENRE_FLAGS_FILE_PATH, 'w') as genre_flags_file:
+                genre_flags_list = ['null', 'null', 'null', 'null']
+                json.dump(genre_flags_list, genre_flags_file)
+            print(f"[INIT] Created genre flags file: {GENRE_FLAGS_FILE_PATH}")
+    except (IOError, json.JSONDecodeError) as e:
+        print(f"[ERROR] Failed to setup GenreFlagsList.txt: {e}")
+
+    # Setup music master song list check file
+    try:
+        if not os.path.exists(MUSIC_MASTER_SONG_LIST_CHECK_PATH):
+            with open(MUSIC_MASTER_SONG_LIST_CHECK_PATH, 'w') as check_file:
+                json.dump([], check_file)
+            print(f"[INIT] Created song list check file: {MUSIC_MASTER_SONG_LIST_CHECK_PATH}")
+    except (IOError, json.JSONDecodeError) as e:
+        print(f"[ERROR] Failed to setup MusicMasterSongListCheck.txt: {e}")
+
+    # Setup paid music playlist file
+    try:
+        if not os.path.exists(PAID_MUSIC_PLAYLIST_PATH):
+            with open(PAID_MUSIC_PLAYLIST_PATH, 'w') as paid_list_file:
+                json.dump([], paid_list_file)
+            print(f"[INIT] Created paid playlist file: {PAID_MUSIC_PLAYLIST_PATH}")
+    except (IOError, json.JSONDecodeError) as e:
+        print(f"[ERROR] Failed to setup PaidMusicPlayList.txt: {e}")
+
+# ============================================================================
+# SECTION 9: MAIN APPLICATION
 # ============================================================================
 
 def main():
     """Main application entry point"""
+
+    # Initialize required data files
+    setup_files()
 
     # Initialize Pygame
     pygame.init()

@@ -1,6 +1,6 @@
 """
 CONVERGENCE JUKEBOX - PYGAME MIGRATION VERSION
-Version 0.90.11 - Pure Pygame Implementation (Fix: Paid Music Flow)
+Version 0.90.13 - Pure Pygame Implementation (Feature: Band Name "The" Prefix)
 
 This version begins the migration from FreeSimpleGUI to pure Pygame.
 
@@ -9,13 +9,13 @@ Migration Goals:
 - Enable seamless rotating record popup integration
 - Create foundation for future touchscreen/arcade features
 
-Version 0.90.11 Changes:
-- Fixed paid song removal timing: now deletes from playlist AFTER song completes (not at start)
-- Added file re-read before deletion to capture songs added during playback (0.82.8 bug fix)
-- Added success.mp3 sound effect when song is successfully selected
-- Added CurrentSongPlaying.txt file write before playback starts
-- Prevents data loss on power failure: song stays in playlist until fully played
-- Matches original code behavior exactly
+Version 0.90.13 Changes:
+- Implemented the_bands.txt and the_exempted_bands.txt functionality
+- Artist names from the_bands.txt automatically receive "The " prefix
+- Exempted bands (the_exempted_bands.txt) skip the prefix application
+- Prefix applied on initial load and after arrow navigation
+- Fixed CORRECT button keypress: Shift+C clears selection (matches original)
+- Column C selection remains lowercase 'c' (only when no selection exists)
 
 Next Steps:
 - Add 45rpm selection popup
@@ -50,6 +50,8 @@ BUZZ_SOUND_PATH = "jukebox_required_audio_files/buzz.mp3"
 SUCCESS_SOUND_PATH = "jukebox_required_audio_files/success.mp3"
 PAID_MUSIC_PLAYLIST_PATH = "PaidMusicPlayList.txt"
 CURRENT_SONG_PLAYING_PATH = "CurrentSongPlaying.txt"
+THE_BANDS_PATH = "the_bands.txt"
+THE_EXEMPTED_BANDS_PATH = "the_exempted_bands.txt"
 
 # Button grid layout constants
 GRID_START_X = 465
@@ -251,6 +253,30 @@ class ButtonGrid:
         self.selection_window_number = new_selection_window_number
         # Rebuild the button layout with new song data
         self.buttons = self._create_button_layout()
+
+    def apply_the_prefix(self, the_bands_text, exempted_bands_list):
+        """Apply 'The ' prefix to band names based on configuration files
+
+        Args:
+            the_bands_text: Content from the_bands.txt (comma-separated lowercase names)
+            exempted_bands_list: List of band names to exempt from 'The ' prefix
+        """
+        # Process all artist buttons in the grid
+        for row in self.buttons:
+            for button in row:
+                if button['type'] == 'artist' and button['text']:
+                    artist = button['text']
+
+                    # Check if this artist name (lowercase) is in the_bands.txt
+                    if artist.lower() in the_bands_text:
+                        # Build the updated name with "The " prefix
+                        the_artist = 'The ' + artist
+
+                        # Check if this name is in the exemption list
+                        if the_artist not in exempted_bands_list:
+                            # Apply the prefix (truncate to 22 chars if needed)
+                            button['text'] = the_artist[:22]
+                            print(f"Applied 'The ' prefix: {artist} → {button['text']}")
 
     def draw(self, screen, selection_letter=None, selection_number=None):
         """Draw all buttons in the grid
@@ -666,12 +692,10 @@ class InfoScreen:
         # 10 upcoming song slots
         for i in range(10):
             if i < len(self.upcoming_songs):
-                song_idx = self.upcoming_songs[i]
-                if song_idx < len(self.song_list):
-                    song = self.song_list[song_idx]
-                    upcoming_text = f"{song['title'][:15]} - {song['artist'][:10]}"
-                    text = self.font_info.render(upcoming_text, True, COLOR_SEAGREEN3)
-                    screen.blit(text, (self.start_x, current_y))
+                # upcoming_songs now contains formatted strings (title - artist)
+                upcoming_text = f"{i+1}. {self.upcoming_songs[i]}"
+                text = self.font_info.render(upcoming_text, True, COLOR_SEAGREEN3)
+                screen.blit(text, (self.start_x, current_y))
             current_y += 18
 
         # Spacer
@@ -717,6 +741,7 @@ class PlaybackEngine:
         self.current_song_index = None
         self.paid_playlist = []
         self.random_playlist = []
+        self.upcoming_song_list = []  # Display strings for upcoming songs
         self.is_paid_song = False  # Track if current song is paid or random
 
     def load_paid_playlist(self):
@@ -775,6 +800,8 @@ class PlaybackEngine:
                     self.save_paid_playlist()
                     print(f"Paid playlist now has {len(self.paid_playlist)} songs")
 
+                # Note: upcoming_song_list is already updated when song started playing
+
             # Now play next song
             print("Loading next song")
             self.play_next_song()
@@ -809,6 +836,14 @@ class PlaybackEngine:
 
                 self.current_song_index = song_index
                 self.is_paid_song = True
+
+                # Remove from upcoming display list (song is now playing, not upcoming)
+                if len(self.upcoming_song_list) > 0:
+                    # Check if this song matches the first upcoming entry
+                    expected_str = f"{song['title'][:22]} - {song['artist'][:22]}"
+                    if self.upcoming_song_list[0] == expected_str:
+                        self.upcoming_song_list.pop(0)
+                        print(f"Removed from upcoming list. {len(self.upcoming_song_list)} songs remaining in queue")
 
                 # DO NOT remove from paid playlist here - will be removed after song completes
             else:
@@ -879,13 +914,12 @@ class PlaybackEngine:
         return None
 
     def get_upcoming_songs(self):
-        """Get list of upcoming song indices
+        """Get list of upcoming song display strings
 
         Returns:
-            list: Song indices from paid playlist
+            list: Formatted strings (title - artist) for upcoming songs
         """
-        self.load_paid_playlist()
-        return self.paid_playlist.copy()
+        return self.upcoming_song_list.copy()
 
 # ============================================================================
 # SECTION 8: MAIN APPLICATION
@@ -945,6 +979,23 @@ def main():
         print(f"Error loading success sound: {e}")
         success_sound = None
 
+    # Load the_bands.txt and the_exempted_bands.txt for artist name processing
+    the_bands_text = ""
+    exempted_bands_list = []
+    try:
+        with open(THE_BANDS_PATH, 'r') as f:
+            the_bands_text = f.read()
+        print(f"Loaded band names from {THE_BANDS_PATH}")
+    except FileNotFoundError:
+        print(f"Warning: {THE_BANDS_PATH} not found - skipping 'The' prefix application")
+
+    try:
+        with open(THE_EXEMPTED_BANDS_PATH, 'r') as f:
+            exempted_bands_list = [line.strip() for line in f if line.strip()]
+        print(f"Loaded {len(exempted_bands_list)} exempted bands from {THE_EXEMPTED_BANDS_PATH}")
+    except FileNotFoundError:
+        print(f"Warning: {THE_EXEMPTED_BANDS_PATH} not found - no exemptions will be applied")
+
     # Create button grid with song data
     try:
         button_grid = ButtonGrid(GRID_START_X, GRID_START_Y, song_list, selection_window_number=0)
@@ -952,6 +1003,11 @@ def main():
         print(f"Error creating button grid: {e}")
         pygame.quit()
         sys.exit(1)
+
+    # Apply "The " prefix to band names
+    if the_bands_text:
+        print("Applying 'The ' prefix to band names...")
+        button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
     # Create control buttons
     try:
@@ -997,10 +1053,11 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
-    print("Convergence Jukebox v0.90.11 - Paid Music Flow Fixed")
+    print("Convergence Jukebox v0.90.13 - Band Name 'The' Prefix Implementation")
     print("Press ESC to exit")
     print("Press X to add credit")
     print("Press A/B/C to select column, 1-7 to select song, S to confirm")
+    print("Press Shift+C to clear selection (CORRECT button)")
     print("Music plays continuously: paid songs → random songs → check for more paid songs...")
 
     while running:
@@ -1030,6 +1087,8 @@ def main():
                             buzz_sound.play()
                     selection_window_number = new_window_number
                     button_grid.update_selection_window(selection_window_number)
+                    if the_bands_text:
+                        button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
                 elif event.key == pygame.K_LEFT:
                     new_window_number = selection_window_number - 21
@@ -1039,6 +1098,8 @@ def main():
                             buzz_sound.play()
                     selection_window_number = new_window_number
                     button_grid.update_selection_window(selection_window_number)
+                    if the_bands_text:
+                        button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
                 # Letter selection (A, B, C)
                 elif event.key == pygame.K_a:
@@ -1053,17 +1114,19 @@ def main():
                         control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
                         print(f"Selected column: B")
 
-                elif event.key == pygame.K_c and event.mod == 0:
-                    if selection_entry_letter is None:
-                        selection_entry_letter = 'C'
-                        control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
-                        print(f"Selected column: C")
-                    else:
-                        # CORRECT button - reset selection
+                elif event.key == pygame.K_c:
+                    # Check if Shift is pressed (uppercase 'C' for CORRECT button)
+                    if event.mod & pygame.KMOD_SHIFT:
+                        # CORRECT button - reset selection (Shift+C)
                         selection_entry_letter = None
                         selection_entry_number = None
                         control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
-                        print("Selection cleared")
+                        print("CORRECT: Selection cleared")
+                    elif selection_entry_letter is None:
+                        # Column C selection (lowercase 'c')
+                        selection_entry_letter = 'C'
+                        control_buttons.update_button_states(selection_entry_letter, selection_entry_number)
+                        print(f"Selected column: C")
 
                 # Number selection (1-7)
                 elif event.key in [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7]:
@@ -1093,6 +1156,11 @@ def main():
                                 playback_engine.load_paid_playlist()
                                 playback_engine.paid_playlist.append(song_index)
                                 playback_engine.save_paid_playlist()
+
+                                # Add to upcoming display list (formatted title - artist)
+                                upcoming_str = f"{song['title'][:22]} - {song['artist'][:22]}"
+                                playback_engine.upcoming_song_list.append(upcoming_str)
+                                print(f"Added to upcoming list: {upcoming_str}")
 
                                 # Play success sound
                                 if success_sound:
@@ -1128,6 +1196,8 @@ def main():
                                 buzz_sound.play()
                         selection_window_number = new_window_number
                         button_grid.update_selection_window(selection_window_number)
+                        if the_bands_text:
+                            button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
                     elif arrow_left_rect.collidepoint(mouse_pos):
                         new_window_number = selection_window_number - 21
@@ -1137,6 +1207,8 @@ def main():
                                 buzz_sound.play()
                         selection_window_number = new_window_number
                         button_grid.update_selection_window(selection_window_number)
+                        if the_bands_text:
+                            button_grid.apply_the_prefix(the_bands_text, exempted_bands_list)
 
                     # Check control buttons
                     else:
@@ -1176,6 +1248,11 @@ def main():
                                             playback_engine.load_paid_playlist()
                                             playback_engine.paid_playlist.append(song_index)
                                             playback_engine.save_paid_playlist()
+
+                                            # Add to upcoming display list (formatted title - artist)
+                                            upcoming_str = f"{song['title'][:22]} - {song['artist'][:22]}"
+                                            playback_engine.upcoming_song_list.append(upcoming_str)
+                                            print(f"Added to upcoming list: {upcoming_str}")
 
                                             # Play success sound
                                             if success_sound:

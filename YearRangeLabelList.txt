@@ -1,4 +1,4 @@
-[[1950, 1959, ['be-bop_records_1_ai.png', 'mupeenach_records_ai.png', 'w_rocket_records_ai.png', 'jazz_isrom_records_ai.png', 'jazz_backbrouing_ai.png','in_your_dreams_records_2_ai.png','chill_pill_records_ai.png', 'the_jazze_records_ai.png', 'w_hesty_crime_records_ai.png']], 
+[[1950, 1959, ['be-bop_records_1_ai.png', 'mupeenach_records_ai.png', 'w_rocket_records_ai.png', 'jazz_isrom_records_ai.png', 'jazz_backbrouing_ai.png','in_your_dreams_records_2_ai.png','chill_pill_records_ai.png', 'rockabilly_records_ai.png','the_jazze_records_ai.png', 'w_hesty_crime_records_ai.png']], 
 
 [1960, 1969, ['riceo_records_ai.png', 'chill_pill_records_ai.png','beach_bum_records_ai.png','w_rocket_records_ai.png', 'w_hesty_crime_records_ai.png', 'the_jazze_records_ai.png', 'pear_records_1_ai.png', 'far_out_records_2_ai.png','homeamatoo_records_ai.png', 'premiun_records_ai.png','pipie_records_ai.png','muse_records_4_ai.png']], 
 

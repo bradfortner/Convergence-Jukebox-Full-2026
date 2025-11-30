@@ -39,10 +39,19 @@ def load_artist_label_mapping(file_path="RecordLabelAssignList.txt"):
         # Parse the list using ast.literal_eval (safe evaluation)
         artist_list = ast.literal_eval(content)
 
-        # Convert list of lists to dictionary
-        _artist_label_mapping = {artist: label for artist, label in artist_list}
+        # Convert list of lists to dictionary, creating "The " variants automatically
+        _artist_label_mapping = {}
 
-        print(f"[ARTIST MAPPING] Loaded {len(_artist_label_mapping)} artist-to-label mappings")
+        for artist, label in artist_list:
+            # Add original artist mapping
+            _artist_label_mapping[artist] = label
+
+            # If artist doesn't already start with "The ", also add "The " + artist
+            if not artist.lower().startswith("the "):
+                the_artist = "The " + artist
+                _artist_label_mapping[the_artist] = label
+
+        print(f"[ARTIST MAPPING] Loaded {len(_artist_label_mapping)} artist-to-label mappings (with 'The' variants)")
         for artist, label in _artist_label_mapping.items():
             print(f"  - {artist} -> {label}")
 

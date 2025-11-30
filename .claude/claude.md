@@ -7,8 +7,35 @@ Before taking ANY action:
 2. **Check dependencies** - Understand what depends on what
 3. **Test your logic** - Think through the consequences
 4. **Double-check** - Review before executing
+5. **Be THOROUGH** - Never work "willy nilly" (carelessly, haphazardly)
 
 Example: Before moving modules, check the ENTIRE dependency chain, not just direct imports.
+
+## When Asked to Review Code
+
+**DO NOT jump to solutions. THOROUGHLY understand the system FIRST.**
+
+When asked to "review the code" or "understand how X works":
+1. **Trace the COMPLETE flow** - Follow the data through every function call
+2. **Read all relevant files** - Don't skim, actually read the code
+3. **Understand the relationships** - How do the modules connect?
+4. **Identify the actual problem** - Not what you assume the problem is
+5. **Present your understanding** - Explain what the code does
+6. **Wait for confirmation** - Only proceed with solutions after user confirms you understand
+
+**Example of WRONG approach (willy nilly):**
+- Skim a few lines of code
+- Guess at the problem
+- Jump straight to proposing a solution
+- Miss the actual root cause
+
+**Example of RIGHT approach (thorough):**
+- Read RecordLabelAssignList.txt to see the data format
+- Read artist_label_mapping_module.py to see how it loads
+- Read song_label_cache_module.py to see how it's called
+- Trace through get_artist_label() to see the exact lookup logic
+- Identify where "The Beach Boys" != "Beach Boys" causes the failure
+- Present complete understanding before proposing solutions
 
 ---
 

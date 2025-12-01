@@ -1,6 +1,6 @@
 import pygame
 import discogs_client
-import config
+import jukebox_config
 import json
 import requests
 import io
@@ -13,7 +13,7 @@ COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
 
 # Initialize Discogs client
-d = discogs_client.Client('YourApp/1.0', user_token=config.DISCOGS_USER_TOKEN)
+d = discogs_client.Client('YourApp/1.0', user_token=jukebox_config.DISCOGS_USER_TOKEN)
 
 def search_discogs(query, page=1, search_type='release'):
     """

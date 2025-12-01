@@ -5,6 +5,7 @@ import json
 import requests
 import io
 import datetime # Import datetime for time calculations
+import os
 
 # Initialize Pygame and global variables
 pygame.init()
@@ -126,6 +127,133 @@ class Checkbox:
         if self.checked:
             pygame.draw.line(screen, (255, 255, 255), (self.rect.x + 3, self.rect.y + 3), (self.rect.x + self.rect.w - 3, self.rect.y + self.rect.h - 3), 2)
             pygame.draw.line(screen, (255, 255, 255), (self.rect.x + self.rect.w - 3, self.rect.y + 3), (self.rect.x + 3, self.rect.y + self.rect.h - 3), 2)
+
+class FileDisplay:
+    def __init__(self, screen, filename, artist, title):
+        self.screen = screen
+        self.filename = filename
+        self.artist = artist
+        self.title = title
+        self.font = pygame.font.Font(None, 32)
+        self.continue_button = Button(screen.get_width() // 2 - 70, 500, 140, 32, "Continue")
+        self.focusable_widgets = [self.continue_button]
+        self.focused_index = 0
+        self.focusable_widgets[self.focused_index].focused = True
+
+        self.discogs_artist = "N/A"
+        self.discogs_title = "N/A"
+        self.year = "N/A"
+        self.genres = []
+        self.song_length = "N/A"
+        self.full_release = None
+        self.artist_match = False
+        self.title_match = False
+
+        self._fetch_discogs_data()
+
+    def _clean_string(self, text):
+        cleaned_text = text.lower().replace("'", "").replace(",", "")
+        if cleaned_text.startswith("the "):
+            cleaned_text = cleaned_text[4:]
+        return cleaned_text
+
+    def _fetch_discogs_data(self):
+        search_query = f"{self.artist} - {self.title}"
+        results = search_discogs(search_query)
+        if results:
+            first_result = results[0]
+            self.full_release = d.release(first_result.id)
+            if self.full_release.artists:
+                self.discogs_artist = self.full_release.artists[0].name
+            self.discogs_title = self.full_release.title
+            self.year = getattr(self.full_release, 'year', 'N/A')
+            self.song_length, self.genres = self._get_song_length_and_genres()
+
+            cleaned_artist_filename = self._clean_string(self.artist)
+            cleaned_artist_discogs = self._clean_string(self.discogs_artist)
+            cleaned_title_filename = self._clean_string(self.title)
+            cleaned_title_discogs = self._clean_string(self.discogs_title)
+
+            self.artist_match = cleaned_artist_filename == cleaned_artist_discogs
+            self.title_match = cleaned_title_filename == cleaned_title_discogs
+
+    def _get_song_length_and_genres(self):
+        total_duration_seconds = 0
+        genres = []
+
+        if hasattr(self.full_release, 'tracklist') and self.full_release.tracklist:
+            for track in self.full_release.tracklist:
+                if track.duration:
+                    try:
+                        minutes, seconds = map(int, track.duration.split(':'))
+                        total_duration_seconds += (minutes * 60) + seconds
+                    except ValueError:
+                        pass
+        
+        if hasattr(self.full_release, 'genres') and self.full_release.genres:
+            genres = self.full_release.genres
+
+        if total_duration_seconds > 0:
+            total_duration = str(datetime.timedelta(seconds=total_duration_seconds))
+            if len(total_duration.split(':')) == 2:
+                 total_duration = "0" + total_duration
+        else:
+            total_duration = "N/A"
+        
+        return total_duration, genres
+
+    def _draw_match_indicator(self, x, y, is_match):
+        box_rect = pygame.Rect(x, y, 20, 20)
+        if is_match:
+            pygame.draw.rect(self.screen, (0, 255, 0), box_rect)
+            pygame.draw.line(self.screen, (0, 0, 0), (x + 5, y + 10), (x + 8, y + 13), 2)
+            pygame.draw.line(self.screen, (0, 0, 0), (x + 8, y + 13), (x + 15, y + 6), 2)
+        else:
+            pygame.draw.rect(self.screen, (255, 0, 0), box_rect)
+            pygame.draw.line(self.screen, (0, 0, 0), (x + 5, y + 5), (x + 15, y + 15), 2)
+            pygame.draw.line(self.screen, (0, 0, 0), (x + 5, y + 15), (x + 15, y + 5), 2)
+
+    def handle_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_TAB:
+                self.focusable_widgets[self.focused_index].focused = False
+                self.focused_index = (self.focused_index + 1) % len(self.focusable_widgets)
+                self.focusable_widgets[self.focused_index].focused = True
+            elif event.key == pygame.K_RETURN:
+                if self.focusable_widgets[self.focused_index] == self.continue_button:
+                    return "continue"
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.continue_button.rect.collidepoint(event.pos):
+                return "continue"
+        return None
+
+    def draw(self, screen):
+        filename_surface = self.font.render(f"Filename: {self.filename}", True, (255, 255, 255))
+        artist_surface = self.font.render(f"Artist: {self.artist}", True, (255, 255, 255))
+        title_surface = self.font.render(f"Title: {self.title}", True, (255, 255, 255))
+        
+        screen.blit(filename_surface, (100, 100))
+        screen.blit(artist_surface, (100, 150))
+        screen.blit(title_surface, (100, 200))
+
+        discogs_artist_surface = self.font.render(f"Discogs Artist: {self.discogs_artist}", True, (255, 255, 255))
+        discogs_title_surface = self.font.render(f"Discogs Title: {self.discogs_title}", True, (255, 255, 255))
+        screen.blit(discogs_artist_surface, (600, 150))
+        screen.blit(discogs_title_surface, (600, 200))
+        
+        self._draw_match_indicator(560, 155, self.artist_match)
+        self._draw_match_indicator(560, 205, self.title_match)
+
+        genres_text = ", ".join(self.genres) if self.genres else "N/A"
+        year_surface = self.font.render(f"Year: {self.year}", True, (255, 255, 255))
+        length_surface = self.font.render(f"Length: {self.song_length}", True, (255, 255, 255))
+        genre_surface = self.font.render(f"Genre: {genres_text}", True, (255, 255, 255))
+        
+        screen.blit(year_surface, (100, 250))
+        screen.blit(length_surface, (100, 300))
+        screen.blit(genre_surface, (100, 350))
+
+        self.continue_button.draw(screen)
 
 class ResultsViewer:
     def __init__(self, screen, results):
@@ -323,6 +451,13 @@ def main():
     screen = pygame.display.set_mode((1280, 720))
     pygame.display.set_caption("Music File Cleaner")
 
+    music_files = os.listdir('music')
+    if not music_files:
+        print("No music files found in the 'music' directory.")
+        return
+
+    current_file_index = 0
+
     artist_box = InputBox(100, 100, 140, 32, 'Artist')
     title_box = InputBox(100, 200, 140, 32, 'Title')
     search_button = Button(100, 300, 140, 32, 'Search')
@@ -333,12 +468,21 @@ def main():
 
     results_viewer = None
     details_viewer = None
-    app_state = "input"
+    file_display = None
+    app_state = "file_display"
     search_query = ""
     current_page = 1
 
     done = False
     while not done:
+        if app_state == "file_display" and file_display is None:
+            current_file = music_files[current_file_index]
+            try:
+                artist, title = current_file.replace('.mp3', '').rsplit(' - ', 1)
+            except ValueError:
+                artist, title = "Unknown Artist", current_file.replace('.mp3', '')
+            file_display = FileDisplay(screen, current_file, artist, title)
+
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
@@ -346,8 +490,14 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     done = True
+
+            if app_state == "file_display":
+                action = file_display.handle_event(event)
+                if action == "continue":
+                    current_file_index = (current_file_index + 1) % len(music_files)
+                    file_display = None  # Force re-creation
             
-            if app_state == "input":
+            elif app_state == "input":
                 focused_widget = focusable_widgets_input[focused_widget_index_input]
                 
                 for widget in focusable_widgets_input:
@@ -394,7 +544,11 @@ def main():
 
         screen.fill((30, 30, 30))
 
-        if app_state == "input":
+        if app_state == "file_display":
+            if file_display:
+                file_display.draw(screen)
+
+        elif app_state == "input":
             for widget in focusable_widgets_input:
                 widget.draw(screen)
         

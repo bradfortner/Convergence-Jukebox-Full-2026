@@ -14,7 +14,19 @@
       "Bash(timeout 120 python:*)",
       "Bash(taskkill:*)",
       "Bash(nul)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(\"0.83.60 - Convergence-Jukebox-Full-2026.py\")",
+      "Bash(findstr:*)",
+      "Bash(git mv:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(rm:*)",
+      "Bash(find:*)",
+      "Bash(pip install:*)",
+      "Bash(mkdir:*)",
+      "Bash(curl:*)",
+      "Bash(copy:*)",
+      "Bash(cmd /c copy:*)",
+      "Bash(git clone:*)"
     ],
     "deny": [],
     "ask": []

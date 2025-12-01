@@ -61,3 +61,4 @@ MusicMasterSongList.txt
 mutagen_testing/mutagen_images/*
 !mutagen_testing/mutagen_images/.gitkeep
 nul
+config.py

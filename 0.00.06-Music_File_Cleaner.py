@@ -751,29 +751,16 @@ def extract_label(pygame_surface, debug=False):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray = cv2.medianBlur(gray, 5)
 
-        # 2. Detect Circles, tuning parameters to find the most prominent outer label
+        # 2. Detect Circles, with a higher accumulator threshold for more accuracy
         rows = gray.shape[0]
         circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, rows / 8,
-                                   param1=100, param2=50,
-                                   minRadius=int(rows * 0.2), maxRadius=int(rows * 0.45))
+                                   param1=100, param2=85, # Increased param2 to 85 for stricter detection
+                                   minRadius=int(rows * 0.2), maxRadius=int(rows * 0.49)) # Increased maxRadius to 0.49
 
         if circles is not None:
-            circles_2d = np.uint16(np.around(circles))[0, :]
-            
-            # --- NEW: Calculate a stable center by averaging all detected circle centers ---
-            if len(circles_2d) == 0:
-                 raise ValueError("HoughCircles detected circles but none were valid for processing.")
-
-            avg_center = np.mean(circles_2d[:, :2], axis=0) # Average x,y coordinates
-            center_x, center_y = int(avg_center[0]), int(avg_center[1])
-
-            # --- Use the circle closest to this stable center to determine radius ---
-            # Sort circles by distance from the new average center
-            sorted_circles = sorted(circles_2d, key=lambda c: np.linalg.norm(np.array([c[0], c[1]]) - avg_center))
-            
-            # The closest circle is our best estimate for the label's outer edge
-            best_ref_circle = sorted_circles[0]
-            r_large = best_ref_circle[2] # Use its radius
+            # Take the first and most prominent circle found
+            c = circles[0][0]
+            center_x, center_y, r_large = int(c[0]), int(c[1]), int(c[2])
 
             # Derive the inner hole based on a standard 45rpm ratio
             r_small = int(r_large * 0.43)

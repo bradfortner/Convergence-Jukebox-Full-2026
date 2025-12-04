@@ -871,23 +871,38 @@ def main():
     file_display = None
     full_screen_viewer = None
     result_viewer = None
-    app_state = "file_display"
+    app_state = "initializing"  # Start with an initializing state
     search_query = ""
     current_page = 1
 
     done = False
     while not done:
+        if app_state == "initializing":
+            screen.fill((30, 30, 30))
+            searching_text = FONT.render("Searching...", True, (255, 255, 255))
+            text_rect = searching_text.get_rect(center=screen.get_rect().center)
+            screen.blit(searching_text, text_rect)
+            pygame.display.flip()
+            app_state = "file_display"  # Transition to file display state
+            continue # Go to the top of the loop to start file processing
+
         if app_state == "file_display" and file_display is None:
+            if current_file_index >= len(music_files):
+                print("All files processed.")
+                done = True
+                continue
+
             current_file = music_files[current_file_index]
             try:
                 artist, title = current_file.replace('.mp3', '').rsplit(' - ', 1)
             except ValueError:
                 artist, title = "Unknown Artist", current_file.replace('.mp3', '')
+            
             file_display = FileDisplay(screen, current_file, artist, title)
 
             if not file_display.discogs_results:
                 print(f"No Discogs results for {current_file}, skipping.")
-                current_file_index = (current_file_index + 1) % len(music_files)
+                current_file_index += 1
                 file_display = None
                 continue
 

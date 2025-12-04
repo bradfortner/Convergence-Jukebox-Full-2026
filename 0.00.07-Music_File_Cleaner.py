@@ -239,40 +239,50 @@ class FileDisplay:
         self.label_image_surface = None
 
         if self.discogs_results and self.discogs_result_index < len(self.discogs_results):
-            current_result = self.discogs_results[self.discogs_result_index]
-            self.full_release = d.release(current_result.id)
-            if self.full_release.artists:
-                self.discogs_artist = self.full_release.artists[0].name
-            self.discogs_title = self.full_release.title
-            self.year = getattr(self.full_release, 'year', 'N/A')
-            self.song_length, self.genres = self._get_song_length_and_genres()
+            try:
+                current_result = self.discogs_results[self.discogs_result_index]
+                self.full_release = d.release(current_result.id)
+                if self.full_release.artists:
+                    self.discogs_artist = self.full_release.artists[0].name
+                self.discogs_title = self.full_release.title
+                self.year = getattr(self.full_release, 'year', 'N/A')
+                self.song_length, self.genres = self._get_song_length_and_genres()
 
-            cleaned_artist_filename = self._clean_string(self.artist)
-            cleaned_artist_discogs = self._clean_string(self.discogs_artist)
-            cleaned_title_filename = self._clean_string(self.title)
-            cleaned_title_discogs = self._clean_string(self.discogs_title)
+                cleaned_artist_filename = self._clean_string(self.artist)
+                cleaned_artist_discogs = self._clean_string(self.discogs_artist)
+                cleaned_title_filename = self._clean_string(self.title)
+                cleaned_title_discogs = self._clean_string(self.discogs_title)
 
-            self.artist_match = cleaned_artist_filename.lower() == cleaned_artist_discogs.lower()
-            self.title_match = cleaned_title_filename.lower() == cleaned_title_discogs.lower()
+                self.artist_match = cleaned_artist_filename.lower() == cleaned_artist_discogs.lower()
+                self.title_match = cleaned_title_filename.lower() == cleaned_title_discogs.lower()
 
-            if self.artist_match and cleaned_artist_filename != cleaned_artist_discogs:
-                self.artist_case_mismatch = True
+                if self.artist_match and cleaned_artist_filename != cleaned_artist_discogs:
+                    self.artist_case_mismatch = True
 
-            if self.title_match and cleaned_title_filename != cleaned_title_discogs:
-                self.title_case_mismatch = True
+                if self.title_match and cleaned_title_filename != cleaned_title_discogs:
+                    self.title_case_mismatch = True
 
-            # Fetch release image (which should be the label for a 45rpm)
-            if self.full_release.images:
-                image_url = self.full_release.images[0]['uri']
-                try:
-                    headers = {'User-Agent': 'YourApp/1.0'}
-                    response = requests.get(image_url, headers=headers)
-                    response.raise_for_status()
-                    image_data = response.content
-                    image_file = io.BytesIO(image_data)
-                    self.label_image_surface = pygame.image.load(image_file)
-                except Exception as e:
-                    print(f"Error loading release image: {e}")
+                # Fetch release image (which should be the label for a 45rpm)
+                if self.full_release.images:
+                    image_url = self.full_release.images[0]['uri']
+                    try:
+                        headers = {'User-Agent': 'YourApp/1.0'}
+                        response = requests.get(image_url, headers=headers)
+                        response.raise_for_status()
+                        image_data = response.content
+                        image_file = io.BytesIO(image_data)
+                        self.label_image_surface = pygame.image.load(image_file)
+                    except Exception as e:
+                        print(f"Error loading release image: {e}")
+            except Exception as e:
+                print(f"Error fetching full release details from Discogs: {e}")
+                # We can choose to skip this result or just show N/A
+                self.discogs_results.pop(self.discogs_result_index)
+                # Ensure index is not out of bounds after popping
+                if self.discogs_result_index >= len(self.discogs_results):
+                    self.discogs_result_index = 0
+                self._update_with_current_discogs_result() # Recursive call to try the next item
+
 
     def _display_searching_state(self):
         self.is_fetching_discogs_data = True

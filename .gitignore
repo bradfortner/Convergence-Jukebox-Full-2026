@@ -62,3 +62,4 @@ mutagen_testing/mutagen_images/*
 !mutagen_testing/mutagen_images/.gitkeep
 nul
 jukebox_config.py
+clean_up_log.txt

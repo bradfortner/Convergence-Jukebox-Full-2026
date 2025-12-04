@@ -365,26 +365,28 @@ class FileDisplay:
     def _draw_file_info_column(self, screen):
         # Column 1: File Data
         y_offset = 100
-        
-        filename_label = self.font_label.render("Filename:", True, (200, 200, 200))
-        screen.blit(filename_label, (50, y_offset))
-        y_offset += 30
-        filename_surf = self.font_data.render(self.filename, True, (255, 255, 255))
-        screen.blit(filename_surf, (50, y_offset))
-        y_offset += 50
+        x_pos = 50
 
-        artist_label = self.font_label.render("Artist:", True, (200, 200, 200))
-        screen.blit(artist_label, (50, y_offset))
-        y_offset += 30
-        artist_surf = self.font_data.render(self.artist, True, (255, 255, 255))
-        screen.blit(artist_surf, (50, y_offset))
-        y_offset += 50
+        # Filename
+        label_surf = self.font_id3_data.render("Filename:", True, (200, 200, 200))
+        screen.blit(label_surf, (x_pos, y_offset))
+        filename_surf = self.font_id3_data.render(self.filename, True, (255, 255, 255))
+        screen.blit(filename_surf, (x_pos + label_surf.get_width() + 10, y_offset))
+        y_offset += 25
 
-        title_label = self.font_label.render("Title:", True, (200, 200, 200))
-        screen.blit(title_label, (50, y_offset))
-        y_offset += 30
-        title_surf = self.font_data.render(self.title, True, (255, 255, 255))
-        screen.blit(title_surf, (50, y_offset))
+        # Artist
+        label_surf = self.font_id3_data.render("Artist:", True, (200, 200, 200))
+        screen.blit(label_surf, (x_pos, y_offset))
+        artist_surf = self.font_id3_data.render(self.artist, True, (255, 255, 255))
+        screen.blit(artist_surf, (x_pos + label_surf.get_width() + 10, y_offset))
+        y_offset += 25
+
+        # Title
+        label_surf = self.font_id3_data.render("Title:", True, (200, 200, 200))
+        screen.blit(label_surf, (x_pos, y_offset))
+        title_surf = self.font_id3_data.render(self.title, True, (255, 255, 255))
+        screen.blit(title_surf, (x_pos + label_surf.get_width() + 10, y_offset))
+        y_offset += 25
 
     def _draw_discogs_info_column(self, screen):
         # Column 2: Discogs Data
@@ -404,31 +406,52 @@ class FileDisplay:
 
         # Details below thumbnail
         y_offset = 320
-        
+        x_pos = 475 # Starting x-position for text
+
         # Result Counter
         if self.discogs_results:
             result_count_text = f"Result: {self.discogs_result_index + 1} of {len(self.discogs_results)}"
-            result_count_surf = self.font_data.render(result_count_text, True, (200, 200, 200))
-            screen.blit(result_count_surf, (475, y_offset))
-            y_offset += 30
+            result_count_surf = self.font_id3_data.render(result_count_text, True, (200, 200, 200))
+            screen.blit(result_count_surf, (x_pos, y_offset))
+            y_offset += 25
         
         # Artist
-        artist_label = self.font_label.render("Discogs Artist:", True, (200, 200, 200))
-        screen.blit(artist_label, (475, y_offset))
-        self._draw_match_indicator(450, y_offset + 5, self.artist_match, self.artist_case_mismatch)
-        y_offset += 30
-        artist_surf = self.font_data.render(self.discogs_artist, True, (255, 255, 255))
-        screen.blit(artist_surf, (475, y_offset))
-        y_offset += 50
-
+        label_surf = self.font_id3_data.render("Discogs Artist:", True, (200, 200, 200))
+        screen.blit(label_surf, (x_pos, y_offset))
+        self._draw_match_indicator(x_pos - 25, y_offset + 5, self.artist_match, self.artist_case_mismatch) # Adjust indicator x
+        artist_surf = self.font_id3_data.render(self.discogs_artist, True, (255, 255, 255))
+        screen.blit(artist_surf, (x_pos + label_surf.get_width() + 10, y_offset))
+        y_offset += 25
         
-        genres_text = ", ".join(self.genres) if self.genres else "N/A"
-        genre_surf = self.font_data.render(f"Genre: {genres_text}", True, (255, 255, 255))
-        screen.blit(genre_surf, (475, y_offset))
-        y_offset += 30
+        # Title
+        label_surf = self.font_id3_data.render("Discogs Title:", True, (200, 200, 200))
+        screen.blit(label_surf, (x_pos, y_offset))
+        self._draw_match_indicator(x_pos - 25, y_offset + 5, self.title_match, self.title_case_mismatch) # Adjust indicator x
+        title_surf = self.font_id3_data.render(self.discogs_title, True, (255, 255, 255))
+        screen.blit(title_surf, (x_pos + label_surf.get_width() + 10, y_offset))
+        y_offset += 25
 
-        length_surf = self.font_data.render(f"Length: {self.song_length}", True, (255, 255, 255))
-        screen.blit(length_surf, (475, y_offset))
+        # Year
+        label_surf = self.font_id3_data.render("Year:", True, (200, 200, 200))
+        screen.blit(label_surf, (x_pos, y_offset))
+        year_surf = self.font_id3_data.render(self.year, True, (255, 255, 255))
+        screen.blit(year_surf, (x_pos + label_surf.get_width() + 10, y_offset))
+        y_offset += 25
+        
+        # Genre
+        label_surf = self.font_id3_data.render("Genre:", True, (200, 200, 200))
+        screen.blit(label_surf, (x_pos, y_offset))
+        genres_text = ", ".join(self.genres) if self.genres else "N/A"
+        genre_surf = self.font_id3_data.render(genres_text, True, (255, 255, 255))
+        screen.blit(genre_surf, (x_pos + label_surf.get_width() + 10, y_offset))
+        y_offset += 25
+
+        # Length
+        label_surf = self.font_id3_data.render("Length:", True, (200, 200, 200))
+        screen.blit(label_surf, (x_pos, y_offset))
+        length_surf = self.font_id3_data.render(self.song_length, True, (255, 255, 255))
+        screen.blit(length_surf, (x_pos + label_surf.get_width() + 10, y_offset))
+        y_offset += 25 # Final increment for the last item
 
     def _draw_mutagen_info_column(self, screen):
         # Column 3: ID3 Tag Data

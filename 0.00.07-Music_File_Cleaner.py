@@ -925,12 +925,16 @@ def main():
                 action, data = file_display.handle_event(event)
                 if action:
                     if action == "continue":
-                        current_file_index = (current_file_index + 1) % len(music_files)
+                        app_state = "loading_next_file"
                         file_display = None
                     elif action == "view_full_screen_image":
                         full_screen_viewer = FullScreenImageViewer(screen, data)
                         app_state = "full_screen_image"
             
+            elif app_state == "loading_next_file":
+                # This state is now managed within the main loop drawing section
+                pass
+
             elif app_state == "input":
                 # ... (existing input state logic is correct)
                 pass # This block is unchanged but shown for context
@@ -966,6 +970,15 @@ def main():
         if app_state == "file_display":
             if file_display:
                 file_display.draw(screen)
+
+        elif app_state == "loading_next_file":
+            current_file_index = (current_file_index + 1) % len(music_files)
+            searching_text = FONT.render("Searching...", True, (255, 255, 255))
+            text_rect = searching_text.get_rect(center=screen.get_rect().center)
+            screen.blit(searching_text, text_rect)
+            pygame.display.flip()
+            app_state = "file_display"
+            continue
 
         elif app_state == "input":
             for widget in focusable_widgets_input:

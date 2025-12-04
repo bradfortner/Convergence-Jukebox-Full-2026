@@ -9,7 +9,7 @@ Allows updating artwork by selecting an image and embedding it at 1000x1000
 import os
 import pygame
 from mutagen import File
-from mutagen.id3 import ID3, APIC
+from mutagen.id3 import ID3, APIC, TIT2, TPE1, TALB, TCON, TDRC
 from mutagen.flac import FLAC, Picture
 from mutagen.mp4 import MP4, MP4Cover
 from mutagen.mp3 import MP3
@@ -234,6 +234,141 @@ def select_image_file():
     return file_path if file_path else None
 
 
+def get_audio_metadata(file_path):
+    """
+    Extracts common metadata from various audio file types.
+    Returns a dictionary with normalized keys.
+    """
+    metadata = {
+        'title': 'Unknown',
+        'artist': 'Unknown',
+        'album': 'Unknown',
+        'genre': 'Unknown',
+        'year': 'Unknown',
+        'length': 'Unknown',
+        'bitrate': 'Unknown',
+        'sample_rate': 'Unknown'
+    }
+
+    try:
+        audio = File(file_path)
+
+        if audio is None:
+            return metadata
+
+        # General metadata extraction for MP3/ID3
+        if isinstance(audio, (MP3, ID3)):
+            if audio.tags:
+                metadata['title'] = str(audio.tags.get('TIT2', ['Unknown'])[0]) if audio.tags.get('TIT2') else 'Unknown'
+                metadata['artist'] = str(audio.tags.get('TPE1', ['Unknown'])[0]) if audio.tags.get('TPE1') else 'Unknown'
+                metadata['album'] = str(audio.tags.get('TALB', ['Unknown'])[0]) if audio.tags.get('TALB') else 'Unknown'
+                metadata['genre'] = str(audio.tags.get('TCON', ['Unknown'])[0]) if audio.tags.get('TCON') else 'Unknown'
+                metadata['year'] = str(audio.tags.get('TDRC', ['Unknown'])[0]) if audio.tags.get('TDRC') else 'Unknown'
+        
+        # General metadata extraction for FLAC
+        elif isinstance(audio, FLAC):
+            if audio.tags:
+                metadata['title'] = str(audio.tags.get('title', ['Unknown'])[0]) if audio.tags.get('title') else 'Unknown'
+                metadata['artist'] = str(audio.tags.get('artist', ['Unknown'])[0]) if audio.tags.get('artist') else 'Unknown'
+                metadata['album'] = str(audio.tags.get('album', ['Unknown'])[0]) if audio.tags.get('album') else 'Unknown'
+                metadata['genre'] = str(audio.tags.get('genre', ['Unknown'])[0]) if audio.tags.get('genre') else 'Unknown'
+                metadata['year'] = str(audio.tags.get('date', ['Unknown'])[0]) if audio.tags.get('date') else 'Unknown'
+        
+        # General metadata extraction for MP4/M4A
+        elif isinstance(audio, MP4):
+            if audio.tags:
+                metadata['title'] = str(audio.tags.get('\xa9nam', ['Unknown'])[0]) if audio.tags.get('\xa9nam') else 'Unknown'
+                metadata['artist'] = str(audio.tags.get('\xa9ART', ['Unknown'])[0]) if audio.tags.get('\xa9ART') else 'Unknown'
+                metadata['album'] = str(audio.tags.get('\xa9alb', ['Unknown'])[0]) if audio.tags.get('\xa9alb') else 'Unknown'
+                metadata['genre'] = str(audio.tags.get('\xa9gen', ['Unknown'])[0]) if audio.tags.get('\xa9gen') else 'Unknown'
+                metadata['year'] = str(audio.tags.get('\xa9day', ['Unknown'])[0]) if audio.tags.get('\xa9day') else 'Unknown'
+
+        # Audio info (length, bitrate, sample rate)
+        if hasattr(audio, 'info'):
+            if audio.info.length:
+                metadata['length'] = f"{audio.info.length:.2f} seconds ({audio.info.length/60:.2f} minutes)"
+            if hasattr(audio.info, 'bitrate') and audio.info.bitrate:
+                metadata['bitrate'] = f"{audio.info.bitrate/1000:.0f} kbps"
+            if hasattr(audio.info, 'sample_rate') and audio.info.sample_rate:
+                metadata['sample_rate'] = f"{audio.info.sample_rate} Hz"
+
+    except Exception as e:
+        print(f"Error extracting metadata from {file_path}: {e}")
+
+    return metadata
+
+
+def set_audio_metadata(file_path, metadata):
+    """
+    Updates metadata for various audio file types.
+    """
+    try:
+        audio = File(file_path)
+
+        if audio is None:
+            print(f"✗ Could not open file: {file_path}")
+            return False
+
+        file_ext = os.path.splitext(file_path)[1].lower()
+
+        if file_ext == '.mp3':
+            # Add tags if they don't exist
+            if not audio.tags:
+                audio.add_tags()
+            
+            # Update MP3 tags
+            if 'title' in metadata:
+                audio.tags['TIT2'] = TIT2(encoding=3, text=metadata['title'])
+            if 'artist' in metadata:
+                audio.tags['TPE1'] = TPE1(encoding=3, text=metadata['artist'])
+            if 'album' in metadata:
+                audio.tags['TALB'] = TALB(encoding=3, text=metadata['album'])
+            if 'genre' in metadata:
+                audio.tags['TCON'] = TCON(encoding=3, text=metadata['genre'])
+            if 'year' in metadata:
+                audio.tags['TDRC'] = TDRC(encoding=3, text=str(metadata['year']))
+
+        elif file_ext == '.flac':
+            # Update FLAC tags (Vorbis comments)
+            if 'title' in metadata:
+                audio['title'] = metadata['title']
+            if 'artist' in metadata:
+                audio['artist'] = metadata['artist']
+            if 'album' in metadata:
+                audio['album'] = metadata['album']
+            if 'genre' in metadata:
+                audio['genre'] = metadata['genre']
+            if 'year' in metadata:
+                audio['date'] = str(metadata['year'])
+
+        elif file_ext in ['.m4a', '.mp4']:
+            # Update MP4 tags
+            if 'title' in metadata:
+                audio.tags['\xa9nam'] = metadata['title']
+            if 'artist' in metadata:
+                audio.tags['\xa9ART'] = metadata['artist']
+            if 'album' in metadata:
+                audio.tags['\xa9alb'] = metadata['album']
+            if 'genre' in metadata:
+                audio.tags['\xa9gen'] = metadata['genre']
+            if 'year' in metadata:
+                audio.tags['\xa9day'] = str(metadata['year'])
+        
+        else:
+            print(f"✗ Unsupported file type for metadata update: {file_ext}")
+            return False
+        
+        audio.save()
+        print(f"✓ Metadata updated for: {os.path.basename(file_path)}")
+        return True
+
+    except Exception as e:
+        print(f"✗ Error updating metadata for {file_path}: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 def display_with_pygame(file_path, audio, artwork_filename, file_index):
     """
     Display artwork and metadata in a pygame window with a button to change artwork
@@ -277,27 +412,7 @@ def display_with_pygame(file_path, audio, artwork_filename, file_index):
                 print(f"Error loading artwork with pygame: {e}")
 
         # Extract metadata
-        metadata = {}
-        if current_audio.tags:
-            metadata['title'] = str(current_audio.get('TIT2', current_audio.get('title', ['Unknown']))[0] if isinstance(current_audio.get('TIT2', current_audio.get('title', ['Unknown'])), list) else current_audio.get('TIT2', current_audio.get('title', 'Unknown')))
-            metadata['artist'] = str(current_audio.get('TPE1', current_audio.get('artist', ['Unknown']))[0] if isinstance(current_audio.get('TPE1', current_audio.get('artist', ['Unknown'])), list) else current_audio.get('TPE1', current_audio.get('artist', 'Unknown')))
-            metadata['album'] = str(current_audio.get('TALB', current_audio.get('album', ['Unknown']))[0] if isinstance(current_audio.get('TALB', current_audio.get('album', ['Unknown'])), list) else current_audio.get('TALB', current_audio.get('album', 'Unknown')))
-            metadata['genre'] = str(current_audio.get('TCON', current_audio.get('genre', ['Unknown']))[0] if isinstance(current_audio.get('TCON', current_audio.get('genre', ['Unknown'])), list) else current_audio.get('TCON', current_audio.get('genre', 'Unknown')))
-            metadata['year'] = str(current_audio.get('TDRC', current_audio.get('date', ['Unknown']))[0] if isinstance(current_audio.get('TDRC', current_audio.get('date', ['Unknown'])), list) else current_audio.get('TDRC', current_audio.get('date', 'Unknown')))
-        else:
-            metadata['title'] = 'Unknown'
-            metadata['artist'] = 'Unknown'
-            metadata['album'] = 'Unknown'
-            metadata['genre'] = 'Unknown'
-            metadata['year'] = 'Unknown'
-
-        # Audio info
-        if hasattr(current_audio, 'info'):
-            metadata['length'] = f"{current_audio.info.length:.2f} seconds ({current_audio.info.length/60:.2f} minutes)"
-            if hasattr(current_audio.info, 'bitrate'):
-                metadata['bitrate'] = f"{current_audio.info.bitrate/1000:.0f} kbps"
-            if hasattr(current_audio.info, 'sample_rate'):
-                metadata['sample_rate'] = f"{current_audio.info.sample_rate} Hz"
+        metadata = get_audio_metadata(file_path)
 
         return artwork_surface, metadata
 
@@ -324,6 +439,20 @@ def display_with_pygame(file_path, audio, artwork_filename, file_index):
                     return "next"  # Continue to next file
                 elif event.key == pygame.K_LEFT or event.key == pygame.K_UP:
                     return "prev"  # Go to previous file
+                elif event.key == pygame.K_u:
+                    print("\nUpdating metadata (test)...")
+                    test_metadata = {
+                        'title': 'Test Title',
+                        'artist': 'Test Artist',
+                        'album': 'Test Album',
+                        'genre': 'Test Genre',
+                        'year': '2025'
+                    }
+                    if set_audio_metadata(file_path, test_metadata):
+                        print("✓ Metadata updated successfully for testing!")
+                        artwork_surface, metadata = load_and_display()
+                    else:
+                        print("✗ Failed to update metadata for testing.")
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if button_rect.collidepoint(event.pos):
                     # Button clicked - open file dialog

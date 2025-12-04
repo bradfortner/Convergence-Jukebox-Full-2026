@@ -140,6 +140,7 @@ class FileDisplay:
         self.font_header = pygame.font.Font(None, 32)
         self.font_label = pygame.font.Font(None, 28)
         self.font_data = pygame.font.Font(None, 26)
+        self.font_id3_data = pygame.font.Font(None, 20)
         
         button_y_start = 620
         self.next_discogs_file_button = Button(screen.get_width() / 2 - 110, button_y_start, 220, 32, "Next Discogs File")
@@ -470,7 +471,7 @@ class FileDisplay:
             if len(tag_text) > 35: # Truncate long text
                 tag_text = tag_text[:32] + '...'
             
-            data_surf = self.font_data.render(tag_text, True, (255, 255, 255))
+            data_surf = self.font_id3_data.render(tag_text, True, (255, 255, 255))
             screen.blit(data_surf, (x_pos, y_offset))
             y_offset += 40
 

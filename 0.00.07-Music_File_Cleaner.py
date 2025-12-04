@@ -465,15 +465,15 @@ class FileDisplay:
         for label, key in tags_to_draw:
             label_surf = self.font_id3_data.render(label, True, (200, 200, 200))
             screen.blit(label_surf, (x_pos, y_offset))
-            y_offset += 30
 
             tag_text = str(self.mutagen_tags.get(key, 'N/A')) # Ensure text is string
-            if len(tag_text) > 35: # Truncate long text
-                tag_text = tag_text[:32] + '...'
+            if len(tag_text) > 30: # Truncate long text, adjusted for smaller font and side-by-side
+                tag_text = tag_text[:27] + '...'
             
             data_surf = self.font_id3_data.render(tag_text, True, (255, 255, 255))
-            screen.blit(data_surf, (x_pos, y_offset))
-            y_offset += 40
+            # Place data next to the label, with a small gap
+            screen.blit(data_surf, (x_pos + label_surf.get_width() + 10, y_offset))
+            y_offset += 25 # Smaller increment for each line
 
     def _draw_buttons(self, screen):
         # Buttons at the bottom

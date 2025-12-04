@@ -463,7 +463,7 @@ class FileDisplay:
         ]
 
         for label, key in tags_to_draw:
-            label_surf = self.font_label.render(label, True, (200, 200, 200))
+            label_surf = self.font_id3_data.render(label, True, (200, 200, 200))
             screen.blit(label_surf, (x_pos, y_offset))
             y_offset += 30
 

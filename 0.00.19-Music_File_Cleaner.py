@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='pkg_resources')
+
 import pygame
 import discogs_client
 import jukebox_config
@@ -871,6 +874,7 @@ class ResultViewer:
         self.focusable_widgets = [self.back_button, self.use_label_checkbox]
         self.focused_index = 0
         self.focusable_widgets[self.focused_index].focused = True
+        self.should_save_label = False
 
     def _save_label_image(self):
         if not self.image_surface:
@@ -900,7 +904,7 @@ class ResultViewer:
 
         # Check if the checkbox was just toggled to checked
         if self.use_label_checkbox.checked and not was_checked_before:
-            self._save_label_image()
+            self.should_save_label = True
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_TAB:
@@ -1093,9 +1097,114 @@ def main():
             if full_screen_viewer:
                 full_screen_viewer.draw()
         
-        elif app_state == "result_display":
-            if result_viewer:
-                result_viewer.draw()
+            elif app_state == "result_display":
+                if result_viewer:
+                    action = result_viewer.handle_event(event)
+                    if action == "back_to_full_screen":
+                        app_state = "full_screen_image"
+                        result_viewer = None
+
+            # --- Drawing and State Logic ---
+            screen.fill((30, 30, 30))
+
+            if app_state == "searching_music_file":
+                if search_thread is None:
+                    if current_file_index >= len(music_files):
+                        print("Finished all files.")
+                        done = True
+                    else:
+                        def search_worker(music_file):
+                            fetched_data = {'mutagen_tags': {}, 'discogs_results': [], 'full_release': None, 'mutagen_image_data': None, 'label_image_data': None}
+                            try:
+                                audio = mutagen.File(os.path.join('music', music_file))
+                                if audio is None: raise ValueError("Could not load audio file")
+                                
+                                tags = {}
+                                tags['time'] = str(datetime.timedelta(seconds=int(audio.info.length)))
+                                def get_tag_text(tag_key, default='N/A'):
+                                    return audio.get(tag_key, [default])[0] if hasattr(audio.get(tag_key), 'text') else default
+                                
+                                tags['artist'] = get_tag_text('TPE1')
+                                tags['title'] = get_tag_text('TIT2')
+                                tags['album'] = get_tag_text('TALB')
+                                tags['genre'] = get_tag_text('TCON')
+                                tags['comment'] = get_tag_text('COMM::eng', get_tag_text('COMM'))
+                                fetched_data['mutagen_tags'] = tags
+
+                                for key in audio.keys():
+                                    if key.startswith('APIC'):
+                                        fetched_data['mutagen_image_data'] = audio[key].data
+                                        break
+                            except Exception as e:
+                                print(f"Error reading mutagen data for {music_file}: {e}")
+
+                            try:
+                                artist, title = music_file.replace('.mp3', '').rsplit(' - ', 1)
+                            except ValueError:
+                                artist, title = "Unknown Artist", music_file.replace('.mp3', '')
+                            
+                            results = search_discogs(f"{artist} - {title}")
+                            fetched_data['discogs_results'] = results
+
+                            if results:
+                                try:
+                                    release = d.release(results[0].id)
+                                    fetched_data['full_release'] = release
+                                    if release.images:
+                                        img_response = requests.get(release.images[0]['uri'], headers={'User-Agent': 'YourApp/1.0'})
+                                        img_response.raise_for_status()
+                                        fetched_data['label_image_data'] = img_response.content
+                                except Exception as e:
+                                    print(f"Error fetching full release or image: {e}")
+                            
+                            search_result['data'] = fetched_data
+
+
+                        current_file = music_files[current_file_index]
+                        search_result.clear()
+                        search_thread = threading.Thread(target=search_worker, args=(current_file,))
+                        search_thread.start()
+
+                # Draw "Searching..." text while the thread is running
+                searching_text = FONT.render("Searching...", True, (255, 255, 255))
+                text_rect = searching_text.get_rect(center=screen.get_rect().center)
+                screen.blit(searching_text, text_rect)
+
+                # If the thread is finished, process the result
+                if search_thread is not None and not search_thread.is_alive():
+                    fetched_data = search_result.get('data')
+                    search_thread = None
+
+                    if fetched_data and fetched_data.get('discogs_results'):
+                        try:
+                            artist, title = music_files[current_file_index].replace('.mp3', '').rsplit(' - ', 1)
+                        except ValueError:
+                            artist, title = "Unknown Artist", music_files[current_file_index].replace('.mp3', '')
+                        
+                        file_display = FileDisplay(screen, music_files[current_file_index], artist, title, fetched_data)
+                        app_state = "file_display"
+                    else:
+                        print(f"No Discogs results for {music_files[current_file_index]}, skipping.")
+                        current_file_index += 1
+                        file_display = None
+                        # Stay in the searching state to start the next search automatically
+            
+            elif app_state == "file_display":
+                if file_display:
+                    file_display.draw(screen)
+
+            elif app_state == "full_screen_image":
+                if full_screen_viewer:
+                    full_screen_viewer.draw()
+            
+            elif app_state == "result_display":
+                if result_viewer:
+                    result_viewer.draw()
+                    # After drawing the frame, check if a save operation is pending
+                    if result_viewer.should_save_label:
+                        result_viewer._save_label_image()
+                        result_viewer.should_save_label = False # Reset the flag
+            
 
         pygame.display.flip()
 

@@ -434,7 +434,7 @@ class FileDisplay:
         # Year
         label_surf = self.font_id3_data.render("Year:", True, (200, 200, 200))
         screen.blit(label_surf, (x_pos, y_offset))
-        year_surf = self.font_id3_data.render(self.year, True, (255, 255, 255))
+        year_surf = self.font_id3_data.render(str(self.year), True, (255, 255, 255))
         screen.blit(year_surf, (x_pos + label_surf.get_width() + 10, y_offset))
         y_offset += 25
         

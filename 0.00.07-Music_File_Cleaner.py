@@ -878,6 +878,12 @@ def main():
                 artist, title = "Unknown Artist", current_file.replace('.mp3', '')
             file_display = FileDisplay(screen, current_file, artist, title)
 
+            if not file_display.discogs_results:
+                print(f"No Discogs results for {current_file}, skipping.")
+                current_file_index = (current_file_index + 1) % len(music_files)
+                file_display = None
+                continue
+
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:

@@ -220,7 +220,16 @@ class FileDisplay:
 
     def _fetch_discogs_data(self):
         search_query = f"{self.artist} - {self.title}"
-        self.discogs_results = search_discogs(search_query)
+        search_results = search_discogs(search_query)
+        
+        full_releases = []
+        for result in search_results:
+            try:
+                full_releases.append(d.release(result.id))
+            except Exception as e:
+                print(f"Error fetching full details for release {result.id}: {e}")
+
+        self.discogs_results = full_releases
         self.discogs_result_index = 0
         self._update_with_current_discogs_result()
 
@@ -239,50 +248,40 @@ class FileDisplay:
         self.label_image_surface = None
 
         if self.discogs_results and self.discogs_result_index < len(self.discogs_results):
-            try:
-                current_result = self.discogs_results[self.discogs_result_index]
-                self.full_release = d.release(current_result.id)
-                if self.full_release.artists:
-                    self.discogs_artist = self.full_release.artists[0].name
-                self.discogs_title = self.full_release.title
-                self.year = getattr(self.full_release, 'year', 'N/A')
-                self.song_length, self.genres = self._get_song_length_and_genres()
+            self.full_release = self.discogs_results[self.discogs_result_index]
+            
+            if self.full_release.artists:
+                self.discogs_artist = self.full_release.artists[0].name
+            self.discogs_title = self.full_release.title
+            self.year = getattr(self.full_release, 'year', 'N/A')
+            self.song_length, self.genres = self._get_song_length_and_genres()
 
-                cleaned_artist_filename = self._clean_string(self.artist)
-                cleaned_artist_discogs = self._clean_string(self.discogs_artist)
-                cleaned_title_filename = self._clean_string(self.title)
-                cleaned_title_discogs = self._clean_string(self.discogs_title)
+            cleaned_artist_filename = self._clean_string(self.artist)
+            cleaned_artist_discogs = self._clean_string(self.discogs_artist)
+            cleaned_title_filename = self._clean_string(self.title)
+            cleaned_title_discogs = self._clean_string(self.discogs_title)
 
-                self.artist_match = cleaned_artist_filename.lower() == cleaned_artist_discogs.lower()
-                self.title_match = cleaned_title_filename.lower() == cleaned_title_discogs.lower()
+            self.artist_match = cleaned_artist_filename.lower() == cleaned_artist_discogs.lower()
+            self.title_match = cleaned_title_filename.lower() == cleaned_title_discogs.lower()
 
-                if self.artist_match and cleaned_artist_filename != cleaned_artist_discogs:
-                    self.artist_case_mismatch = True
+            if self.artist_match and cleaned_artist_filename != cleaned_artist_discogs:
+                self.artist_case_mismatch = True
 
-                if self.title_match and cleaned_title_filename != cleaned_title_discogs:
-                    self.title_case_mismatch = True
+            if self.title_match and cleaned_title_filename != cleaned_title_discogs:
+                self.title_case_mismatch = True
 
-                # Fetch release image (which should be the label for a 45rpm)
-                if self.full_release.images:
-                    image_url = self.full_release.images[0]['uri']
-                    try:
-                        headers = {'User-Agent': 'YourApp/1.0'}
-                        response = requests.get(image_url, headers=headers)
-                        response.raise_for_status()
-                        image_data = response.content
-                        image_file = io.BytesIO(image_data)
-                        self.label_image_surface = pygame.image.load(image_file)
-                    except Exception as e:
-                        print(f"Error loading release image: {e}")
-            except Exception as e:
-                print(f"Error fetching full release details from Discogs: {e}")
-                # We can choose to skip this result or just show N/A
-                self.discogs_results.pop(self.discogs_result_index)
-                # Ensure index is not out of bounds after popping
-                if self.discogs_result_index >= len(self.discogs_results):
-                    self.discogs_result_index = 0
-                self._update_with_current_discogs_result() # Recursive call to try the next item
-
+            # Fetch release image (which should be the label for a 45rpm)
+            if self.full_release.images:
+                image_url = self.full_release.images[0]['uri']
+                try:
+                    headers = {'User-Agent': 'YourApp/1.0'}
+                    response = requests.get(image_url, headers=headers)
+                    response.raise_for_status()
+                    image_data = response.content
+                    image_file = io.BytesIO(image_data)
+                    self.label_image_surface = pygame.image.load(image_file)
+                except Exception as e:
+                    print(f"Error loading release image: {e}")
 
     def _display_searching_state(self):
         self.is_fetching_discogs_data = True
@@ -339,7 +338,6 @@ class FileDisplay:
                 elif focused_widget == self.next_discogs_file_button:
                     if self.discogs_results:
                         self.discogs_result_index = (self.discogs_result_index + 1) % len(self.discogs_results)
-                        self._display_searching_state()
                         self._update_with_current_discogs_result()
                         self.is_fetching_discogs_data = False
 
@@ -353,7 +351,6 @@ class FileDisplay:
             if self.next_discogs_file_button.rect.collidepoint(event.pos):
                 if self.discogs_results:
                     self.discogs_result_index = (self.discogs_result_index + 1) % len(self.discogs_results)
-                    self._display_searching_state()
                     self._update_with_current_discogs_result()
                     self.is_fetching_discogs_data = False
         return None, None

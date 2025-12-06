@@ -405,9 +405,20 @@ class FileDisplay:
                 elif focused_widget == self.next_discogs_file_button:
                     self._update_with_current_discogs_result()
                 elif focused_widget == self.update_data_only_button:
-                    # TODO: Implement update data only functionality
-                    print("Update Data Only button pressed")
-                    return None, None
+                    # Show confirmation screen without image
+                    data_bundle = {
+                        'data_bundle': {
+                            'mutagen_tags': self.mutagen_tags,
+                            'discogs_artist': self.discogs_artist,
+                            'discogs_title': self.discogs_title,
+                            'discogs_year': self.year,
+                            'discogs_genres': self.genres,
+                            'artist_match': self.artist_match,
+                            'title_match': self.title_match,
+                            'year_match': self.year_match
+                        }
+                    }
+                    return "show_confirmation_no_image", data_bundle
                 elif focused_widget == self.update_data_use_id3_button:
                     # Same as clicking the ID3 image - show full screen mutagen image
                     if self.mutagen_image_surface:
@@ -459,9 +470,20 @@ class FileDisplay:
             if self.next_discogs_file_button.rect.collidepoint(event.pos):
                 self._update_with_current_discogs_result()
             if self.update_data_only_button.rect.collidepoint(event.pos):
-                # TODO: Implement update data only functionality
-                print("Update Data Only button pressed")
-                return None, None
+                # Show confirmation screen without image
+                data_bundle = {
+                    'data_bundle': {
+                        'mutagen_tags': self.mutagen_tags,
+                        'discogs_artist': self.discogs_artist,
+                        'discogs_title': self.discogs_title,
+                        'discogs_year': self.year,
+                        'discogs_genres': self.genres,
+                        'artist_match': self.artist_match,
+                        'title_match': self.title_match,
+                        'year_match': self.year_match
+                    }
+                }
+                return "show_confirmation_no_image", data_bundle
             if self.update_data_use_id3_button.rect.collidepoint(event.pos):
                 # Same as clicking the ID3 image - show full screen mutagen image
                 if self.mutagen_image_surface:
@@ -1039,10 +1061,11 @@ class ResultViewer:
 
 
 class ConfirmationScreen:
-    def __init__(self, screen, confirmation_data):
+    def __init__(self, screen, confirmation_data, show_image=True):
         self.screen = screen
-        self.label_image = confirmation_data['label_image']
+        self.label_image = confirmation_data.get('label_image') if show_image else None
         self.data_bundle = confirmation_data['data_bundle']
+        self.show_image = show_image
 
         # Process and sanitize data
         self.title = self._get_title()
@@ -1137,12 +1160,19 @@ class ConfirmationScreen:
         return ", ".join(genres) if genres else "N/A"
 
     def _get_comment(self):
-        """Use ID3 comment + ' image'"""
+        """Use ID3 comment + ' image' (only if show_image is True)"""
         comment = self.data_bundle['mutagen_tags'].get('comment', '')
-        if comment and comment != 'N/A' and comment.strip():
-            return comment + " image"
+        if self.show_image:
+            if comment and comment != 'N/A' and comment.strip():
+                return comment + " image"
+            else:
+                return "image"
         else:
-            return "image"
+            # No image mode - return comment as-is
+            if comment and comment != 'N/A' and comment.strip():
+                return comment
+            else:
+                return "N/A"
 
     def handle_event(self, event):
         # Store checkbox states before handling event
@@ -1203,7 +1233,7 @@ class ConfirmationScreen:
             focused_widget = self.focusable_widgets[self.focused_index]
             if event.key in (pygame.K_RETURN, pygame.K_ESCAPE):
                 if focused_widget == self.back_button or event.key == pygame.K_ESCAPE:
-                    return "back_to_result"
+                    return "back_to_file_display" if not self.show_image else "back_to_result"
                 elif focused_widget == self.write_to_file_button:
                     # Show confirmation buttons
                     self.show_confirmation_buttons = True
@@ -1211,7 +1241,7 @@ class ConfirmationScreen:
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.back_button.rect.collidepoint(event.pos):
-                return "back_to_result"
+                return "back_to_file_display" if not self.show_image else "back_to_result"
             if self.write_to_file_button.rect.collidepoint(event.pos):
                 # Show confirmation buttons
                 self.show_confirmation_buttons = True
@@ -1254,8 +1284,8 @@ class ConfirmationScreen:
         return None
 
     def draw(self):
-        # Draw label image centered at top
-        if self.label_image:
+        # Draw label image centered at top (only if show_image is True)
+        if self.show_image and self.label_image:
             scaled_image = pygame.transform.scale(self.label_image, (400, 400))
             image_x = (self.screen.get_width() - 400) // 2
             self.screen.blit(scaled_image, (image_x, 60))
@@ -1362,6 +1392,9 @@ def main():
                 elif action == "view_full_screen_image":
                     full_screen_viewer = FullScreenImageViewer(screen, data)
                     app_state = "full_screen_image"
+                elif action == "show_confirmation_no_image":
+                    confirmation_screen = ConfirmationScreen(screen, data, show_image=False)
+                    app_state = "confirmation"
 
             elif app_state == "full_screen_image" and full_screen_viewer:
                 action, data = full_screen_viewer.handle_event(event)
@@ -1387,6 +1420,9 @@ def main():
                 action = confirmation_screen.handle_event(event)
                 if action == "back_to_result":
                     app_state = "result_display"
+                    confirmation_screen = None
+                elif action == "back_to_file_display":
+                    app_state = "file_display"
                     confirmation_screen = None
 
         # --- Update Logic ---

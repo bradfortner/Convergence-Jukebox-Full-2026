@@ -194,11 +194,11 @@ class FileDisplay:
         self.font_id3_label = pygame.font.Font(None, 22)
         self.font_id3_data = pygame.font.Font(None, 22)
 
-        button_y_start = 570
+        button_y_start = 560
         self.update_data_only_button = Button(screen.get_width() / 2 - 110, button_y_start, 220, 32, "Update Data Only")
-        self.update_data_use_id3_button = Button(screen.get_width() / 2 - 110, button_y_start + 40, 220, 32, "Update Data And Use ID3 Image")
-        self.next_discogs_file_button = Button(screen.get_width() / 2 - 110, button_y_start + 90, 220, 32, "Next Discogs File")
-        self.next_music_file_button = Button(screen.get_width() / 2 - 110, button_y_start + 130, 220, 32, "Next Music File")
+        self.update_data_use_id3_button = Button(screen.get_width() / 2 - 110, button_y_start + 38, 220, 32, "Update Data And Use ID3 Image")
+        self.next_discogs_file_button = Button(screen.get_width() / 2 - 110, button_y_start + 76, 220, 32, "Next Discogs File")
+        self.next_music_file_button = Button(screen.get_width() / 2 - 110, button_y_start + 114, 220, 32, "Next Music File")
         self.focusable_widgets = [self.update_data_only_button, self.update_data_use_id3_button, self.next_discogs_file_button, self.next_music_file_button]
         self.focused_index = 0
         self.focusable_widgets[self.focused_index].focused = True

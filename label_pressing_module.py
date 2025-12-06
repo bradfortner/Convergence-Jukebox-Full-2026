@@ -39,13 +39,19 @@ def combine_pngs(background_path, overlay_path, output_path='final_record.png', 
         # Resize background to target size
         background = background.resize(size, Image.Resampling.LANCZOS)
 
-        # Resize overlay to match background (or keep proportional)
-        overlay = overlay.resize(size, Image.Resampling.LANCZOS)
+        # Keep overlay at its original size (DO NOT resize to match background)
+        # This makes the adapter appear bigger
 
-        # Create new image and paste layers
+        # Create final image at target size
         final_image = Image.new('RGBA', size, (0, 0, 0, 0))
+
+        # Paste background
         final_image.paste(background, (0, 0), background)
-        final_image.paste(overlay, (0, 0), overlay)
+
+        # Center the overlay on top (it will be bigger and extend beyond edges)
+        overlay_x = (size[0] - overlay.width) // 2
+        overlay_y = (size[1] - overlay.height) // 2
+        final_image.paste(overlay, (overlay_x, overlay_y), overlay)
 
         # Save result
         final_image.save(output_path, 'PNG')

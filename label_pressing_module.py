@@ -49,7 +49,7 @@ def combine_pngs(background_path, overlay_path, output_path='final_record.png', 
         final_image.paste(background, (0, 0), background)
 
         # Center the overlay on top (it will be bigger and extend beyond edges)
-        overlay_x = (size[0] - overlay.width) // 2
+        overlay_x = (size[0] - overlay.width) // 2 + 3  # +3 pixels horizontal offset
         overlay_y = (size[1] - overlay.height) // 2
         final_image.paste(overlay, (overlay_x, overlay_y), overlay)
 

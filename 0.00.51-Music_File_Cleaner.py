@@ -868,8 +868,7 @@ class FullScreenImageViewer:
         self.image_surface = data_bundle['image_surface']
         self.back_button = Button(10, 10, 100, 32, "Back")
         self.create_label_button = Button(screen.get_width() - 150, 10, 140, 32, "Create Label")
-        self.debug_button = Button(screen.get_width() - 300, 10, 140, 32, "Debug")
-        self.focusable_widgets = [self.back_button, self.create_label_button, self.debug_button]
+        self.focusable_widgets = [self.back_button, self.create_label_button]
         self.focused_index = 0
         self.focusable_widgets[self.focused_index].focused = True
 
@@ -889,20 +888,12 @@ class FullScreenImageViewer:
                     processed_image = extract_label(self.image_surface)
                     result_data = {'label_image': processed_image, 'data_bundle': self.data_bundle}
                     return "show_result", result_data
-                elif focused_widget == self.debug_button:
-                    processed_image = extract_label(self.image_surface, debug=True)
-                    result_data = {'label_image': processed_image, 'data_bundle': self.data_bundle}
-                    return "show_result", result_data
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.back_button.rect.collidepoint(event.pos):
                 return "back_to_file_display", None
             if self.create_label_button.rect.collidepoint(event.pos):
                 processed_image = extract_label(self.image_surface)
-                result_data = {'label_image': processed_image, 'data_bundle': self.data_bundle}
-                return "show_result", result_data
-            if self.debug_button.rect.collidepoint(event.pos):
-                processed_image = extract_label(self.image_surface, debug=True)
                 result_data = {'label_image': processed_image, 'data_bundle': self.data_bundle}
                 return "show_result", result_data
         return None, None

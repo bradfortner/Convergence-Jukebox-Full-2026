@@ -1009,6 +1009,11 @@ class ResultViewer:
                 print("No image to save.")
                 return None
             else:
+                # Force immediate visual update to show the checkbox checked
+                self.screen.fill((30, 30, 30))
+                self.draw()
+                pygame.display.flip()
+
                 # Do pygame operations in main thread to avoid surface locking issues
                 resized_surface = pygame.transform.scale(self.image_surface, (1000, 1000))
                 # Only file I/O runs in background thread

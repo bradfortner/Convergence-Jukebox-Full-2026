@@ -7,6 +7,8 @@ ensuring the same song always displays with the same record label regardless
 of which popup module displays it.
 """
 import random
+import os
+import mutagen
 from artist_label_mapping_module import get_artist_label
 from year_range_label_mapping_module import get_labels_for_year
 
@@ -16,36 +18,99 @@ from year_range_label_mapping_module import get_labels_for_year
 _song_label_cache = {}
 
 
-def get_or_assign_label(song_title, artist_name, available_labels, year=None):
+def check_and_extract_id3_image(song_file_path):
+    """
+    Check if song has album art and 'image' in comment tag.
+    If yes, extract and save as id3_image.png
+
+    Args:
+        song_file_path (str): Full path to the MP3 file
+
+    Returns:
+        bool: True if id3_image.png was created, False otherwise
+    """
+    try:
+        if not song_file_path or not os.path.exists(song_file_path):
+            return False
+
+        # Load audio file with mutagen
+        audio = mutagen.File(song_file_path)
+        if audio is None:
+            return False
+
+        # Check comment tag for 'image' keyword
+        comment = ''
+        if 'COMM::eng' in audio:
+            comment = str(audio['COMM::eng'])
+        elif 'COMM' in audio:
+            comment = str(audio['COMM'])
+
+        if 'image' not in comment.lower():
+            return False
+
+        # Look for APIC (album art) tag
+        image_data = None
+        for key in audio.keys():
+            if key.startswith('APIC'):
+                image_data = audio[key].data
+                break
+
+        if not image_data:
+            return False
+
+        # Save as id3_image.png
+        from PIL import Image
+        import io
+        image = Image.open(io.BytesIO(image_data))
+        if image.mode != 'RGBA':
+            image = image.convert('RGBA')
+        image.save('id3_image.png', 'PNG')
+
+        print(f"[ID3 PRIORITY] Extracted album art to id3_image.png from {os.path.basename(song_file_path)}")
+        return True
+
+    except Exception as e:
+        print(f"[ID3 PRIORITY] Error extracting ID3 image: {e}")
+        return False
+
+
+def get_or_assign_label(song_title, artist_name, available_labels, year=None, song_file_path=None):
     """
     Get cached label for a song, or assign and cache a new label.
 
     Priority order:
-    1. Check cache (ensures consistency across all popups)
-    2. If not in cache, check artist-specific mapping
-    3. If no artist mapping, filter labels by year range
-    4. If no year range, randomly select from all available labels
-    5. Cache and return the result
+    1. Check for ID3 album art (if song has 'image' in comment tag) - HIGHEST PRIORITY
+    2. Check cache (ensures consistency across all popups)
+    3. If not in cache, check artist-specific mapping
+    4. If no artist mapping, filter labels by year range
+    5. If no year range, randomly select from all available labels
+    6. Cache and return the result
 
     Args:
         song_title (str): The title of the song
         artist_name (str): The artist name
         available_labels (list): List of available label filenames to choose from
         year (int/str, optional): The year the song was created
+        song_file_path (str, optional): Full path to MP3 file for ID3 extraction
 
     Returns:
-        str: The label filename assigned to this song
+        str: The label filename assigned to this song, or "USE_ID3_IMAGE" if ID3 art found
     """
+    # PRIORITY 1: Check for ID3 album art (HIGHEST PRIORITY)
+    if song_file_path and check_and_extract_id3_image(song_file_path):
+        print(f"[ID3 PRIORITY] Using ID3 album art for '{song_title}'")
+        return "USE_ID3_IMAGE"
+
     # Create unique song identifier
     song_id = f"{song_title}||{artist_name}"
 
-    # Check cache first - this ensures consistency across all popups
+    # PRIORITY 2: Check cache first - this ensures consistency across all popups
     if song_id in _song_label_cache:
         label = _song_label_cache[song_id]
         print(f"[SHARED CACHE] Using cached label for '{song_title}': {label}")
         return label
 
-    # Not in cache - check for artist-specific label mapping
+    # PRIORITY 3: Not in cache - check for artist-specific label mapping
     artist_specific_label = get_artist_label(artist_name)
 
     if artist_specific_label and artist_specific_label in available_labels:

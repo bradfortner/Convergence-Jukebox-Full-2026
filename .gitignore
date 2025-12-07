@@ -64,3 +64,6 @@ nul
 jukebox_config.py
 clean_up_log.txt
 images/new_cutout_label.png
+
+# External tools
+mp3gain-win-1_3_4.exe

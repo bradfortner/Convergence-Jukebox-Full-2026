@@ -57,7 +57,7 @@ def combine_pngs(label_path, adaptor_path, output_path='final_record.png', size=
         final_image.paste(base_record, (0, 0), base_record)
 
         # Layer 2: Paste adapter in middle (centered with offset)
-        adaptor_x = (size[0] - adaptor.width) // 2 + 3  # +3 pixels horizontal offset
+        adaptor_x = (size[0] - adaptor.width) // 2 - 2  # -2 pixels horizontal offset
         adaptor_y = (size[1] - adaptor.height) // 2
         final_image.paste(adaptor, (adaptor_x, adaptor_y), adaptor)
 

@@ -122,11 +122,13 @@ def read_id3_tags(filename):
         tags['year'] = get_tag_text('TDRC', get_tag_text('TYER'))
         tags['comment'] = get_tag_text('COMM::eng', get_tag_text('COMM'))
 
-        # Check for album art
+        # Check for album art and extract image data
         tags['has_image'] = False
+        tags['image_data'] = None
         for key in audio.keys():
             if key.startswith('APIC'):
                 tags['has_image'] = True
+                tags['image_data'] = audio[key].data
                 break
 
         return tags

@@ -54,6 +54,12 @@ def write_id3_tags(filename, title, artist, year, genre, comment, image_path=Non
 
         # Write album art if provided
         if image_path and os.path.exists(image_path):
+            # Delete ALL existing APIC tags first
+            apic_keys_to_delete = [key for key in audio.keys() if key.startswith('APIC')]
+            for key in apic_keys_to_delete:
+                del audio[key]
+                logging.info(f"Deleted existing album art tag: {key}")
+
             with open(image_path, 'rb') as img_file:
                 image_data = img_file.read()
 
@@ -65,7 +71,7 @@ def write_id3_tags(filename, title, artist, year, genre, comment, image_path=Non
             else:
                 mime = 'image/png'  # Default to PNG
 
-            # Add album art
+            # Add new album art
             audio["APIC"] = APIC(
                 encoding=3,
                 mime=mime,
@@ -73,8 +79,8 @@ def write_id3_tags(filename, title, artist, year, genre, comment, image_path=Non
                 desc='Cover',
                 data=image_data
             )
-            logging.info(f"Added album art from {image_path}")
-            print(f"Added album art from {image_path}")
+            logging.info(f"Added new album art from {image_path}")
+            print(f"Added new album art from {image_path}")
 
         # Save tags to file
         audio.save(music_path)

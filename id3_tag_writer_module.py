@@ -7,28 +7,6 @@ import mutagen
 from mutagen.id3 import ID3, TIT2, TPE1, TALB, TCON, TDRC, COMM, APIC
 import os
 import logging
-import re
-
-def sanitize_genre(text):
-    """
-    Clean genre text to only contain A-Z, a-z, 0-9, and spaces
-
-    Args:
-        text: Genre string to sanitize
-
-    Returns:
-        str: Sanitized genre string
-    """
-    if not text or text == 'N/A':
-        return text
-
-    # Keep only alphanumeric characters and spaces
-    sanitized = re.sub(r'[^A-Za-z0-9 ]', '', str(text))
-
-    # Remove extra spaces
-    sanitized = ' '.join(sanitized.split())
-
-    return sanitized
 
 def write_id3_tags(filename, title, artist, year, genre, comment, image_path=None):
     """
@@ -66,14 +44,11 @@ def write_id3_tags(filename, title, artist, year, genre, comment, image_path=Non
             # Create new ID3 tag if none exists
             audio = ID3()
 
-        # Sanitize genre to A-Z, a-z, 0-9, and spaces only
-        clean_genre = sanitize_genre(genre)
-
-        # Write text tags
+        # Write text tags (genre is already sanitized on ConfirmationScreen)
         audio["TIT2"] = TIT2(encoding=3, text=title)  # Title
         audio["TPE1"] = TPE1(encoding=3, text=artist)  # Artist
         audio["TALB"] = TALB(encoding=3, text=title)  # Album (use title as album)
-        audio["TCON"] = TCON(encoding=3, text=clean_genre)  # Genre (sanitized)
+        audio["TCON"] = TCON(encoding=3, text=genre)  # Genre
         audio["TDRC"] = TDRC(encoding=3, text=year)  # Year
         audio["COMM"] = COMM(encoding=3, lang='eng', desc='', text=comment)  # Comment
 

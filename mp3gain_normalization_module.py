@@ -32,7 +32,7 @@ def normalize_mp3(filename):
         logging.info(f"Starting mp3gain normalization for {filename}")
 
         result = subprocess.run(
-            ["mp3gain", "-r", "-k", music_path],
+            ["mp3gain-win-1_3_4.exe", "-r", "-k", music_path],
             capture_output=True,
             text=True,
             check=True

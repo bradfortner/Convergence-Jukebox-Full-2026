@@ -9,49 +9,60 @@ import os
 import sys
 
 
-def combine_pngs(background_path, overlay_path, output_path='final_record.png', size=(250, 250)):
+def combine_pngs(label_path, adaptor_path, output_path='final_record.png', size=(250, 250), base_record_path='images/blank_record.png'):
     """
-    Combines two transparent PNG images and saves the result.
+    Combines three transparent PNG images and saves the result.
+    Layer order (bottom to top): blank_record.png, adaptor.png, new_cutout_label.png
 
     Parameters:
-    - background_path: Path to background PNG (bottom layer)
-    - overlay_path: Path to overlay PNG (top layer - adaptor)
+    - label_path: Path to label PNG (top layer)
+    - adaptor_path: Path to adaptor PNG (middle layer)
     - output_path: Output filename (default: 'final_record.png')
     - size: Output size as tuple (default: 250x250)
+    - base_record_path: Path to base blank record PNG (bottom layer)
 
     Returns:
     - True if successful, False otherwise
     """
     try:
         # Check if files exist
-        if not os.path.exists(background_path):
-            print(f"Error: Background file not found: {background_path}")
+        if not os.path.exists(label_path):
+            print(f"Error: Label file not found: {label_path}")
             return False
 
-        if not os.path.exists(overlay_path):
-            print(f"Error: Overlay file not found: {overlay_path}")
+        if not os.path.exists(adaptor_path):
+            print(f"Error: Adaptor file not found: {adaptor_path}")
             return False
 
-        # Open both images
-        background = Image.open(background_path).convert('RGBA')
-        overlay = Image.open(overlay_path).convert('RGBA')
+        if not os.path.exists(base_record_path):
+            print(f"Error: Base record file not found: {base_record_path}")
+            return False
 
-        # Resize background to target size
-        background = background.resize(size, Image.Resampling.LANCZOS)
+        # Open all three images
+        label = Image.open(label_path).convert('RGBA')
+        adaptor = Image.open(adaptor_path).convert('RGBA')
+        base_record = Image.open(base_record_path).convert('RGBA')
 
-        # Keep overlay at its original size (DO NOT resize to match background)
+        # Resize label and base_record to target size
+        label = label.resize(size, Image.Resampling.LANCZOS)
+        base_record = base_record.resize(size, Image.Resampling.LANCZOS)
+
+        # Keep adaptor at its original size (DO NOT resize to match background)
         # This makes the adapter appear bigger
 
         # Create final image at target size
         final_image = Image.new('RGBA', size, (0, 0, 0, 0))
 
-        # Paste adapter at the back (centered with offset)
-        overlay_x = (size[0] - overlay.width) // 2 + 3  # +3 pixels horizontal offset
-        overlay_y = (size[1] - overlay.height) // 2
-        final_image.paste(overlay, (overlay_x, overlay_y), overlay)
+        # Layer 1: Paste blank_record.png as base
+        final_image.paste(base_record, (0, 0), base_record)
 
-        # Paste label on top
-        final_image.paste(background, (0, 0), background)
+        # Layer 2: Paste adapter in middle (centered with offset)
+        adaptor_x = (size[0] - adaptor.width) // 2 + 3  # +3 pixels horizontal offset
+        adaptor_y = (size[1] - adaptor.height) // 2
+        final_image.paste(adaptor, (adaptor_x, adaptor_y), adaptor)
+
+        # Layer 3: Paste label on top
+        final_image.paste(label, (0, 0), label)
 
         # Save result
         final_image.save(output_path, 'PNG')
@@ -120,13 +131,14 @@ def display_image(image_path):
 
 if __name__ == "__main__":
     # Define paths
-    background_path = "images/new_cutout_label.png"
-    overlay_path = "images/adaptor.png"
+    label_path = "images/new_cutout_label.png"
+    adaptor_path = "images/adaptor.png"
+    base_record_path = "images/blank_record.png"
     output_path = "final_record.png"
 
-    # Combine images
+    # Combine images (3 layers: blank_record, adaptor, label)
     print("Combining images...")
-    success = combine_pngs(background_path, overlay_path, output_path, size=(250, 250))
+    success = combine_pngs(label_path, adaptor_path, output_path, size=(250, 250), base_record_path=base_record_path)
 
     if success:
         print("Displaying result...")

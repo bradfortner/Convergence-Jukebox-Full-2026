@@ -325,8 +325,20 @@ class FileDisplay:
             print("Already fetching data, please wait...")
             return
 
-        # Increment index with wraparound
-        self.discogs_result_index = (self.discogs_result_index + 1) % len(self.discogs_results)
+        # Increment index
+        self.discogs_result_index += 1
+
+        # Determine the start of the current range (v0.00.70)
+        # If max_results_limit = 10: range is 1-10 (indices 0-9), wrap to 0
+        # If max_results_limit = 20: range is 11-20 (indices 10-19), wrap to 10
+        # If max_results_limit = 30: range is 21-30 (indices 20-29), wrap to 20
+        range_start = max(0, self.max_results_limit - 10)
+
+        # Wrap around to the start of the current range when exceeding limit
+        if self.discogs_result_index >= len(self.discogs_results) or self.discogs_result_index >= self.max_results_limit:
+            self.discogs_result_index = range_start
+            print(f"Wrapping to start of current range: record {range_start + 1}")
+
         print(f"Cycling to Discogs result {self.discogs_result_index + 1} of {len(self.discogs_results)}")
 
         # Start fetching in background thread

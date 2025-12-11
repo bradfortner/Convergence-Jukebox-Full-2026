@@ -26,7 +26,7 @@ def write_id3_tags(filename, title, artist, year, genre, comment, image_path=Non
     """
     try:
         # Construct full path to music file
-        music_path = os.path.join('processed', filename)
+        music_path = os.path.join('Music', filename)
 
         # Check if file exists
         if not os.path.exists(music_path):
@@ -113,7 +113,7 @@ def read_id3_tags(filename):
         dict: Dictionary of tag values, or None if error
     """
     try:
-        music_path = os.path.join('processed', filename)
+        music_path = os.path.join('Music', filename)
 
         if not os.path.exists(music_path):
             logging.error(f"File not found: {music_path}")

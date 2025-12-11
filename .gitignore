@@ -39,6 +39,7 @@ Thumbs.db
 # Project specific
 music/
 rockabilly/
+cleaner_depreciated_code/
 *.mp3
 log.txt
 CurrentSongPlaying.txt

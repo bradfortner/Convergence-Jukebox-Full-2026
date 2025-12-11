@@ -9,7 +9,7 @@ import os
 import sys
 
 
-def combine_pngs(label_path, adaptor_path, output_path='final_record.png', size=(250, 250), base_record_path='images/blank_record.png'):
+def combine_pngs(label_path, adaptor_path, output_path='final_record.png', size=(250, 250), base_record_path='blank_record.png'):
     """
     Combines three transparent PNG images and saves the result.
     Layer order (bottom to top): blank_record.png, adaptor.png, new_cutout_label.png
@@ -131,9 +131,9 @@ def display_image(image_path):
 
 if __name__ == "__main__":
     # Define paths
-    label_path = "images/new_cutout_label.png"
-    adaptor_path = "images/adaptor.png"
-    base_record_path = "images/blank_record.png"
+    label_path = "new_cutout_label.png"
+    adaptor_path = "adaptor.png"
+    base_record_path = "blank_record.png"
     output_path = "final_record.png"
 
     # Combine images (3 layers: blank_record, adaptor, label)

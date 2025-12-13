@@ -26,7 +26,15 @@
       "Bash(curl:*)",
       "Bash(copy:*)",
       "Bash(cmd /c copy:*)",
-      "Bash(git clone:*)"
+      "Bash(git clone:*)",
+      "Bash(ls:*)",
+      "Bash(git checkout:*)",
+      "Bash(grep:*)",
+      "Bash(cmd /c \"type D:\\Convergence-Jukebox-Full-2026\\the_bands.txt | findstr /N /R .\"\" | findstr /R \"^[1-9]:\"\")",
+      "WebFetch(domain:web.archive.org)",
+      "Bash(cmd /c \"dir /b D:\\Convergence-Jukebox-Full-2026\\Music | findstr /i \"1910\"\")",
+      "Bash(cmd /c dir /b \"D:\\Convergence-Jukebox-Full-2026\\Music\")",
+      "Bash(cmd /c \"dir /b D:\\Convergence-Jukebox-Full-2026 | findstr /i Music\")"
     ],
     "deny": [],
     "ask": []

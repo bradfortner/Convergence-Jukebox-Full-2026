@@ -45,7 +45,9 @@ def check_and_extract_id3_image(song_file_path):
         elif 'COMM' in audio:
             comment = str(audio['COMM'])
 
-        if 'image' not in comment.lower():
+        # Check for 'image' keyword but exclude 'noimage' (which means DON'T use image)
+        comment_lower = comment.lower()
+        if 'image' not in comment_lower or 'noimage' in comment_lower:
             return False
 
         # Look for APIC (album art) tag

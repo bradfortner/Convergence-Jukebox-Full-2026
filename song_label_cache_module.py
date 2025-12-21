@@ -81,12 +81,13 @@ def get_or_assign_label(song_title, artist_name, available_labels, year=None, so
     Get cached label for a song, or assign and cache a new label.
 
     Priority order:
-    1. Check for ID3 album art (if song has 'image' in comment tag) - HIGHEST PRIORITY
-    2. Check cache (ensures consistency across all popups)
-    3. If not in cache, check artist-specific mapping
-    4. If no artist mapping, filter labels by year range
-    5. If no year range, randomly select from all available labels
-    6. Cache and return the result
+    1. Check for ID3 album art (if song has 'image' in comment tag)
+    2. Check for Christmas comment tag (if song has 'christmas' in comment tag)
+    3. Check cache (ensures consistency across all popups)
+    4. If not in cache, check artist-specific mapping
+    5. If no artist mapping, filter labels by year range
+    6. If no year range, randomly select from all available labels
+    7. Cache and return the result
 
     Args:
         song_title (str): The title of the song
@@ -106,13 +107,36 @@ def get_or_assign_label(song_title, artist_name, available_labels, year=None, so
     # Create unique song identifier
     song_id = f"{song_title}||{artist_name}"
 
-    # PRIORITY 2: Check cache first - this ensures consistency across all popups
+    # PRIORITY 2: Check for Christmas comment tag
+    if song_file_path and os.path.exists(song_file_path):
+        try:
+            audio = mutagen.File(song_file_path)
+            if audio is not None:
+                comment = ''
+                if 'COMM::eng' in audio:
+                    comment = str(audio['COMM::eng'])
+                elif 'COMM' in audio:
+                    comment = str(audio['COMM'])
+                
+                if 'christmas' in comment.lower():
+                    christmas_labels_dir = "record_labels/blank_record_labels_christmas"
+                    if os.path.isdir(christmas_labels_dir):
+                        christmas_labels = [f for f in os.listdir(christmas_labels_dir) if f.endswith('.png')]
+                        if christmas_labels:
+                            label = random.choice(christmas_labels)
+                            _song_label_cache[song_id] = label
+                            print(f"[CHRISTMAS PRIORITY] Using Christmas label for '{song_title}': {label}")
+                            return label
+        except Exception as e:
+            print(f"[CHRISTMAS PRIORITY] Error checking for Christmas tag: {e}")
+
+    # PRIORITY 3: Check cache first - this ensures consistency across all popups
     if song_id in _song_label_cache:
         label = _song_label_cache[song_id]
         print(f"[SHARED CACHE] Using cached label for '{song_title}': {label}")
         return label
 
-    # PRIORITY 3: Not in cache - check for artist-specific label mapping
+    # PRIORITY 4: Not in cache - check for artist-specific label mapping
     artist_specific_label = get_artist_label(artist_name)
 
     if artist_specific_label and artist_specific_label in available_labels:
@@ -120,14 +144,14 @@ def get_or_assign_label(song_title, artist_name, available_labels, year=None, so
         label = artist_specific_label
         print(f"[SHARED CACHE] Artist-specific label for '{artist_name}': {label}")
     else:
-        # No artist mapping - filter by year range
+        # PRIORITY 5: No artist mapping - filter by year range
         year_filtered_labels = get_labels_for_year(year, available_labels)
 
-        # Randomly select from year-filtered labels
+        # PRIORITY 6: Randomly select from year-filtered labels
         label = random.choice(year_filtered_labels)
         print(f"[SHARED CACHE] New song '{song_title}' (year: {year}) - randomly assigned: {label}")
 
-    # Cache the label for future use
+    # PRIORITY 7: Cache the label for future use
     _song_label_cache[song_id] = label
     return label
 

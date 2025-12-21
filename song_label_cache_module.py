@@ -123,9 +123,11 @@ def get_or_assign_label(song_title, artist_name, available_labels, year=None, so
                     if os.path.isdir(christmas_labels_dir):
                         christmas_labels = [f for f in os.listdir(christmas_labels_dir) if f.endswith('.png')]
                         if christmas_labels:
-                            label = random.choice(christmas_labels)
+                            label_filename = random.choice(christmas_labels)
+                            # Return a relative path to navigate from the standard dir to the christmas dir
+                            label = os.path.join('..', 'blank_record_labels_christmas', label_filename)
                             _song_label_cache[song_id] = label
-                            print(f"[CHRISTMAS PRIORITY] Using Christmas label for '{song_title}': {label}")
+                            print(f"[CHRISTMAS PRIORITY] Assigning Christmas label for '{song_title}': {label}")
                             return label
         except Exception as e:
             print(f"[CHRISTMAS PRIORITY] Error checking for Christmas tag: {e}")

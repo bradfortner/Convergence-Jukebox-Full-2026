@@ -1,17 +1,18 @@
 """
 CONVERGENCE JUKEBOX - PYGAME MIGRATION VERSION
-Version 0.90.64 - Fix Christmas Label Pathing
+Version 0.90.65 - Audio Normalization & Compression
 
-This version begins the migration from FreeSimpleGUI to pure Pygame.
+This version includes enhanced audio processing to normalize volume levels and compress dynamic range for a consistent listening experience.
 
-Migration Goals:
-- Eliminate Pygame/Tkinter z-order conflicts
-- Enable seamless rotating record popup integration
-- Create foundation for future touchscreen/arcade features
+Version 0.90.65 Changes:
+- ENABLED VLC Audio Compressor and Normalizer filters
+- ADDED specific settings for 'Radio Style' compression (4:1 ratio, -20dB threshold)
+- NORMALIZED volume between tracks to prevent loudness jumps
+- REMOVED duplicate "The" band entries (Dolly Parton, Loretta Lynn, Bobby Vinton) from the_bands.txt
 
 Version 0.90.64 Changes:
 - FIXED pathing for Christmas labels. The get_or_assign_label function now returns a relative path
-- for Christmas labels so that the main program can correctly locate them.
+for Christmas labels so that the main program can correctly locate them.
 
 Version 0.90.63 Changes:
 - ADDED Priority #2 for Christmas-themed labels
@@ -2224,9 +2225,9 @@ def draw_control_panel(screen):
     return exit_button_rect
 
 
-# ============================================================================
+# ============================================================================ 
 # SECTION 9: MAIN APPLICATION
-# ============================================================================
+# ============================================================================ 
 def main():
     """Main application entry point"""
 

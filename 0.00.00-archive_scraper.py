@@ -1,7 +1,23 @@
 """
 Archive.org Wayback Machine MP3 Scraper
 Version: 0.00.00
-Downloads MP3 files from archived web pages on the Wayback Machine
+
+Description:
+    This script is a specialized web scraper designed to download MP3 files from the 
+    Internet Archive (Wayback Machine). It is specifically configured to recover 
+    music from the archived version of 'mp3rockabilly.com' (circa Dec 2017).
+
+Key Features:
+    - Targeted Scraping: Pre-configured for a specific Wayback Machine URL.
+    - Multi-Source Extraction: Finds MP3 links in <a> tags, <audio> tags, <source> tags, 
+      embedded players, and JavaScript.
+    - Automatic Sanitization: Converts complex Wayback Machine URLs into clean, 
+      Windows-compatible filenames.
+    - Download Management:
+        - Downloads to a local 'rockabilly' folder.
+        - Skips files that already exist (resume capability).
+        - Implements delays between downloads to respect server limits.
+        - Displays real-time download progress.
 """
 
 import os

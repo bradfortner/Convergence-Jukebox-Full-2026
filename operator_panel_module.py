@@ -68,20 +68,20 @@ def display_operator_panel(screen):
                     highlighted_item_index = (highlighted_item_index + 1) % len(MENU_ITEMS)
                 elif event.key == pygame.K_s: # S key for selection
                     return MENU_ITEMS[highlighted_item_index] # Return selected item
-                elif event.key == pygame.K_1 or event.key == pygame.K_KP1:
-                    if len(MENU_ITEMS) >= 1: return MENU_ITEMS[0]
-                elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
-                    if len(MENU_ITEMS) >= 2: return MENU_ITEMS[1]
-                elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
-                    if len(MENU_ITEMS) >= 3: return MENU_ITEMS[2]
-                elif event.key == pygame.K_4 or event.key == pygame.K_KP4:
-                    if len(MENU_ITEMS) >= 4: return MENU_ITEMS[3]
-                elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
-                    if len(MENU_ITEMS) >= 5: return MENU_ITEMS[4]
-                elif event.key == pygame.K_6 or event.key == pygame.K_KP6:
-                    if len(MENU_ITEMS) >= 6: return MENU_ITEMS[5]
-                elif event.key == pygame.K_7 or event.key == pygame.K_KP7:
-                    if len(MENU_ITEMS) >= 7: return MENU_ITEMS[6]
+                elif event.key == pygame.K_1 or event.key == pygame.K_KP_1:
+                    if len(MENU_ITEMS) >= 1: highlighted_item_index = 0
+                elif event.key == pygame.K_2 or event.key == pygame.K_KP_2:
+                    if len(MENU_ITEMS) >= 2: highlighted_item_index = 1
+                elif event.key == pygame.K_3 or event.key == pygame.K_KP_3:
+                    if len(MENU_ITEMS) >= 3: highlighted_item_index = 2
+                elif event.key == pygame.K_4 or event.key == pygame.K_KP_4:
+                    if len(MENU_ITEMS) >= 4: highlighted_item_index = 3
+                elif event.key == pygame.K_5 or event.key == pygame.K_KP_5:
+                    if len(MENU_ITEMS) >= 5: highlighted_item_index = 4
+                elif event.key == pygame.K_6 or event.key == pygame.K_KP_6:
+                    if len(MENU_ITEMS) >= 6: highlighted_item_index = 5
+                elif event.key == pygame.K_7 or event.key == pygame.K_KP_7:
+                    if len(MENU_ITEMS) >= 7: highlighted_item_index = 6
 
         # Redraw panel content
         panel_surface.fill(BACKGROUND_COLOR) # Clear previous frame

@@ -68,11 +68,20 @@ def display_operator_panel(screen):
                     highlighted_item_index = (highlighted_item_index + 1) % len(MENU_ITEMS)
                 elif event.key == pygame.K_s: # S key for selection
                     return MENU_ITEMS[highlighted_item_index] # Return selected item
-                elif pygame.K_1 <= event.key <= pygame.K_7: # Number keys 1-7 for direct selection
-                    selected_num = int(pygame.key.name(event.key))
-                    if 1 <= selected_num <= len(MENU_ITEMS):
-                        return MENU_ITEMS[selected_num - 1] # Return selected item
-
+                elif event.key == pygame.K_1 or event.key == pygame.K_KP1:
+                    if len(MENU_ITEMS) >= 1: return MENU_ITEMS[0]
+                elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
+                    if len(MENU_ITEMS) >= 2: return MENU_ITEMS[1]
+                elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                    if len(MENU_ITEMS) >= 3: return MENU_ITEMS[2]
+                elif event.key == pygame.K_4 or event.key == pygame.K_KP4:
+                    if len(MENU_ITEMS) >= 4: return MENU_ITEMS[3]
+                elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
+                    if len(MENU_ITEMS) >= 5: return MENU_ITEMS[4]
+                elif event.key == pygame.K_6 or event.key == pygame.K_KP6:
+                    if len(MENU_ITEMS) >= 6: return MENU_ITEMS[5]
+                elif event.key == pygame.K_7 or event.key == pygame.K_KP7:
+                    if len(MENU_ITEMS) >= 7: return MENU_ITEMS[6]
 
         # Redraw panel content
         panel_surface.fill(BACKGROUND_COLOR) # Clear previous frame

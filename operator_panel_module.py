@@ -23,7 +23,7 @@ MENU_ITEMS = [
     "Change Control Panel Access Code",
     "Set Random Music Genres",
     "Turn Random Music On/Off",
-    "For Future Use",
+    "Turn Credits On/Off",
     "For Future Use",
     "More Selections",
     "Return To Jukebox",

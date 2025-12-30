@@ -79,7 +79,6 @@ Follow these steps to get the Convergence Jukebox up and running.
 For the application to run correctly, ensure the following files and directories are in place:
 
 -   `0.90.68-Convergence-Jukebox-Full-2026.py` (The main script)
--   `jukebox_config.json` (Configuration file)
 -   **`/music/`**: A directory containing its MP3 music files. The jukebox will scan this on first run.
 -   **`/images/`**: Contains all the required background and button images for the GUI.
 -   **`/fonts/`**: Contains the font files used for rendering text on record labels and the UI.

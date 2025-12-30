@@ -20,13 +20,13 @@ FONT_SIZE_MENU = 28
 FONT_SIZE_ITEM_NUMBER = 24
 
 MENU_ITEMS = [
+    "Change Control Panel Access Code",
     "Set Random Music Genres",
     "For Future Use",
     "For Future Use",
     "For Future Use",
-    "For Future Use",
-    "For Future Use",
     "More Selections",
+    "Return To Jukebox",
 ]
 
 # --- Main function for the operator panel ---

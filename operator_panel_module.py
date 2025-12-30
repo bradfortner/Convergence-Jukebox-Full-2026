@@ -22,7 +22,7 @@ FONT_SIZE_ITEM_NUMBER = 24
 MENU_ITEMS = [
     "Change Control Panel Access Code",
     "Set Random Music Genres",
-    "For Future Use",
+    "Turn Random Music On/Off",
     "For Future Use",
     "For Future Use",
     "More Selections",

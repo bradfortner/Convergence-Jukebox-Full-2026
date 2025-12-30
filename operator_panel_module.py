@@ -1,83 +1,97 @@
+# operator_panel_module.py
 
 import pygame
 import sys
+import time
 
-# Define colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GRAY = (100, 100, 100)
+# --- Constants for raspi-config style display ---
+PANEL_WIDTH = 800
+PANEL_HEIGHT = 500
+PANEL_POS_X = (1280 - PANEL_WIDTH) // 2
+PANEL_POS_Y = (720 - PANEL_HEIGHT) // 2
 
-def show_operator_panel(screen):
-    """
-    Displays the operator control panel as a modal-like window.
-    It takes over the event loop until it's explicitly closed.
-    """
-    panel_width = 800
-    panel_height = 600
-    panel_x = (screen.get_width() - panel_width) // 2
-    panel_y = (screen.get_height() - panel_height) // 2
+BACKGROUND_COLOR = (0, 0, 0) # Black background
+TEXT_COLOR = (255, 255, 255) # White text
+HIGHLIGHT_COLOR = (0, 150, 255) # Blue highlight
 
-    # Create a surface for the panel
-    panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
-    panel_surface.fill((0, 0, 0, 200)) # Semi-transparent black background
+FONT_PATH = "fonts/Montserrat-Bold.ttf" # Assuming this font exists
+FONT_SIZE_TITLE = 36
+FONT_SIZE_MENU = 28
+FONT_SIZE_ITEM_NUMBER = 24
 
-    panel_font_title = pygame.font.Font(None, 60)
-    panel_font_exit = pygame.font.Font(None, 40)
+MENU_ITEMS = [
+    "Set Random Music Genres",
+    "For Future Use",
+    "For Future Use",
+    "For Future Use",
+    "For Future Use",
+    "For Future Use",
+    "More Selections",
+]
 
-    title_text_surface = panel_font_title.render("Operator Control Panel", True, WHITE)
-    title_text_rect = title_text_surface.get_rect(center=(panel_width // 2, 50))
+# --- Main function for the operator panel ---
+def display_operator_panel(screen):
+    panel_surface = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
+    panel_surface.fill(BACKGROUND_COLOR)
 
-    exit_button_text_surface = panel_font_exit.render("EXIT (ESC)", True, WHITE)
-    exit_button_rect = exit_button_text_surface.get_rect(center=(panel_width // 2, panel_height - 50))
-    exit_button_padding = 20
-    exit_button_bg_rect = exit_button_rect.inflate(exit_button_padding * 2, exit_button_padding * 2)
+    # Load fonts
+    try:
+        title_font = pygame.font.Font(FONT_PATH, FONT_SIZE_TITLE)
+        menu_font = pygame.font.Font(FONT_PATH, FONT_SIZE_MENU)
+        item_num_font = pygame.font.Font(FONT_PATH, FONT_SIZE_ITEM_NUMBER)
+    except Exception:
+        # Fallback to default font if custom font not found
+        title_font = pygame.font.SysFont(None, FONT_SIZE_TITLE)
+        menu_font = pygame.font.SysFont(None, FONT_SIZE_MENU)
+        item_num_font = pygame.font.SysFont(None, FONT_SIZE_ITEM_NUMBER)
 
-    panel_active = True
-    while panel_active:
+
+    title_text = title_font.render("Operator Control Panel", True, TEXT_COLOR)
+    title_rect = title_text.get_rect(center=(PANEL_WIDTH // 2, 50))
+    panel_surface.blit(title_text, title_rect)
+
+    # Initial highlight
+    highlighted_item_index = 0
+
+    running = True
+    while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    panel_active = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1: # Left click
-                    # Adjust mouse position to panel's coordinate system
-                    mouse_x, mouse_y = event.pos
-                    relative_mouse_x = mouse_x - panel_x
-                    relative_mouse_y = mouse_y - panel_y
+                    return None # Exit panel without selection
+                elif event.key == pygame.K_UP:
+                    highlighted_item_index = (highlighted_item_index - 1) % len(MENU_ITEMS)
+                elif event.key == pygame.K_DOWN:
+                    highlighted_item_index = (highlighted_item_index + 1) % len(MENU_ITEMS)
+                elif event.key == pygame.K_s: # S key for selection
+                    return MENU_ITEMS[highlighted_item_index] # Return selected item
+                elif pygame.K_1 <= event.key <= pygame.K_7: # Number keys 1-7 for direct selection
+                    selected_num = int(pygame.key.name(event.key))
+                    if 1 <= selected_num <= len(MENU_ITEMS):
+                        return MENU_ITEMS[selected_num - 1] # Return selected item
 
-                    if exit_button_bg_rect.collidepoint(relative_mouse_x, relative_mouse_y):
-                        panel_active = False
 
-        # Clear panel surface
-        panel_surface.fill((0, 0, 0, 200)) # Semi-transparent black background
+        # Redraw panel content
+        panel_surface.fill(BACKGROUND_COLOR) # Clear previous frame
+        panel_surface.blit(title_text, title_rect)
 
-        # Draw exit button background
-        pygame.draw.rect(panel_surface, GRAY, exit_button_bg_rect, border_radius=10)
-        pygame.draw.rect(panel_surface, WHITE, exit_button_bg_rect, 3, border_radius=10) # White border
+        # Render menu items
+        for i, item in enumerate(MENU_ITEMS):
+            item_number_text = item_num_font.render(f"{i + 1}.", True, TEXT_COLOR)
+            item_number_rect = item_number_text.get_rect(topleft=(50, 120 + i * 40))
+            panel_surface.blit(item_number_text, item_number_rect)
 
-        # Draw title and exit text on the panel surface
-        panel_surface.blit(title_text_surface, title_text_rect)
-        panel_surface.blit(exit_button_text_surface, exit_button_rect)
+            color = HIGHLIGHT_COLOR if i == highlighted_item_index else TEXT_COLOR
+            menu_item_text = menu_font.render(item, True, color)
+            menu_item_rect = menu_item_text.get_rect(topleft=(item_number_rect.right + 10, 120 + i * 40))
+            panel_surface.blit(menu_item_text, menu_item_rect)
 
-        # Blit the panel surface onto the main screen
-        screen.blit(panel_surface, (panel_x, panel_y))
+
+        # Blit panel to main screen
+        screen.blit(panel_surface, (PANEL_POS_X, PANEL_POS_Y))
         pygame.display.flip()
 
-if __name__ == '__main__':
-    # For testing the panel directly
-    pygame.init()
-    SCREEN_WIDTH = 1280
-    SCREEN_HEIGHT = 720
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Operator Panel Test")
-
-    # Fill background for context
-    screen.fill((50, 50, 150)) # A blue background for testing
-
-    show_operator_panel(screen)
-    pygame.quit()
-    sys.exit()
+        time.sleep(0.01) # Small delay to prevent busy-waiting if event queue is empty

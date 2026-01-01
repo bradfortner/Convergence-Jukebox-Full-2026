@@ -544,3 +544,140 @@ def select_random_music_genres(screen, song_list, genre_flags_file_path):
         time.sleep(0.01)
 
     return False
+
+# --- Toggle Random Music Function ---
+def toggle_random_music(screen, current_setting):
+    """Display random music toggle screen with checkbox.
+
+    Args:
+        screen: Pygame screen surface
+        current_setting: Boolean - True if random music is enabled, False otherwise
+
+    Returns:
+        Boolean or None - New setting if saved, None if cancelled
+    """
+    panel_surface = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
+
+    # Load fonts
+    try:
+        title_font = pygame.font.Font(FONT_PATH, FONT_SIZE_TITLE)
+        label_font = pygame.font.Font(FONT_PATH, FONT_SIZE_MENU)
+        button_font = pygame.font.Font(FONT_PATH, FONT_SIZE_MENU)
+        instruction_font = pygame.font.Font(FONT_PATH, FONT_SIZE_MESSAGE)
+    except Exception:
+        title_font = pygame.font.SysFont(None, FONT_SIZE_TITLE)
+        label_font = pygame.font.SysFont(None, FONT_SIZE_MENU)
+        button_font = pygame.font.SysFont(None, FONT_SIZE_MENU)
+        instruction_font = pygame.font.SysFont(None, FONT_SIZE_MESSAGE)
+
+    # State variables
+    random_music_enabled = current_setting  # Local copy to modify
+    highlighted_index = 0  # 0 = checkbox, 1 = save button
+    total_items = 2
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type != pygame.KEYDOWN:
+                continue
+
+            # C key or ESC = Cancel
+            if event.key in (pygame.K_c, pygame.K_ESCAPE):
+                print("[RANDOM MUSIC] Cancelled by user")
+                return None
+
+            # S key = SELECT - Toggle checkbox OR save
+            elif event.key == pygame.K_s:
+                if highlighted_index == 0:
+                    # Checkbox is highlighted - toggle it
+                    random_music_enabled = not random_music_enabled
+                    print(f"[RANDOM MUSIC] Toggled to: {random_music_enabled}")
+                elif highlighted_index == 1:
+                    # Save button is highlighted - save and exit
+                    print(f"[RANDOM MUSIC] Saving setting: {random_music_enabled}")
+                    return random_music_enabled
+
+            # UP arrow - move highlight up
+            elif event.key == pygame.K_UP:
+                if highlighted_index > 0:
+                    highlighted_index -= 1
+
+            # DOWN arrow - move highlight down
+            elif event.key == pygame.K_DOWN:
+                if highlighted_index < total_items - 1:
+                    highlighted_index += 1
+
+        # --- Drawing ---
+        panel_surface.fill(BACKGROUND_COLOR)
+
+        # Draw title
+        title_text = title_font.render("Random Music Settings", True, TEXT_COLOR)
+        title_rect = title_text.get_rect(center=(PANEL_WIDTH // 2, 50))
+        panel_surface.blit(title_text, title_rect)
+
+        # Draw checkbox and label
+        checkbox_y = 150
+        checkbox_x = 150
+        checkbox_size = 30
+
+        # Checkbox is item 0
+        checkbox_highlighted = (highlighted_index == 0)
+
+        # Draw checkbox
+        checkbox_rect = pygame.Rect(checkbox_x, checkbox_y, checkbox_size, checkbox_size)
+        border_color = HIGHLIGHT_COLOR if checkbox_highlighted else TEXT_COLOR
+        pygame.draw.rect(panel_surface, border_color, checkbox_rect, 3)
+
+        # Checkbox fill if enabled
+        if random_music_enabled:
+            inner_rect = pygame.Rect(checkbox_x + 6, checkbox_y + 6, checkbox_size - 12, checkbox_size - 12)
+            pygame.draw.rect(panel_surface, HIGHLIGHT_COLOR, inner_rect)
+
+        # Draw label
+        label_color = HIGHLIGHT_COLOR if checkbox_highlighted else TEXT_COLOR
+        label_text = label_font.render("Play Random Music", True, label_color)
+        panel_surface.blit(label_text, (checkbox_x + checkbox_size + 20, checkbox_y))
+
+        # Draw explanation text
+        if random_music_enabled:
+            explain_text = "Random songs will play when no paid songs are queued"
+        else:
+            explain_text = "Only paid songs will play - jukebox silent when queue is empty"
+
+        explain_font = instruction_font
+        explain_render = explain_font.render(explain_text, True, TEXT_COLOR)
+        explain_rect = explain_render.get_rect(center=(PANEL_WIDTH // 2, 250))
+        panel_surface.blit(explain_render, explain_rect)
+
+        # Draw "Save Settings" button at bottom
+        button_y = PANEL_HEIGHT - 120
+        save_button_highlighted = (highlighted_index == 1)
+        button_color = HIGHLIGHT_COLOR if save_button_highlighted else TEXT_COLOR
+
+        save_button_text = button_font.render("Save Settings", True, button_color)
+        save_button_rect = save_button_text.get_rect(center=(PANEL_WIDTH // 2, button_y))
+        panel_surface.blit(save_button_text, save_button_rect)
+
+        # Draw instructions at bottom
+        instructions = [
+            "UP/DOWN: Navigate | SELECT: Toggle or Save",
+            "CORRECT: Cancel"
+        ]
+
+        inst_y = PANEL_HEIGHT - 70
+        for instruction in instructions:
+            inst_text = instruction_font.render(instruction, True, TEXT_COLOR)
+            inst_rect = inst_text.get_rect(center=(PANEL_WIDTH // 2, inst_y))
+            panel_surface.blit(inst_text, inst_rect)
+            inst_y += 25
+
+        # Blit panel to main screen
+        screen.blit(panel_surface, (PANEL_POS_X, PANEL_POS_Y))
+        pygame.display.flip()
+
+        time.sleep(0.01)
+
+    return None

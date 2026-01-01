@@ -3,10 +3,10 @@ CONVERGENCE JUKEBOX - PYGAME MIGRATION VERSION
 
 Version 0.90.79 - Fix Syntax Error (Misplaced Docstring)
 
-This version fixes a critical SyntaxError introduced in the previous version due to a misplaced triple-quote (""") that caused a large section of the code to be misinterpreted as a multi-line string.
+This version fixes a critical SyntaxError introduced in the previous version due to a misplaced triple-quote (\"\"\") that caused a large section of the code to be misinterpreted as a multi-line string.
 
 Version 0.90.79 Changes:
-- FIXED SyntaxError caused by a stray triple-quote (""") after the 'setup_files' function.
+- FIXED SyntaxError caused by a stray triple-quote (\"\"\") after the 'setup_files' function.
 - Ensures all code is correctly parsed and executed.
 
 Version 0.90.78 - Change Access Code UI (Step 1)

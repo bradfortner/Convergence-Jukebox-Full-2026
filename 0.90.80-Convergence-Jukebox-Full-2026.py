@@ -1,24 +1,18 @@
 """
 CONVERGENCE JUKEBOX - PYGAME MIGRATION VERSION
 
-Version 0.90.79 - Fix Syntax Error (Misplaced Docstring)
+Version 0.90.80 - Operator Panel: Change Access Code
 
-This version fixes a critical SyntaxError introduced in the previous version due to a misplaced triple-quote (\"\"\") that caused a large section of the code to be misinterpreted as a multi-line string.
+This version implements the full workflow for changing the operator access code. It also includes fixes for syntax errors introduced during development.
 
-Version 0.90.79 Changes:
-- FIXED SyntaxError caused by a stray triple-quote (\"\"\") after the 'setup_files' function.
-- Ensures all code is correctly parsed and executed.
-
-Version 0.90.78 - Change Access Code UI (Step 1)
-
-This version adds the first step in the 'Change Access Code' workflow. It introduces a new screen that prompts the operator to enter the current four-digit access code for verification.
-
-Version 0.90.78 Changes:
-- ADDED 'Enter Current Code' screen to operator panel module.
-- When "Change Access Code" is selected, the user is now prompted to enter the current code.
-- The entered code is validated; if correct, the panel closes and returns to the jukebox.
-- If incorrect, an error message is displayed.
-- Module: operator_panel_module.py
+Version 0.90.80 Changes:
+- ADDED multi-step UI for changing the access code in `operator_panel_module.py`.
+  - Prompts for the current code.
+  - Prompts for a new code.
+  - Prompts for confirmation of the new code.
+- MODIFIED main script to pass the current access code to the panel and receive the new code upon successful change.
+- The `SECRET_OPERATOR_CODE` variable in the main script is now updated with the new code.
+- FIXED multiple `SyntaxError` issues in the main script docstring caused by unescaped characters.
 
 Version 0.90.68 - Operator Code Update
 
@@ -4304,29 +4298,33 @@ def main():
     while running:
         # Handle control panel display
         if show_control_panel:
-            operator_action = display_operator_panel(screen)
-            if operator_action == "Change Control Panel Access Code":
-                print("Action: Change Control Panel Access Code")
-                # TODO: Implement access code change logic here
-            elif operator_action == "Set Random Music Genres":
+            # Pass the current code to the panel and get the result
+            result = display_operator_panel(screen, "".join(SECRET_OPERATOR_CODE))
+            
+            # Check if a new code was returned and update it
+            if result and len(result) == 4 and result.isdigit():
+                SECRET_OPERATOR_CODE = list(result)
+                print(f"SECRET CODE UPDATED TO: {result}")
+            
+            # Handle other menu actions that are not handled internally by the panel
+            elif result == "Set Random Music Genres":
                 print("Action: Set Random Music Genres")
                 # TODO: Implement genre setting logic here
-            elif operator_action == "Turn Random Music On/Off":
+            elif result == "Turn Random Music On/Off":
                 print("Action: Turn Random Music On/Off")
                 # TODO: Implement music on/off logic here
-            elif operator_action == "Turn Credits On/Off":
+            elif result == "Turn Credits On/Off":
                 print("Action: Turn Credits On/Off")
                 # TODO: Implement credits on/off logic here
-            elif operator_action == "More Selections":
+            elif result == "More Selections":
                 print("Action: More Selections (Next Page)")
                 # TODO: Implement more selections logic here
-            elif operator_action == "Return To Jukebox":
+            elif result == "Return To Jukebox":
                 print("Action: Return To Jukebox")
-                # No action needed, just close the panel
-            elif operator_action is None: # ESC was pressed
+            elif result is None: # ESC was pressed to exit the top-level menu
                 print("Control panel closed.")
             
-            show_control_panel = False # Panel always closes after a selection or exit
+            show_control_panel = False # Always close panel after an action
             continue
         # Update playback engine
         playback_engine.update()

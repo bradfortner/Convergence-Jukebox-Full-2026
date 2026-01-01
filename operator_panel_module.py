@@ -23,7 +23,7 @@ FONT_SIZE_ITEM_NUMBER = 24
 FONT_SIZE_MESSAGE = 24
 FONT_SIZE_INPUT = 32
 
-CURRENT_ACCESS_CODE = "7777"
+
 
 # --- Menu Definitions ---
 MENU_ITEMS = [
@@ -90,7 +90,7 @@ def draw_message(surface, message_font, text, color=MESSAGE_COLOR):
     surface.blit(message_text, message_rect)
 
 # --- Main function for the operator panel ---
-def display_operator_panel(screen):
+def display_operator_panel(screen, current_access_code):
     panel_surface = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
 
     # Load fonts
@@ -108,13 +108,14 @@ def display_operator_panel(screen):
         input_font = pygame.font.SysFont(None, FONT_SIZE_INPUT)
 
     # State management
-    panel_state = 'main'  # Can be 'main', 'security', or 'enter_current_code'
+    panel_state = 'main'
     highlighted_item_index = 0
     message = None
     message_timer = 0
     message_color = MESSAGE_COLOR
     
     code_buffer = []
+    new_code_buffer = []
 
     running = True
     while running:
@@ -126,18 +127,26 @@ def display_operator_panel(screen):
             if event.type != pygame.KEYDOWN:
                 continue
 
-            # Clear message on any key press, except in the 'enter_current_code' state
-            if message and panel_state != 'enter_current_code':
+            # Clear message on any key press
+            if message:
                 message = None
                 message_timer = 0
 
             if event.key == pygame.K_ESCAPE:
-                if panel_state == 'enter_current_code':
-                    panel_state = 'security' # Go back to security menu
+                if panel_state in ('enter_new_code', 'confirm_new_code'):
+                    panel_state = 'security'
                     highlighted_item_index = 0
                     code_buffer = []
+                    new_code_buffer = []
+                elif panel_state == 'enter_current_code':
+                    panel_state = 'security'
+                    highlighted_item_index = 0
+                    code_buffer = []
+                elif panel_state == 'security':
+                    panel_state = 'main'
+                    highlighted_item_index = 0
                 else:
-                    return "Return To Jukebox"
+                    return None # Return None on final exit
 
             # --- Main Menu State Logic ---
             if panel_state == 'main':
@@ -147,7 +156,7 @@ def display_operator_panel(screen):
                     highlighted_item_index = (highlighted_item_index + 1) % len(MENU_ITEMS)
                 elif event.key in (pygame.K_1, pygame.K_KP_1):
                     panel_state = 'security'
-                    highlighted_item_index = 0 # Reset for new menu
+                    highlighted_item_index = 0
                 elif event.key == pygame.K_s:
                     selected_item = MENU_ITEMS[highlighted_item_index]
                     if selected_item == "Security Settings":
@@ -155,13 +164,12 @@ def display_operator_panel(screen):
                         highlighted_item_index = 0
                     else:
                         return selected_item
-                # Numbered navigation for other items
                 elif event.key in (pygame.K_2, pygame.K_KP_2): return MENU_ITEMS[1]
                 elif event.key in (pygame.K_3, pygame.K_KP_3): return MENU_ITEMS[2]
                 elif event.key in (pygame.K_4, pygame.K_KP_4): return MENU_ITEMS[3]
                 elif event.key in (pygame.K_5, pygame.K_KP_5): return MENU_ITEMS[4]
                 elif event.key in (pygame.K_6, pygame.K_KP_6): return MENU_ITEMS[5]
-                elif event.key in (pygame.K_7, pygame.K_KP_7): return MENU_ITEMS[6]
+                elif event.key in (pygame.K_7, pygame.K_KP_7): return "Return To Jukebox"
 
 
             # --- Security Menu State Logic ---
@@ -178,15 +186,15 @@ def display_operator_panel(screen):
                     if selected_item == "Change Access Code":
                         panel_state = 'enter_current_code'
                         code_buffer = []
-                        message = None # Clear any previous messages
+                        message = None
                     elif selected_item == "Back To Control Panel":
                         panel_state = 'main'
-                        highlighted_item_index = 0 # Reset to top of main menu
+                        highlighted_item_index = 0
                     elif selected_item == "Exit To Jukebox":
                         return "Return To Jukebox"
 
-            # --- Enter Current Code State Logic ---
-            elif panel_state == 'enter_current_code':
+            # --- Code Input State Logic (Generic) ---
+            elif panel_state in ('enter_current_code', 'enter_new_code', 'confirm_new_code'):
                 num_map = {
                     pygame.K_0: '0', pygame.K_1: '1', pygame.K_2: '2', pygame.K_3: '3', pygame.K_4: '4',
                     pygame.K_5: '5', pygame.K_6: '6', pygame.K_7: '7', pygame.K_8: '8', pygame.K_9: '9',
@@ -198,17 +206,42 @@ def display_operator_panel(screen):
                 elif event.key == pygame.K_BACKSPACE and len(code_buffer) > 0:
                     code_buffer.pop()
 
-                # Check code when 4 digits are entered
+                # --- State-specific logic after 4 digits are entered ---
                 if len(code_buffer) == 4:
                     entered_code = "".join(code_buffer)
-                    if entered_code == CURRENT_ACCESS_CODE:
-                        print("Correct code entered. Returning to jukebox.")
-                        return "Return To Jukebox"
-                    else:
-                        message = "Invalid Code. Try again."
-                        message_color = ERROR_COLOR
-                        message_timer = time.time()
+                    
+                    if panel_state == 'enter_current_code':
+                        if entered_code == current_access_code:
+                            panel_state = 'enter_new_code'
+                            code_buffer = []
+                            message = "Enter New 4-Digit Code"
+                            message_color = MESSAGE_COLOR
+                            message_timer = time.time()
+                        else:
+                            message = "Invalid Code. Try again."
+                            message_color = ERROR_COLOR
+                            message_timer = time.time()
+                            code_buffer = []
+                    
+                    elif panel_state == 'enter_new_code':
+                        new_code_buffer = list(entered_code)
+                        panel_state = 'confirm_new_code'
                         code_buffer = []
+                        message = "Confirm New 4-Digit Code"
+                        message_color = MESSAGE_COLOR
+                        message_timer = time.time()
+
+                    elif panel_state == 'confirm_new_code':
+                        if entered_code == "".join(new_code_buffer):
+                            print("Access code changed successfully.")
+                            return entered_code # Return the new code
+                        else:
+                            message = "Codes do not match. Try again."
+                            message_color = ERROR_COLOR
+                            message_timer = time.time()
+                            panel_state = 'enter_new_code'
+                            code_buffer = []
+                            new_code_buffer = []
 
         # --- Drawing ---
         if panel_state == 'main':
@@ -217,6 +250,10 @@ def display_operator_panel(screen):
             draw_menu(panel_surface, title_font, menu_font, item_num_font, "Security Settings", SECURITY_MENU_ITEMS, highlighted_item_index)
         elif panel_state == 'enter_current_code':
             draw_input_screen(panel_surface, title_font, input_font, "Enter Current 4-Digit Code:", code_buffer)
+        elif panel_state == 'enter_new_code':
+            draw_input_screen(panel_surface, title_font, input_font, "Enter New 4-Digit Code:", code_buffer)
+        elif panel_state == 'confirm_new_code':
+            draw_input_screen(panel_surface, title_font, input_font, "Confirm New 4-Digit Code:", code_buffer)
 
         # Display message if it exists and hasn't expired
         if message and (time.time() - message_timer < 3):

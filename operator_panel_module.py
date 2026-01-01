@@ -338,3 +338,209 @@ def display_operator_panel(screen, current_access_code=None):
         pygame.display.flip()
 
         time.sleep(0.01)
+# --- Genre Selection Function ---
+def select_random_music_genres(screen, song_list, genre_flags_file_path):
+    """Display genre selection screen with checkboxes.
+
+    Args:
+        screen: Pygame screen surface
+        song_list: List of song dictionaries from MusicMasterSongList
+        genre_flags_file_path: Path to GenreFlagsList.txt
+
+    Returns:
+        True if genres were saved, False if cancelled
+    """
+    import json
+
+    # Extract all unique genres from song list
+    all_genres = set()
+    excluded_values = {'n/a', 'none', 'norandom', 'image', 'noimage'}  # Values to exclude (case-insensitive)
+
+    for song in song_list:
+        comment = song.get('comment', '')
+        if comment:
+            genre_tags = comment.split()
+            for tag in genre_tags:
+                cleaned_tag = tag.strip()
+                # Exclude empty strings, "N/A", and "None" (case-insensitive)
+                if cleaned_tag and cleaned_tag.lower() not in excluded_values:
+                    all_genres.add(cleaned_tag)
+
+    # Sort genres alphabetically
+    sorted_genres = sorted(all_genres)
+
+    if not sorted_genres:
+        print("[ERROR] No genres found in music collection")
+        return False
+
+    panel_surface = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
+
+    # Load fonts
+    try:
+        title_font = pygame.font.Font(FONT_PATH, FONT_SIZE_TITLE)
+        genre_font = pygame.font.Font(FONT_PATH, 22)  # Slightly smaller for genre list
+        button_font = pygame.font.Font(FONT_PATH, FONT_SIZE_MENU)
+        instruction_font = pygame.font.Font(FONT_PATH, FONT_SIZE_MESSAGE)
+    except Exception:
+        title_font = pygame.font.SysFont(None, FONT_SIZE_TITLE)
+        genre_font = pygame.font.SysFont(None, 22)
+        button_font = pygame.font.SysFont(None, FONT_SIZE_MENU)
+        instruction_font = pygame.font.SysFont(None, FONT_SIZE_MESSAGE)
+
+    # State variables
+    highlighted_index = 0
+    scroll_offset = 0
+    max_visible_items = 8  # Show 8 genres at a time (reduced to make room for button)
+
+    # Total items = all genres + 1 save button
+    total_items = len(sorted_genres) + 1
+    save_button_index = len(sorted_genres)  # Save button is last item
+
+    # Track checked genres in order of selection (FIFO queue)
+    checked_genres = []  # Max 4 items
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type != pygame.KEYDOWN:
+                continue
+
+            # C key or ESC = Cancel
+            if event.key in (pygame.K_c, pygame.K_ESCAPE):
+                print("[GENRE SELECT] Cancelled by user")
+                return False
+
+            # S key = SELECT - Toggle checkbox OR activate Save button
+            elif event.key == pygame.K_s:
+                if highlighted_index == save_button_index:
+                    # Save button is highlighted - save and exit
+                    save_list = ["null", "null", "null", "null"]
+                    for i, genre in enumerate(checked_genres):
+                        if i < 4:
+                            save_list[i] = genre
+
+                    try:
+                        with open(genre_flags_file_path, 'w') as f:
+                            json.dump(save_list, f)
+                        print(f"[GENRE SELECT] Saved genres: {checked_genres}")
+                        return True
+                    except Exception as e:
+                        print(f"[ERROR] Failed to save GenreFlagsList.txt: {e}")
+                        return False
+                else:
+                    # A genre is highlighted - toggle checkbox
+                    selected_genre = sorted_genres[highlighted_index]
+
+                    if selected_genre in checked_genres:
+                        # Uncheck
+                        checked_genres.remove(selected_genre)
+                    else:
+                        # Check
+                        if len(checked_genres) >= 4:
+                            # Remove oldest (first in list)
+                            removed = checked_genres.pop(0)
+                            print(f"[GENRE SELECT] Auto-unchecked oldest: {removed}")
+                        checked_genres.append(selected_genre)
+
+            # UP arrow - move highlight up
+            elif event.key == pygame.K_UP:
+                if highlighted_index > 0:
+                    highlighted_index -= 1
+                    # Adjust scroll if needed (only for genres, not button)
+                    if highlighted_index < save_button_index:
+                        if highlighted_index < scroll_offset:
+                            scroll_offset = highlighted_index
+
+            # DOWN arrow - move highlight down
+            elif event.key == pygame.K_DOWN:
+                if highlighted_index < total_items - 1:
+                    highlighted_index += 1
+                    # Adjust scroll if needed (only for genres, not button)
+                    if highlighted_index < save_button_index:
+                        if highlighted_index >= scroll_offset + max_visible_items:
+                            scroll_offset = highlighted_index - max_visible_items + 1
+
+        # --- Drawing ---
+        panel_surface.fill(BACKGROUND_COLOR)
+
+        # Draw title
+        title_text = title_font.render("Set Random Music Genres", True, TEXT_COLOR)
+        title_rect = title_text.get_rect(center=(PANEL_WIDTH // 2, 40))
+        panel_surface.blit(title_text, title_rect)
+
+        # Draw genre count info
+        count_text = instruction_font.render(f"Selected: {len(checked_genres)}/4", True, HIGHLIGHT_COLOR)
+        count_rect = count_text.get_rect(center=(PANEL_WIDTH // 2, 80))
+        panel_surface.blit(count_text, count_rect)
+
+        # Draw genre list with checkboxes
+        y_pos = 120
+        visible_genres = sorted_genres[scroll_offset:scroll_offset + max_visible_items]
+
+        for i, genre in enumerate(visible_genres):
+            actual_index = scroll_offset + i
+            is_highlighted = (actual_index == highlighted_index)
+            is_checked = genre in checked_genres
+
+            # Draw checkbox
+            checkbox_x = 50
+            checkbox_size = 20
+            checkbox_rect = pygame.Rect(checkbox_x, y_pos, checkbox_size, checkbox_size)
+
+            # Checkbox border
+            border_color = HIGHLIGHT_COLOR if is_highlighted else TEXT_COLOR
+            pygame.draw.rect(panel_surface, border_color, checkbox_rect, 2)
+
+            # Checkbox fill if checked
+            if is_checked:
+                inner_rect = pygame.Rect(checkbox_x + 4, y_pos + 4, checkbox_size - 8, checkbox_size - 8)
+                pygame.draw.rect(panel_surface, HIGHLIGHT_COLOR, inner_rect)
+
+            # Draw genre name
+            text_color = HIGHLIGHT_COLOR if is_highlighted else TEXT_COLOR
+            genre_text = genre_font.render(genre, True, text_color)
+            panel_surface.blit(genre_text, (checkbox_x + checkbox_size + 10, y_pos))
+
+            y_pos += 30
+
+        # Draw scroll indicators
+        if scroll_offset > 0:
+            up_arrow = instruction_font.render("^ More above ^", True, TEXT_COLOR)
+            panel_surface.blit(up_arrow, (PANEL_WIDTH // 2 - up_arrow.get_width() // 2, 100))
+
+        if scroll_offset + max_visible_items < len(sorted_genres):
+            down_arrow = instruction_font.render("v More below v", True, TEXT_COLOR)
+            panel_surface.blit(down_arrow, (PANEL_WIDTH // 2 - down_arrow.get_width() // 2, y_pos + 10))
+
+        # Draw "Save Genres" button at bottom
+        button_y = PANEL_HEIGHT - 100
+        save_button_highlighted = (highlighted_index == save_button_index)
+        button_color = HIGHLIGHT_COLOR if save_button_highlighted else TEXT_COLOR
+
+        save_button_text = button_font.render("Save Genres", True, button_color)
+        save_button_rect = save_button_text.get_rect(center=(PANEL_WIDTH // 2, button_y))
+        panel_surface.blit(save_button_text, save_button_rect)
+
+        # Draw instructions at bottom
+        instructions = [
+            "UP/DOWN: Navigate | SELECT: Check/Uncheck or Save",
+            "CORRECT: Cancel"
+        ]
+
+        inst_y = PANEL_HEIGHT - 60
+        for instruction in instructions:
+            inst_text = instruction_font.render(instruction, True, TEXT_COLOR)
+            inst_rect = inst_text.get_rect(center=(PANEL_WIDTH // 2, inst_y))
+            panel_surface.blit(inst_text, inst_rect)
+            inst_y += 25
+
+        # Blit panel to main screen
+        screen.blit(panel_surface, (PANEL_POS_X, PANEL_POS_Y))
+        pygame.display.flip()
+
+        time.sleep(0.01)
+
+    return False

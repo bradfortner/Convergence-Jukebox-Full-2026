@@ -295,7 +295,7 @@ from song_label_cache_module import get_or_assign_label
 from search_pygame_module import display_search_popup
 from metadata_progress_bar_module import MetadataProgressBar
 from the_bands_name_check_module import load_the_bands_data, apply_the_prefix
-from operator_panel_module import display_operator_panel
+from operator_panel_module import display_operator_panel, select_random_music_genres
 
 # ============================================================================ 
 # SECTION 2: CONSTANTS
@@ -2570,7 +2570,14 @@ def main():
                     print(f"[ERROR] Failed to save new access code")
             elif operator_action == "Set Random Music Genres":
                 print("Action: Set Random Music Genres")
-                # TODO: Implement genre setting logic here
+                # Call genre selection screen
+                genre_saved = select_random_music_genres(screen, song_list, GENRE_FLAGS_FILE_PATH)
+                if genre_saved:
+                    print("[SUCCESS] Genre filters updated - will apply on next random playlist generation")
+                    # Reload genre flags in the playback engine
+                    playback_engine.load_genre_flags()
+                else:
+                    print("[CANCELLED] Genre selection cancelled")
             elif operator_action == "Turn Random Music On/Off":
                 print("Action: Turn Random Music On/Off")
                 # TODO: Implement music on/off logic here

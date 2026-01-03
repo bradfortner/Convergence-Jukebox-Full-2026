@@ -339,13 +339,13 @@ def display_operator_panel(screen, current_access_code=None):
 
         time.sleep(0.01)
 # --- Genre Selection Function ---
-def select_random_music_genres(screen, song_list, genre_flags_file_path):
+def select_random_music_genres(screen, song_list, save_genre_flags_func):
     """Display genre selection screen with checkboxes.
 
     Args:
         screen: Pygame screen surface
         song_list: List of song dictionaries from MusicMasterSongList
-        genre_flags_file_path: Path to GenreFlagsList.txt
+        save_genre_flags_func: Callable function to save genre flags (takes list of 4 strings)
 
     Returns:
         True if genres were saved, False if cancelled
@@ -422,13 +422,12 @@ def select_random_music_genres(screen, song_list, genre_flags_file_path):
                         if i < 4:
                             save_list[i] = genre
 
-                    try:
-                        with open(genre_flags_file_path, 'w') as f:
-                            json.dump(save_list, f)
+                    # Call the provided save function
+                    if save_genre_flags_func(save_list):
                         print(f"[GENRE SELECT] Saved genres: {checked_genres}")
                         return True
-                    except Exception as e:
-                        print(f"[ERROR] Failed to save GenreFlagsList.txt: {e}")
+                    else:
+                        print(f"[ERROR] Failed to save genre flags")
                         return False
                 else:
                     # A genre is highlighted - toggle checkbox

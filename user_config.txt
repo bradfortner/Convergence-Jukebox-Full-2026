@@ -1,0 +1,19 @@
+{
+  "access_code": [
+    "7",
+    "7",
+    "7",
+    "7"
+  ],
+  "random_music_enabled": true,
+  "credits_enabled": true,
+  "year_range_enabled": true,
+  "year_range_start": 1961,
+  "year_range_end": 1962,
+  "genre_flags": [
+    "boomboygroups",
+    "null",
+    "null",
+    "null"
+  ]
+}

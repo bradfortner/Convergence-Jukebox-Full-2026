@@ -27,7 +27,7 @@ MENU_ITEMS = [
     "Set Random Music Genres",
     "Turn Random Music On/Off",
     "Turn Credits On/Off",
-    "For Future Use",
+    "Select Year Range",
     "More Selections",
     "Return To Jukebox",
 ]
@@ -818,3 +818,303 @@ def toggle_credits(screen, current_setting):
         time.sleep(0.01)
 
     return None
+
+
+# --- Select Year Range Function ---
+def select_year_range(screen, song_list, current_enabled, current_start, current_end):
+    """Display year range selection screen with dual spinners and checkbox.
+
+    Args:
+        screen: Pygame screen surface
+        song_list: List of song dictionaries from MusicMasterSongList
+        current_enabled: Boolean - True if year range filter is active
+        current_start: Integer - Current starting year
+        current_end: Integer - Current ending year
+
+    Returns:
+        Tuple or None - (enabled, start_year, end_year) if saved, None if cancelled
+    """
+    # Extract all unique years from song list
+    all_years = set()
+    for song in song_list:
+        year_str = song.get('year', '')
+        if year_str and year_str.isdigit():
+            year = int(year_str)
+            if year > 0:  # Skip invalid years
+                all_years.add(year)
+
+    # Sort years
+    sorted_years = sorted(all_years)
+
+    if not sorted_years:
+        print("[ERROR] No valid years found in music collection")
+        return None
+
+    min_year = min(sorted_years)
+    max_year = max(sorted_years)
+
+    panel_surface = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
+
+    # Load fonts
+    try:
+        title_font = pygame.font.Font(FONT_PATH, FONT_SIZE_TITLE)
+        label_font = pygame.font.Font(FONT_PATH, FONT_SIZE_MENU)
+        year_font = pygame.font.Font(FONT_PATH, 48)  # Large font for year display
+        button_font = pygame.font.Font(FONT_PATH, FONT_SIZE_MENU)
+        instruction_font = pygame.font.Font(FONT_PATH, FONT_SIZE_MESSAGE)
+    except Exception:
+        title_font = pygame.font.SysFont(None, FONT_SIZE_TITLE)
+        label_font = pygame.font.SysFont(None, FONT_SIZE_MENU)
+        year_font = pygame.font.SysFont(None, 48)
+        button_font = pygame.font.SysFont(None, FONT_SIZE_MENU)
+        instruction_font = pygame.font.SysFont(None, FONT_SIZE_MESSAGE)
+
+    # State variables
+    year_range_enabled = current_enabled
+
+    # Default to 1967 if not previously set or if previous setting is invalid
+    default_year = 1967 if 1967 in sorted_years else sorted_years[len(sorted_years) // 2]
+
+    # Use current settings if valid, otherwise default to 1967
+    if current_start in sorted_years and current_end in sorted_years:
+        start_year = current_start
+        end_year = current_end
+    else:
+        start_year = default_year
+        end_year = default_year
+
+    # Find indices in sorted_years list
+    start_year_index = sorted_years.index(start_year)
+    end_year_index = sorted_years.index(end_year)
+
+    highlighted_index = 0  # 0 = start year wheel, 1 = end year wheel, 2 = checkbox, 3 = save button
+    total_items = 4
+
+    # Track if left wheel has been changed (for auto-matching right wheel)
+    left_wheel_changed = False
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type != pygame.KEYDOWN:
+                continue
+
+            # C key or ESC = Cancel
+            if event.key in (pygame.K_c, pygame.K_ESCAPE):
+                print("[YEAR RANGE] Cancelled by user")
+                return None
+
+            # S key = SELECT - Confirm current item and move to next
+            elif event.key == pygame.K_s:
+                if highlighted_index == 0:
+                    # Left wheel - confirm and jump to right wheel
+                    highlighted_index = 1
+                    print(f"[YEAR RANGE] Start year confirmed: {start_year}, moving to end year")
+                elif highlighted_index == 1:
+                    # Right wheel - confirm and jump to checkbox
+                    highlighted_index = 2
+                    print(f"[YEAR RANGE] End year confirmed: {end_year}, moving to checkbox")
+                elif highlighted_index == 2:
+                    # Checkbox - toggle it
+                    year_range_enabled = not year_range_enabled
+                    print(f"[YEAR RANGE] Toggled to: {year_range_enabled}")
+                elif highlighted_index == 3:
+                    # Save button - save and exit
+                    print(f"[YEAR RANGE] Saving: enabled={year_range_enabled}, start={start_year}, end={end_year}")
+                    return (year_range_enabled, start_year, end_year)
+
+            # UP arrow - Increment year on current wheel
+            elif event.key == pygame.K_UP:
+                if highlighted_index == 0:
+                    # Left wheel - increment start year
+                    if start_year_index < len(sorted_years) - 1:
+                        start_year_index += 1
+                        start_year = sorted_years[start_year_index]
+                        # First change: auto-match right wheel
+                        if not left_wheel_changed:
+                            end_year = start_year
+                            end_year_index = start_year_index
+                            left_wheel_changed = True
+                        # After first change: ensure end >= start
+                        elif end_year < start_year:
+                            end_year = start_year
+                            end_year_index = start_year_index
+                        print(f"[YEAR RANGE] Start year: {start_year}")
+                elif highlighted_index == 1:
+                    # Right wheel - increment end year
+                    if end_year_index < len(sorted_years) - 1:
+                        end_year_index += 1
+                        end_year = sorted_years[end_year_index]
+                        print(f"[YEAR RANGE] End year: {end_year}")
+                elif highlighted_index == 2:
+                    # Navigate up from checkbox to right wheel
+                    highlighted_index = 1
+                elif highlighted_index == 3:
+                    # Navigate up from save button to checkbox
+                    highlighted_index = 2
+
+            # DOWN arrow - Decrement year on current wheel
+            elif event.key == pygame.K_DOWN:
+                if highlighted_index == 0:
+                    # Left wheel - decrement start year
+                    if start_year_index > 0:
+                        start_year_index -= 1
+                        start_year = sorted_years[start_year_index]
+                        # First change: auto-match right wheel
+                        if not left_wheel_changed:
+                            end_year = start_year
+                            end_year_index = start_year_index
+                            left_wheel_changed = True
+                        # After first change: don't auto-adjust
+                        print(f"[YEAR RANGE] Start year: {start_year}")
+                elif highlighted_index == 1:
+                    # Right wheel - decrement end year (but not below start year)
+                    if end_year_index > 0:
+                        new_index = end_year_index - 1
+                        new_year = sorted_years[new_index]
+                        if new_year >= start_year:
+                            end_year_index = new_index
+                            end_year = new_year
+                            print(f"[YEAR RANGE] End year: {end_year}")
+                        else:
+                            print(f"[YEAR RANGE] End year cannot be before start year")
+                elif highlighted_index == 2:
+                    # Navigate down from checkbox to save button
+                    highlighted_index = 3
+                elif highlighted_index == 3:
+                    # Already at bottom
+                    pass
+
+            # LEFT arrow - Move to previous item
+            elif event.key == pygame.K_LEFT:
+                if highlighted_index > 0:
+                    highlighted_index -= 1
+
+            # RIGHT arrow - Move to next item
+            elif event.key == pygame.K_RIGHT:
+                if highlighted_index < total_items - 1:
+                    highlighted_index += 1
+
+        # --- Drawing ---
+        panel_surface.fill(BACKGROUND_COLOR)
+
+        # Draw title
+        title_text = title_font.render("Select Year Range", True, TEXT_COLOR)
+        title_rect = title_text.get_rect(center=(PANEL_WIDTH // 2, 40))
+        panel_surface.blit(title_text, title_rect)
+
+        # Draw year spinners section
+        spinner_y = 120
+
+        # LEFT WHEEL - Start year spinner (item 0)
+        start_highlighted = (highlighted_index == 0)
+        start_color = HIGHLIGHT_COLOR if start_highlighted else TEXT_COLOR
+
+        start_year_text = year_font.render(str(start_year), True, start_color)
+        start_year_rect = start_year_text.get_rect(center=(PANEL_WIDTH // 2 - 120, spinner_y))
+        panel_surface.blit(start_year_text, start_year_rect)
+
+        # Draw up/down arrows for start year if highlighted
+        if start_highlighted:
+            up_arrow = instruction_font.render("▲", True, start_color)
+            down_arrow = instruction_font.render("▼", True, start_color)
+            panel_surface.blit(up_arrow, (start_year_rect.centerx - up_arrow.get_width() // 2, start_year_rect.top - 30))
+            panel_surface.blit(down_arrow, (start_year_rect.centerx - down_arrow.get_width() // 2, start_year_rect.bottom + 10))
+
+        # "through" text
+        through_text = label_font.render("through", True, TEXT_COLOR)
+        through_rect = through_text.get_rect(center=(PANEL_WIDTH // 2, spinner_y))
+        panel_surface.blit(through_text, through_rect)
+
+        # RIGHT WHEEL - End year spinner (item 1)
+        end_highlighted = (highlighted_index == 1)
+        end_color = HIGHLIGHT_COLOR if end_highlighted else TEXT_COLOR
+
+        end_year_text = year_font.render(str(end_year), True, end_color)
+        end_year_rect = end_year_text.get_rect(center=(PANEL_WIDTH // 2 + 120, spinner_y))
+        panel_surface.blit(end_year_text, end_year_rect)
+
+        # Draw up/down arrows for end year if highlighted
+        if end_highlighted:
+            up_arrow = instruction_font.render("▲", True, end_color)
+            down_arrow = instruction_font.render("▼", True, end_color)
+            panel_surface.blit(up_arrow, (end_year_rect.centerx - up_arrow.get_width() // 2, end_year_rect.top - 30))
+            panel_surface.blit(down_arrow, (end_year_rect.centerx - down_arrow.get_width() // 2, end_year_rect.bottom + 10))
+
+        # Draw checkbox and label (item 2)
+        checkbox_y = 250
+        checkbox_x = 150
+        checkbox_size = 30
+
+        checkbox_highlighted = (highlighted_index == 2)
+
+        # Draw checkbox
+        checkbox_rect = pygame.Rect(checkbox_x, checkbox_y, checkbox_size, checkbox_size)
+        border_color = HIGHLIGHT_COLOR if checkbox_highlighted else TEXT_COLOR
+        pygame.draw.rect(panel_surface, border_color, checkbox_rect, 3)
+
+        # Checkbox fill if enabled
+        if year_range_enabled:
+            inner_rect = pygame.Rect(checkbox_x + 6, checkbox_y + 6, checkbox_size - 12, checkbox_size - 12)
+            pygame.draw.rect(panel_surface, HIGHLIGHT_COLOR, inner_rect)
+
+        # Draw label
+        label_color = HIGHLIGHT_COLOR if checkbox_highlighted else TEXT_COLOR
+        label_text = label_font.render("Select Year Range", True, label_color)
+        panel_surface.blit(label_text, (checkbox_x + checkbox_size + 20, checkbox_y))
+
+        # Draw explanation text
+        if year_range_enabled:
+            explain_text = f"Random playlist will only include songs from {start_year} through {end_year}"
+        else:
+            explain_text = "All years will be included in random playlist"
+
+        explain_font = instruction_font
+        explain_render = explain_font.render(explain_text, True, TEXT_COLOR)
+        explain_rect = explain_render.get_rect(center=(PANEL_WIDTH // 2, 320))
+        panel_surface.blit(explain_render, explain_rect)
+
+        # Draw "Save Settings" button at bottom (item 3)
+        button_y = PANEL_HEIGHT - 120
+        save_button_highlighted = (highlighted_index == 3)
+        button_color = HIGHLIGHT_COLOR if save_button_highlighted else TEXT_COLOR
+
+        save_button_text = button_font.render("Save Settings", True, button_color)
+        save_button_rect = save_button_text.get_rect(center=(PANEL_WIDTH // 2, button_y))
+        panel_surface.blit(save_button_text, save_button_rect)
+
+        # Draw instructions at bottom
+        if highlighted_index == 0:
+            instructions = [
+                "UP/DOWN: Change Start Year | SELECT: Confirm and Move to End Year",
+                "LEFT/RIGHT: Navigate | CORRECT: Cancel"
+            ]
+        elif highlighted_index == 1:
+            instructions = [
+                "UP/DOWN: Change End Year | SELECT: Confirm and Move to Checkbox",
+                "LEFT/RIGHT: Navigate | CORRECT: Cancel"
+            ]
+        else:
+            instructions = [
+                "UP/DOWN or LEFT/RIGHT: Navigate | SELECT: Toggle or Save",
+                "CORRECT: Cancel"
+            ]
+
+        inst_y = PANEL_HEIGHT - 70
+        for instruction in instructions:
+            inst_text = instruction_font.render(instruction, True, TEXT_COLOR)
+            inst_rect = inst_text.get_rect(center=(PANEL_WIDTH // 2, inst_y))
+            panel_surface.blit(inst_text, inst_rect)
+            inst_y += 25
+
+        # Blit panel to main screen
+        screen.blit(panel_surface, (PANEL_POS_X, PANEL_POS_Y))
+        pygame.display.flip()
+
+        time.sleep(0.01)
+
+    return None
+

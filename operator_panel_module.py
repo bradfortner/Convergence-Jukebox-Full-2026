@@ -38,6 +38,16 @@ SECURITY_MENU_ITEMS = [
     "Exit To Jukebox",
 ]
 
+MORE_SELECTIONS_MENU_ITEMS = [
+    "For Future Use",
+    "For Future Use",
+    "For Future Use",
+    "For Future Use",
+    "For Future Use",
+    "More Selections",
+    "Return To Jukebox",
+]
+
 # --- Drawing Functions ---
 def draw_menu(surface, title_font, menu_font, item_num_font, title, items, highlighted_index):
     """Generic function to draw a menu screen."""
@@ -235,7 +245,7 @@ def display_operator_panel(screen, current_access_code=None):
         message_font = pygame.font.SysFont(None, FONT_SIZE_MESSAGE)
 
     # State management
-    panel_state = 'main'  # Can be 'main' or 'security'
+    panel_state = 'main'  # Can be 'main', 'security', or 'more_selections'
     highlighted_item_index = 0
     message = None
     message_timer = 0
@@ -272,6 +282,9 @@ def display_operator_panel(screen, current_access_code=None):
                     if selected_item == "Security Settings":
                         panel_state = 'security'
                         highlighted_item_index = 0
+                    elif selected_item == "More Selections":
+                        panel_state = 'more_selections'
+                        highlighted_item_index = 0
                     else:
                         return selected_item
                 # Numbered navigation for other items
@@ -284,7 +297,9 @@ def display_operator_panel(screen, current_access_code=None):
                 elif event.key in (pygame.K_5, pygame.K_KP_5):
                     return MENU_ITEMS[4]
                 elif event.key in (pygame.K_6, pygame.K_KP_6):
-                    return MENU_ITEMS[5]
+                    # Go to More Selections submenu
+                    panel_state = 'more_selections'
+                    highlighted_item_index = 0
                 elif event.key in (pygame.K_7, pygame.K_KP_7):
                     return MENU_ITEMS[6]
 
@@ -321,11 +336,38 @@ def display_operator_panel(screen, current_access_code=None):
                     elif selected_item == "Exit To Jukebox":
                         return "Return To Jukebox"
 
+            # --- More Selections Menu State Logic ---
+            elif panel_state == 'more_selections':
+                if event.key == pygame.K_UP:
+                    highlighted_item_index = (highlighted_item_index - 1) % len(MORE_SELECTIONS_MENU_ITEMS)
+                elif event.key == pygame.K_DOWN:
+                    highlighted_item_index = (highlighted_item_index + 1) % len(MORE_SELECTIONS_MENU_ITEMS)
+                elif event.key in (pygame.K_1, pygame.K_KP_1):
+                    highlighted_item_index = 0
+                elif event.key in (pygame.K_2, pygame.K_KP_2):
+                    highlighted_item_index = 1
+                elif event.key in (pygame.K_3, pygame.K_KP_3):
+                    highlighted_item_index = 2
+                elif event.key in (pygame.K_4, pygame.K_KP_4):
+                    highlighted_item_index = 3
+                elif event.key in (pygame.K_5, pygame.K_KP_5):
+                    highlighted_item_index = 4
+                elif event.key in (pygame.K_6, pygame.K_KP_6):
+                    highlighted_item_index = 5
+                elif event.key in (pygame.K_7, pygame.K_KP_7):
+                    highlighted_item_index = 6
+                elif event.key == pygame.K_s:
+                    selected_item = MORE_SELECTIONS_MENU_ITEMS[highlighted_item_index]
+                    # All items in More Selections submenu return to jukebox
+                    return "Return To Jukebox"
+
         # --- Drawing ---
         if panel_state == 'main':
             draw_menu(panel_surface, title_font, menu_font, item_num_font, "Operator Control Panel", MENU_ITEMS, highlighted_item_index)
         elif panel_state == 'security':
             draw_menu(panel_surface, title_font, menu_font, item_num_font, "Security Settings", SECURITY_MENU_ITEMS, highlighted_item_index)
+        elif panel_state == 'more_selections':
+            draw_menu(panel_surface, title_font, menu_font, item_num_font, "More Selections", MORE_SELECTIONS_MENU_ITEMS, highlighted_item_index)
 
         # Display message if it exists and hasn't expired
         if message and (time.time() - message_timer < 3):

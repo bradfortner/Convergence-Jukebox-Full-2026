@@ -271,7 +271,6 @@ logging.basicConfig(filename='clean_up_log.txt', level=logging.INFO, format='%(a
 
 # Initialize Pygame and global variables
 pygame.init()
-pygame.scrap.init()  # v0.00.29: Initialize clipboard support
 FONT = pygame.font.Font(None, 32)
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
@@ -4605,7 +4604,8 @@ def main():
     global PREFETCH_MANAGER
 
     screen = pygame.display.set_mode((1024, 600), pygame.RESIZABLE)
-    pygame.display.set_caption("Music File Cleaner v0.00.28")
+    pygame.display.set_caption("Music File Cleaner v0.00.29")
+    pygame.scrap.init()  # v0.00.29: Initialize clipboard support (requires display window)
 
     music_files = os.listdir('Music')
     if not music_files:

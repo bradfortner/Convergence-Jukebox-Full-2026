@@ -1,6 +1,6 @@
 """
 Music File Cleaner v0.00.29
-Fix EnhancedInputBox text editing functionality
+Fix EnhancedInputBox text editing and "Load 10 More" auto-advance bug
 
 CHANGELOG v0.00.29:
 - **FIXED ENHANCEDINPUTBOX TEXT EDITING**:
@@ -10,6 +10,13 @@ CHANGELOG v0.00.29:
   4. Replaced fragile PowerShell clipboard with pygame.scrap for reliable paste
   5. Added mouse drag selection support (click and drag to select text)
   6. All standard text editing operations now work correctly
+  7. Moved pygame.scrap.init() to after display creation (requires window context)
+
+- **FIXED "LOAD 10 MORE" AUTO-ADVANCE BUG**:
+  1. Fixed issue where clicking "Next Discogs File" at result 10 of 10 would auto-wrap to result 1
+  2. Now stops at the limit and shows "Load 10 More?" checkbox as intended
+  3. User must click checkbox to load additional results, preventing unwanted wrap-around
+  4. Clicking "Next Discogs File" at limit now displays message and stays at current result
 
 CHANGELOG v0.00.28:
 - **INCREASED AUTO-ADVANCE LIMIT**:
@@ -1263,8 +1270,16 @@ class FileDisplay:
         # If max_results_limit = 30: range is 21-30 (indices 20-29), wrap to 20
         range_start = max(0, self.max_results_limit - 10)
 
-        # Wrap around to the start of the current range when exceeding limit
-        if self.discogs_result_index >= len(self.discogs_results) or self.discogs_result_index >= self.max_results_limit:
+        # v0.00.29: Don't auto-wrap when reaching limit - stop and show "Load 10 More" checkbox
+        if self.discogs_result_index >= self.max_results_limit:
+            # At the limit - revert increment and show checkbox
+            self.discogs_result_index -= 1
+            print(f"Reached end of current batch (result {self.discogs_result_index + 1} of {self.max_results_limit})")
+            print(f"Click 'Load 10 More?' to load additional results, or continue to next file")
+            return
+
+        # Only wrap if we've exceeded available results (but not at limit)
+        if self.discogs_result_index >= len(self.discogs_results):
             self.discogs_result_index = range_start
             print(f"Wrapping to start of current range: record {range_start + 1}")
 

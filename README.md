@@ -114,6 +114,25 @@ python 0.90.68-Convergence-Jukebox-Full-2026.py
 
 On the first launch, the application will scan its `music/` directory and create the `MusicMasterSongList.txt` file. This may take a few moments, and a progress bar will be displayed. Subsequent launches will be much faster.
 
+### 5. Configuration File
+
+The application automatically creates a `user_config.txt` file on first launch with the following settings:
+
+**Access Control:**
+-   **access_code**: Operator panel security code (default: 7,7,7,7)
+
+**Playback Settings:**
+-   **random_music_enabled**: Toggle for random playlist playback (default: true). When disabled, only paid songs play.
+-   **credits_enabled**: Toggle for credit requirement (default: true). When disabled, users can select songs without inserting credits.
+
+**Filtering Options:**
+-   **year_range_enabled**: Toggle for year range filtering (default: false)
+-   **year_range_start**: Starting year for filtered songs (default: 1967)
+-   **year_range_end**: Ending year for filtered songs (default: 1967)
+-   **genre_flags**: Array of 4 genre filter slots (default: ['null', 'null', 'null', 'null'])
+
+This file is stored in JSON format and can be modified directly or through the Operator Panel (accessible with the operator code). The application will preserve your settings between launches.
+
 ## Operating Systems
 
 The application has been designed for cross-platform compatibility and is known to run on:

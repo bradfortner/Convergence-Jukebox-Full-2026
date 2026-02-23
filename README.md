@@ -64,7 +64,7 @@ The application is built on a robust Python foundation, using the powerful **VLC
 
 This project has a long and storied history, evolving from a simpler application in 2015 to the current, highly advanced Pygame version. The `depreciated_code` directory contains over 150 previous iterations, showcasing a development journey focused on bug fixing, feature enhancement, and a complete migration from `PySimpleGUI` to `Pygame` for greater graphical control.
 
-Version **0.90.68** represents the latest stable build, featuring numerous fixes for cross-platform compatibility, audio processing, UI layout, and race conditions in the playlist system.
+Version **0.91.14** represents the latest stable build, featuring numerous fixes for cross-platform compatibility, audio processing, UI layout, and race conditions in the playlist system.
 
 ## Getting Started
 
@@ -78,7 +78,7 @@ Follow these steps to get the Convergence Jukebox up and running.
 
 For the application to run correctly, ensure the following files and directories are in place:
 
--   `0.90.68-Convergence-Jukebox-Full-2026.py` (The main script)
+-   `0.91.14-Convergence-Jukebox-Full-2026.py` (The main script)
 -   **`/music/`**: A directory containing its MP3 music files. The jukebox will scan this on first run.
 -   **`/images/`**: Contains all the required background and button images for the GUI.
 -   **`/fonts/`**: Contains the font files used for rendering text on record labels and the UI.
@@ -109,7 +109,7 @@ pip install pygame python-vlc Pillow tinytag
 Once all prerequisites and files are in place, run the application from your terminal:
 
 ```bash
-python 0.90.68-Convergence-Jukebox-Full-2026.py
+python 0.91.14-Convergence-Jukebox-Full-2026.py
 ```
 
 On the first launch, the application will scan its `music/` directory and create the `MusicMasterSongList.txt` file. This may take a few moments, and a progress bar will be displayed. Subsequent launches will be much faster.

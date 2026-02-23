@@ -82,6 +82,9 @@ For the application to run correctly, ensure the following files and directories
 -   **`/music/`**: A directory containing its MP3 music files. The jukebox will scan this on first run.
 -   **`/images/`**: Contains all the required background and button images for the GUI.
 -   **`/fonts/`**: Contains the font files used for rendering text on record labels and the UI.
+-   **`/record_labels/`**: Contains subdirectories with 45 RPM record label templates for dynamic label generation.
+    -   **`/record_labels/blank_record_labels_christmas/`**: Record label templates for songs tagged with "christmas" in ID3 comments.
+    -   Additional subdirectories for era-appropriate labels based on song release years and artist assignments.
 -   **`/jukebox_required_audio_files/`**: Contains UI sound effects (`buzz.mp3`, `success.mp3`).
 -   **All Python Modules (`.py` files):** The application relies on a set of custom modules that must be in the same directory as the main script. The full list of required modules is:
     *   `artist_label_mapping_module.py`

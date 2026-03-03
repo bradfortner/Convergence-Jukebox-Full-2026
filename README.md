@@ -64,21 +64,22 @@ The application is built on a robust Python foundation, using the powerful **VLC
 
 This project has a long and storied history, evolving from a simpler application in 2015 to the current, highly advanced Pygame version. The `depreciated_code` directory contains over 150 previous iterations, showcasing a development journey focused on bug fixing, feature enhancement, and a complete migration from `PySimpleGUI` to `Pygame` for greater graphical control.
 
-Version **0.91.14** represents the latest stable build, featuring numerous fixes for cross-platform compatibility, audio processing, UI layout, and race conditions in the playlist system.
+Version **0.91.15** represents the latest stable build, featuring numerous fixes for cross-platform compatibility, audio processing, UI layout, and race conditions in the playlist system.
 
 ## Getting Started
 
 Follow these steps to get the Convergence Jukebox up and running.
 
 ### 1. Prerequisites
--   **Python 3.7+**
+-   **Python 3.9+** (3.11+ recommended)
 -   **VLC (VideoLAN Media Player):** The full VLC application must be installed on your system, as this project's audio engine depends on its libraries. Download it from [videolan.org](https://www.videolan.org/vlc/).
+-   **Hardware:** See [Hardware Requirements](#hardware-requirements) section above for minimum specs
 
 ### 2. Required Files & Directories
 
 For the application to run correctly, ensure the following files and directories are in place:
 
--   `0.91.14-Convergence-Jukebox-Full-2026.py` (The main script)
+-   `0.91.15-Convergence-Jukebox-Full-2026.py` (The main script)
 -   **`/music/`**: A directory containing its MP3 music files. The jukebox will scan this on first run.
 -   **`/images/`**: Contains all the required background and button images for the GUI.
 -   **`/fonts/`**: Contains the font files used for rendering text on record labels and the UI.
@@ -112,7 +113,7 @@ pip install pygame python-vlc Pillow tinytag
 Once all prerequisites and files are in place, run the application from your terminal:
 
 ```bash
-python 0.91.14-Convergence-Jukebox-Full-2026.py
+python 0.91.15-Convergence-Jukebox-Full-2026.py
 ```
 
 On the first launch, the application will scan its `music/` directory and create the `MusicMasterSongList.txt` file. This may take a few moments, and a progress bar will be displayed. Subsequent launches will be much faster.
@@ -127,6 +128,9 @@ The application automatically creates a `user_config.txt` file on first launch w
 **Playback Settings:**
 -   **random_music_enabled**: Toggle for random playlist playback (default: true). When disabled, only paid songs play.
 -   **credits_enabled**: Toggle for credit requirement (default: true). When disabled, users can select songs without inserting credits.
+
+**Display Settings:**
+-   **popup_animation_enabled**: Toggle for the 45 RPM rotating record idle animation (default: true). When disabled, the rotating record will not appear during idle playback.
 
 **Filtering Options:**
 -   **year_range_enabled**: Toggle for year range filtering (default: false)
@@ -144,5 +148,24 @@ The application has been designed for cross-platform compatibility and is known 
 -   **Linux**
 
 The code includes specific logic to handle filesystem differences, ensuring a consistent experience across operating systems.
+
+## Hardware Requirements
+
+### Minimum Requirements
+
+**⚠️ Raspberry Pi 5 or higher is required for this version.**
+
+The graphical interface, particularly the rotating record animation during playback and idle screensaver, requires sufficient CPU power to render smoothly. Testing on Raspberry Pi 4 shows CPU usage at 94% with animations running at 1/10 speed, making it unsuitable for production use.
+
+**Recommended Desktop/Laptop Specs:**
+-   **CPU**: Intel i5/i7 or AMD Ryzen 5/7 (or equivalent)
+-   **RAM**: 4GB minimum, 8GB recommended
+-   **Storage**: SSD recommended for faster startup
+-   **GPU**: Integrated graphics sufficient
+
+**Raspberry Pi Deployment:**
+-   **Minimum**: Raspberry Pi 5 (8GB RAM recommended)
+-   **Power Supply**: Official 5V/5A USB-C PSU (do not use undersized power supplies)
+-   **Storage**: UHS-II microSD card (Samsung Pro, SanDisk Extreme) - at least 32GB
 
 ---

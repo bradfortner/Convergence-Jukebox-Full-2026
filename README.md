@@ -19,6 +19,7 @@ The application is built on a robust Python foundation, using the powerful **VLC
 -   **Automatic Music Library Scanning:** On first launch, the application scans its `/music` directory to build a master song list (`MusicMasterSongList.txt`) from your MP3 files.
 -   **ID3 Tag Extraction:** Uses `TinyTag` to read metadata (Title, Artist, Year, Album, Comment, Duration) from each MP3.
 -   **Intelligent Rescanning:** Only regenerates the master song list if it detects a change in the number of MP3 files, ensuring fast startup times.
+-   **Automatic Library Updates:** When files are added to or deleted from the `/music` directory, the library is automatically rescanned and updated on the next application reboot.
 -   **Metadata Progress Bar:** Displays a graphical progress bar while scanning the music library for the first time.
 -   **Artist Name Correction:** Includes a module (`the_bands_name_check_module.py`) to automatically apply the "The" prefix to band names like "Beatles" or "Rolling Stones" for correct display.
 
@@ -32,7 +33,10 @@ The application is built on a robust Python foundation, using the powerful **VLC
 -   **Info Screen:** A dedicated panel shows the "Now Playing" song, a list of up to 10 "Upcoming Selections," and the number of credits.
 -   **Operator Panel:** A hidden panel accessible via a specific key combination (code `7777`) for advanced controls.
 
-### Keyboard Controls & Navigation
+### External Keypad, Keyboard Controls & Navigation
+
+**Building Your Own External Keypad:** Instructions for building a custom external keypad controller can be found at [www.convergencejukebox.com](https://www.convergencejukebox.com).
+
 -   **Page Navigation:** Use the **Left** and **Right Arrow Keys** to move between pages of song selections.
 -   **Song Selection:** This is a two-step process:
     1.  Press a **lowercase letter key (a, b, or c)** to select a column.
@@ -51,6 +55,7 @@ The application is built on a robust Python foundation, using the powerful **VLC
 ### Dynamic Record Label Generation
 -   **On-the-Fly Label Creation:** Generates unique 45 RPM record labels for each song using the `Pillow` library, rendering the song title and artist directly onto a blank label template.
 -   **ID3 Album Art Priority:** If a song's ID3 comment tag contains the word `image`, the system will extract the embedded album art and use it as the record label, overriding all other rules.
+-   **Real 45 RPM Label Images:** The code includes hooks to store actual photographs of original 45 RPM record labels in a music file's Album Art ID3 tag. When available, these authentic label images are extracted and displayed as the 45 RPM animation during playback. Learn more about tagging your collection at [www.convergencejukebox.com](https://www.convergencejukebox.com).
 -   **Christmas Label Priority:** If a song's ID3 comment tag contains `christmas`, a random label from the `/record_labels/blank_record_labels_christmas/` directory is used.
 -   **Artist & Year-Based Logic:** Assigns specific record labels to artists (from `RecordLabelAssignList.txt`) or selects an era-appropriate label based on the song's year (from `YearRangeLabelList.txt`).
 -   **Shared Caching:** Caches the assigned label for each song to ensure consistency across different popups and reduce redundant processing.
@@ -68,11 +73,32 @@ Version **0.91.15** represents the latest stable build, featuring numerous fixes
 
 ## Getting Started
 
-Follow these steps to get the Convergence Jukebox up and running.
+### Windows Users: Download Pre-Packaged Executable
+
+**Version 0.91.15** is available as a free Windows download with everything pre-packaged. No Python installation, command line, or package managers required.
+
+**Download here:** [https://drive.google.com/file/d/17HmcqSLqOJLPnBh0k8oWTpbi2xnLnhU6/view?usp=sharing](https://drive.google.com/file/d/17HmcqSLqOJLPnBh0k8oWTpbi2xnLnhU6/view?usp=sharing)
+
+**Installation:**
+1. Download the WinZip extractable file from the link above
+2. Extract the contents to a folder such as `C:\ConvergenceJukebox`
+3. Install the **64-bit version of VLC media player** from [videolan.org](https://www.videolan.org/vlc/) — this is the only outside requirement
+4. Add your MP3 files to the `/music` folder (public domain tracks are included so it's playable right away)
+5. Double-click `ConvergenceJukebox.exe` to launch
+
+On first launch, the app scans your music folder and builds the master song list — a progress bar is shown during the scan. Subsequent launches are much faster.
+
+**Hardware:** Runs on any 64-bit Windows 10 or 11 machine. Tested and confirmed on a Celeron N4020 dual-core with no dedicated GPU — virtually any modern PC or laptop will handle it with full animation enabled.
+
+---
+
+### Python Users: Manual Installation
+
+Follow these steps to set up Convergence Jukebox from source code.
 
 ### 1. Prerequisites
 -   **Python 3.9+** (3.11+ recommended)
--   **VLC (VideoLAN Media Player):** The full VLC application must be installed on your system, as this project's audio engine depends on its libraries. Download it from [videolan.org](https://www.videolan.org/vlc/).
+-   **VLC (VideoLAN Media Player):** The full VLC application must be installed on your system, as this project's audio engine depends on its libraries. **For Windows installations, the full 64-bit version of VLC is required to operate correctly.** Download it from [videolan.org](https://www.videolan.org/vlc/).
 -   **Hardware:** See [Hardware Requirements](#hardware-requirements) section above for minimum specs
 
 ### 2. Required Files & Directories
@@ -156,6 +182,8 @@ The code includes specific logic to handle filesystem differences, ensuring a co
 **⚠️ Raspberry Pi 5 or higher is required for this version.**
 
 The graphical interface, particularly the rotating record animation during playback and idle screensaver, requires sufficient CPU power to render smoothly. Testing on Raspberry Pi 4 shows CPU usage at 94% with animations running at 1/10 speed, making it unsuitable for production use.
+
+**Note:** The code works on Raspberry Pi 4 and below with the 45 RPM animation mode disabled. Use the Operator Control Panel to turn off the animation for compatible operation on lower-spec hardware.
 
 **Recommended Desktop/Laptop Specs:**
 -   **CPU**: Intel i5/i7 or AMD Ryzen 5/7 (or equivalent)

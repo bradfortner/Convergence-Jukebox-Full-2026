@@ -177,23 +177,30 @@ The code includes specific logic to handle filesystem differences, ensuring a co
 
 ## Hardware Requirements
 
-### Minimum Requirements
+### Windows Desktop/Laptop
 
-**⚠️ Raspberry Pi 5 or higher is required for this version.**
+**Runs on any 64-bit Windows 10 or 11 machine.** The application has been tested and confirmed to run with full animation enabled on a **Celeron N4020 dual-core with no dedicated GPU** — virtually any modern PC or laptop will handle it without issue.
 
-The graphical interface, particularly the rotating record animation during playback and idle screensaver, requires sufficient CPU power to render smoothly. Testing on Raspberry Pi 4 shows CPU usage at 94% with animations running at 1/10 speed, making it unsuitable for production use.
-
-**Note:** The code works on Raspberry Pi 4 and below with the 45 RPM animation mode disabled. Use the Operator Control Panel to turn off the animation for compatible operation on lower-spec hardware.
-
-**Recommended Desktop/Laptop Specs:**
+**Recommended Specs:**
 -   **CPU**: Intel i5/i7 or AMD Ryzen 5/7 (or equivalent)
 -   **RAM**: 4GB minimum, 8GB recommended
 -   **Storage**: SSD recommended for faster startup
 -   **GPU**: Integrated graphics sufficient
 
-**Raspberry Pi Deployment:**
--   **Minimum**: Raspberry Pi 5 (8GB RAM recommended)
--   **Power Supply**: Official 5V/5A USB-C PSU (do not use undersized power supplies)
--   **Storage**: UHS-II microSD card (Samsung Pro, SanDisk Extreme) - at least 32GB
+### Raspberry Pi Deployment
+
+**All Raspberry Pi models (Pi 1 through Pi 5) are supported.**
+
+-   **Pi 1-4 with Animation Disabled**: Simply turn off the 45 RPM animation in the Operator Panel for smooth performance on lower-spec hardware.
+-   **Pi 5 (Recommended)**: Recommended if you want to run the animation enabled for the full visual experience.
+
+**Recommended Setup:**
+-   **Pi 5 (8GB RAM recommended)** for animation enabled
+-   **Official 5V/5A USB-C PSU** (do not use undersized power supplies)
+-   **UHS-II microSD card** (Samsung Pro, SanDisk Extreme) - at least 32GB
+
+### Linux
+
+Linux is supported via the Python version of Convergence Jukebox. The full source code and setup instructions are available on GitHub at [https://github.com/bradfortner/Convergence-Jukebox-Full-2026](https://github.com/bradfortner/Convergence-Jukebox-Full-2026)
 
 ---

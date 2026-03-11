@@ -372,7 +372,7 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
         font_button = pygame.font.Font(None, FONT_SIZE_BUTTON + 20)
         font_header = pygame.font.Font(None, FONT_SIZE_HEADER + 20)
         font_result = pygame.font.Font(None, FONT_SIZE_RESULT + 20)
-    except:
+    except Exception:
         font_button = pygame.font.SysFont('arial', FONT_SIZE_BUTTON)
         font_header = pygame.font.SysFont('arial', FONT_SIZE_HEADER)
         font_result = pygame.font.SysFont('arial', FONT_SIZE_RESULT)
@@ -391,7 +391,7 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
         try:
             logo_image = pygame.image.load(logo_path)
             logo_surf = pygame.transform.scale(logo_image, (439, 226))
-        except:
+        except Exception:
             pass
 
     # Load magnifying glass icon
@@ -401,7 +401,7 @@ def display_search_popup(search_type: str, title_sorted_list: List[Dict],
         try:
             magglass_image = pygame.image.load(magglass_path)
             magglass_surf = pygame.transform.scale(magglass_image, (25, 25))
-        except:
+        except Exception:
             pass
 
     # Main event loop

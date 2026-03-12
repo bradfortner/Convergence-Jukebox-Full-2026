@@ -4,11 +4,12 @@ Loads year-range-to-label mappings from YearRangeLabelList.txt and provides look
 """
 import os
 import ast
+from typing import Optional, Union
 
 # Module-level storage for year range mappings
-_year_range_mappings = []
+_year_range_mappings: list = []
 
-def _load_year_range_mappings():
+def _load_year_range_mappings() -> None:
     """Load year range mappings from YearRangeLabelList.txt at module import time"""
     global _year_range_mappings
 
@@ -49,7 +50,7 @@ def _load_year_range_mappings():
         print(f"[YEAR RANGE MAPPING] Error loading {file_path}: {e}")
         _year_range_mappings = []
 
-def get_labels_for_year(year, available_labels):
+def get_labels_for_year(year: Optional[Union[int, str]], available_labels: list[str]) -> list[str]:
     """
     Get the list of valid labels for a specific year based on year range mappings.
 

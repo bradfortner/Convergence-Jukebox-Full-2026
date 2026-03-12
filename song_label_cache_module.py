@@ -8,17 +8,20 @@ of which popup module displays it.
 """
 import random
 import os
+import io
 import mutagen
+from typing import Optional, Union
+from PIL import Image
 from artist_label_mapping_module import get_artist_label
 from year_range_label_mapping_module import get_labels_for_year
 
 
 # Module-level cache to maintain consistent label assignments per song
 # Maps "song_title||artist_name" to selected label filename
-_song_label_cache = {}
+_song_label_cache: dict[str, str] = {}
 
 
-def check_and_extract_id3_image(song_file_path):
+def check_and_extract_id3_image(song_file_path: str) -> bool:
     """
     Check if song has album art and 'image' in comment tag.
     If yes, extract and save as id3_image.png
@@ -61,8 +64,6 @@ def check_and_extract_id3_image(song_file_path):
             return False
 
         # Save as id3_image.png
-        from PIL import Image
-        import io
         image = Image.open(io.BytesIO(image_data))
         if image.mode != 'RGBA':
             image = image.convert('RGBA')
@@ -76,7 +77,7 @@ def check_and_extract_id3_image(song_file_path):
         return False
 
 
-def get_or_assign_label(song_title, artist_name, available_labels, year=None, song_file_path=None):
+def get_or_assign_label(song_title: str, artist_name: str, available_labels: list[str], year: Optional[Union[int, str]] = None, song_file_path: Optional[str] = None) -> str:
     """
     Get cached label for a song, or assign and cache a new label.
 
@@ -158,7 +159,7 @@ def get_or_assign_label(song_title, artist_name, available_labels, year=None, so
     return label
 
 
-def clear_cache():
+def clear_cache() -> None:
     """
     Clear the song-to-label cache only if it exceeds 50 songs.
 
@@ -177,7 +178,7 @@ def clear_cache():
         print(f"[SHARED CACHE] Cache size OK ({cache_size} songs) - not clearing")
 
 
-def get_cache_size():
+def get_cache_size() -> int:
     """
     Get the current number of songs in the cache.
 

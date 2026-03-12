@@ -3,6 +3,7 @@
 import pygame
 import sys
 import time
+from typing import Optional, Union, Callable
 
 # --- Constants ---
 PANEL_WIDTH = 800
@@ -49,7 +50,7 @@ MORE_SELECTIONS_MENU_ITEMS = [
 ]
 
 # --- Drawing Functions ---
-def draw_menu(surface, title_font, menu_font, item_num_font, title, items, highlighted_index):
+def draw_menu(surface: pygame.Surface, title_font: pygame.font.Font, menu_font: pygame.font.Font, item_num_font: pygame.font.Font, title: str, items: list[str], highlighted_index: int) -> None:
     """Generic function to draw a menu screen."""
     surface.fill(BACKGROUND_COLOR)
     
@@ -69,14 +70,14 @@ def draw_menu(surface, title_font, menu_font, item_num_font, title, items, highl
         menu_item_rect = menu_item_text.get_rect(topleft=(item_number_rect.right + 10, 120 + i * 40))
         surface.blit(menu_item_text, menu_item_rect)
 
-def draw_message(surface, message_font, text):
+def draw_message(surface: pygame.Surface, message_font: pygame.font.Font, text: str) -> None:
     """Draw a temporary message at the bottom of the panel."""
     message_text = message_font.render(text, True, MESSAGE_COLOR)
     message_rect = message_text.get_rect(center=(PANEL_WIDTH // 2, PANEL_HEIGHT - 40))
     surface.blit(message_text, message_rect)
 
 # --- Change Access Code Function ---
-def change_access_code(screen, current_code):
+def change_access_code(screen: pygame.Surface, current_code: list[str]) -> Optional[list[str]]:
     """Three-step workflow to change the operator access code.
 
     Args:
@@ -220,7 +221,7 @@ def change_access_code(screen, current_code):
     return None
 
 # --- Main function for the operator panel ---
-def display_operator_panel(screen, current_access_code=None):
+def display_operator_panel(screen: pygame.Surface, current_access_code: Optional[list[str]] = None) -> Optional[Union[str, tuple[str, list[str]]]]:
     """Display operator panel with menu options.
 
     Args:
@@ -390,7 +391,7 @@ def display_operator_panel(screen, current_access_code=None):
 
         time.sleep(0.01)
 # --- Genre Selection Function ---
-def select_random_music_genres(screen, song_list, save_genre_flags_func):
+def select_random_music_genres(screen: pygame.Surface, song_list: list[dict], save_genre_flags_func: Callable[[list[str]], bool]) -> bool:
     """Display genre selection screen with checkboxes.
 
     Args:
@@ -401,8 +402,6 @@ def select_random_music_genres(screen, song_list, save_genre_flags_func):
     Returns:
         True if genres were saved, False if cancelled
     """
-    import json
-
     # Extract all unique genres from song list
     all_genres = set()
     excluded_values = {'n/a', 'none', 'norandom', 'image', 'noimage'}  # Values to exclude (case-insensitive)
@@ -596,7 +595,7 @@ def select_random_music_genres(screen, song_list, save_genre_flags_func):
     return False
 
 # --- Toggle Random Music Function ---
-def toggle_random_music(screen, current_setting):
+def toggle_random_music(screen: pygame.Surface, current_setting: bool) -> Optional[bool]:
     """Display random music toggle screen with checkbox.
 
     Args:
@@ -733,7 +732,7 @@ def toggle_random_music(screen, current_setting):
     return None
 
 # --- Toggle Credits Function ---
-def toggle_credits(screen, current_setting):
+def toggle_credits(screen: pygame.Surface, current_setting: bool) -> Optional[bool]:
     """Display credits toggle screen with checkbox.
 
     Args:
@@ -871,7 +870,7 @@ def toggle_credits(screen, current_setting):
 
 
 # --- Select Year Range Function ---
-def select_year_range(screen, song_list, current_enabled, current_start, current_end):
+def select_year_range(screen: pygame.Surface, song_list: list[dict], current_enabled: bool, current_start: int, current_end: int) -> Optional[tuple[bool, int, int]]:
     """Display year range selection screen with dual spinners and checkbox.
 
     Args:
@@ -1170,7 +1169,7 @@ def select_year_range(screen, song_list, current_enabled, current_start, current
 
 
 # --- Toggle Popup Animation Function ---
-def toggle_popup_animation(screen, current_setting):
+def toggle_popup_animation(screen: pygame.Surface, current_setting: bool) -> Optional[bool]:
     """Display 45 RPM animation toggle screen with checkbox.
 
     Args:

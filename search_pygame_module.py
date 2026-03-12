@@ -13,7 +13,7 @@ Features:
 import pygame
 import os
 import time
-from typing import List, Dict, Optional, Tuple, Any
+from typing import List, Dict, Optional
 
 # ============================================================================
 # CONSTANTS

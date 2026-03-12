@@ -1,6 +1,6 @@
 import os
 
-def load_the_bands_data():
+def load_the_bands_data() -> set[str]:
     """Load the_bands.txt
 
     Returns:
@@ -22,7 +22,7 @@ def load_the_bands_data():
     return the_bands_set
 
 
-def apply_the_prefix(artist_name, the_bands_set):
+def apply_the_prefix(artist_name: str, the_bands_set: set[str]) -> str:
     """Check if artist needs 'The' prefix
 
     Args:

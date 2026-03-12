@@ -5,7 +5,7 @@ Displays a pygame progress bar in a separate thread during MP3 metadata generati
 
 import pygame
 import threading
-from typing import Optional, Callable
+from typing import Optional
 
 
 class MetadataProgressBar:
@@ -64,7 +64,7 @@ class MetadataProgressBar:
             self.running = False
             return False
 
-    def _run(self):
+    def _run(self) -> None:
         """
         Main progress bar loop (runs in separate thread).
         """
@@ -89,7 +89,7 @@ class MetadataProgressBar:
         finally:
             self.running = False
 
-    def _draw(self):
+    def _draw(self) -> None:
         """
         Draw the progress bar UI.
         """
@@ -151,7 +151,7 @@ class MetadataProgressBar:
         except Exception as e:
             print(f"Error drawing progress bar: {e}")
 
-    def _handle_events(self):
+    def _handle_events(self) -> None:
         """
         Handle pygame events.
         """
@@ -165,7 +165,7 @@ class MetadataProgressBar:
         except Exception as e:
             print(f"Error handling events: {e}")
 
-    def update(self, current_count: int, current_file: str):
+    def update(self, current_count: int, current_file: str) -> None:
         """
         Update the progress bar with new values.
 
@@ -176,7 +176,7 @@ class MetadataProgressBar:
         self.current_count = current_count
         self.current_file = current_file
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the progress bar thread.
         """
@@ -187,7 +187,7 @@ class MetadataProgressBar:
                 self.thread.join(timeout=2)
             print("Metadata progress bar stopped")
 
-    def close(self):
+    def close(self) -> None:
         """
         Alias for stop() for convenience.
         """

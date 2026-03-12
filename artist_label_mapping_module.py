@@ -7,13 +7,14 @@ This module provides a way to assign specific record labels to specific artists
 """
 import os
 import ast
+from typing import Optional
 
 
 # Module-level dictionary to store artist -> label mappings
-_artist_label_mapping = {}
+_artist_label_mapping: dict[str, str] = {}
 
 
-def load_artist_label_mapping(file_path="RecordLabelAssignList.txt"):
+def load_artist_label_mapping(file_path: str = "RecordLabelAssignList.txt") -> dict[str, str]:
     """
     Load artist-to-label mappings from file and convert to dictionary.
 
@@ -63,7 +64,7 @@ def load_artist_label_mapping(file_path="RecordLabelAssignList.txt"):
         return {}
 
 
-def get_artist_label(artist_name):
+def get_artist_label(artist_name: str) -> Optional[str]:
     """
     Get the assigned label for a specific artist.
 
@@ -85,7 +86,7 @@ def get_artist_label(artist_name):
     return None
 
 
-def get_mapping_count():
+def get_mapping_count() -> int:
     """
     Get the number of artists currently mapped.
 
